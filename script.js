@@ -12,9 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const allSteps = [
         { stepKey: 'step1', title: "Assess the Issue", mainInstruction: "Review the information below based on your survey selection. When you have finished, click 'Next'.", conditional: 'always' },
         { stepKey: 'step2', title: "Power Down the DSP Stack", mainInstruction: "Locate the two rack-mounted red rocker switches near the DSP equipment stack. Turn OFF both switches. Wait for all indicator lights on the DSPs to fully extinguish (may take several seconds).", conditional: 'always' },
-        { stepKey: 'step3', title: "Power Down the Crestron DM64x64 Matrix Switch", mainInstruction: "Locate the Crestron DM64x64 matrix switch in the AV rack. Unplug both redundant power cables from the rear of the unit (both must be disconnected to power cycle completely). Wait a minimum of 10 seconds.", conditional: 'videoOrAudioOnly' },
+        { stepKey: 'step3', title: "Power Down the Crestron DM64x64 Matrix Switch", mainInstruction: "Locate the Crestron DM64x64 matrix switch in the AV rack. Unplug redundant power cables from the rear of the unit (both must be disconnected to power cycle completely). Wait a minimum of 10 seconds.", conditional: 'videoOrAudioOnly' },
         { stepKey: 'step4', title: "Reboot the Crestron Control Processor", mainInstruction: "Locate the Crestron Control Processor. Using the front panel menu and navigation buttons, select the Reboot option and confirm execution. Visually confirm the reboot process has initiated.", conditional: 'always' },
-        { stepKey: 'step5', title: "Restore Power to the Crestron DM64x64 Matrix Switch", mainInstruction: "Reconnect both redundant power cables to the Crestron DM64x64 matrix switch. Verify start-up sequence via status LEDs or front panel display.", conditional: 'videoOrAudioOnly' },
+        { stepKey: 'step5', title: "Restore Power to the Crestron DM64x64 Matrix Switch", mainInstruction: "Reconnect redundant power cables to the Crestron DM64x64 matrix switch. Verify start-up sequence via status LEDs or front panel display.", conditional: 'videoOrAudioOnly' },
         { stepKey: 'step6', title: "Power Up the DSP Stack", mainInstruction: "Return to the DSP stack. Turn ON both red rocker switches and confirm the units power up.", conditional: 'always' },
         { stepKey: 'step7', title: "Wait 15 Minutes — No User Interaction", mainInstruction: "Do not touch or operate any touch panels or control interfaces during this period. This waiting period is critical. Click the button below to start the timer.", conditional: 'always', hasTimer: true },
         { stepKey: 'step8', title: "Confirm DSP Status", mainInstruction: "After 15 minutes, verify that all DSP units display normal green indicator lights.", conditional: 'always' },
@@ -103,9 +103,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Filter steps based on issue
         const isVideoAudio = state.currentUserIssue === 'video' || state.currentUserIssue === 'audio';
-        state.stepsToShow = allSteps.filter(step => {
+        let filteredSteps = allSteps.filter(step => {
             return step.conditional === 'always' || (isVideoAudio && step.conditional === 'videoOrAudioOnly');
         });
+
+        // If ONLY video issue is selected, remove all DSP and audio-related steps by their key
+        if (state.currentUserIssue === 'video') {
+            const stepsToRemove = ['step2', 'step6', 'step8', 'step9'];
+            filteredSteps = filteredSteps.filter(step => !stepsToRemove.includes(step.stepKey));
+            
+            const step1 = filteredSteps.find(step => step.stepKey === 'step1');
+            if (step1) {
+                step1.mainInstruction = "Have you thoroughly troubleshot the device and endpoint??";
+            }
+        } else if (state.currentUserIssue === 'mic') {
+            const stepsToRemove = ['step3', 'step8', 'step9'];
+            filteredSteps = filteredSteps.filter(step => !stepsToRemove.includes(step.stepKey));
+        }
+        
+        state.stepsToShow = JSON.parse(JSON.stringify(filteredSteps)); // Deep copy
 
         // Transition to step screen
         surveyScreen.style.display = 'none';
