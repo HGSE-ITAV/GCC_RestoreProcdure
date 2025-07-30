@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const stepsToRemove = ['step2', 'step6', 'step8', 'step9'];
             filteredSteps = filteredSteps.filter(step => !stepsToRemove.includes(step.stepKey));
         } else if (state.currentUserIssue === 'mic') {
-            const stepsToRemove = ['step3', 'step8', 'step9'];
+            const stepsToRemove = ['step3', 'step4', 'step8', 'step9', 'step10', 'step11'];
             filteredSteps = filteredSteps.filter(step => !stepsToRemove.includes(step.stepKey));
         }
         
