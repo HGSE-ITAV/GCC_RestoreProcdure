@@ -3,175 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GCC_RestoreProcdure</title>
+    <title>GCC Restore Procedure</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#004a7f">
+    <meta name="theme-color" content="#A51C30">
 </head>
 <body>
     <header>
-        <h1>GCC Restore Procdure</h1>
-        <p class="purpose">To restore normal system operation when touch panels are unresponsive, sluggish, or when system faults cannot be explained through standard troubleshooting.</p>
-        <div class="header-meta">
-            <span><i class="fas fa-clock"></i> Estimated Time: 20 minutes</span>
-        </div>
+        <h1>GCC Restore Procedure</h1>
+        <p class="purpose">A guided tool to restore normal system operation for the conference center.</p>
     </header>
 
-    <div style="text-align: center; padding: 20px;">
-        <img src="qr.png" alt="QR Code to install this app" style="width: 200px; height: 200px;">
-    </div>
+    <div id="app">
+        <!-- Survey Screen -->
+        <div id="survey-screen">
+            <h2><i class="fas fa-tasks"></i> Select Your Issue</h2>
+            <p>Please select the primary issue you are experiencing to begin the recovery process.</p>
+            <form id="issue-form">
+                <div class="toggle-group">
+                    <input type="radio" id="issue-video" name="issue" value="video" required>
+                    <label for="issue-video">Video Issues</label>
 
-    <div class="important-note">
-        <p><strong>Important:</strong> Follow all steps in order without skipping or rushing. If the procedure is interrupted or incomplete, restart from Step 2.</p>
-    </div>
+                    <input type="radio" id="issue-audio" name="issue" value="audio">
+                    <label for="issue-audio">Program Audio Issues</label>
 
-    <main id="checklist">
-        <section id="step1" class="step">
-            <div class="step-header">
-                <input type="checkbox" id="step1-check">
-                <label for="step1-check"><h2><i class="fas fa-tasks"></i> Step 1: Assess the Issue</h2></label>
-            </div>
-            <div class="step-content">
-                <p>If the issue is related to video source/input/output routing, and you have thoroughly troubleshot the device and endpoint, include the Crestron DM64x64 matrix switch in the reboot sequence (follow all steps below, including Steps 3 and 5).</p>
-                <p>If the problem is not related to video routing, proceed through the checklist and skip Steps 3 and 5.</p>
-                <div class="video-issue-toggle">
-                    <label for="video-issue">Is the issue video-related?</label>
-                    <input type="checkbox" id="video-issue">
+                    <input type="radio" id="issue-touch" name="issue" value="touch">
+                    <label for="issue-touch">Touch Panel/Control Issues</label>
+
+                    <input type="radio" id="issue-mic" name="issue" value="mic">
+                    <label for="issue-mic">Microphone Issues</label>
                 </div>
-            </div>
-        </section>
-
-        <section id="step2" class="step">
-            <div class="step-header">
-                <input type="checkbox" id="step2-check">
-                <label for="step2-check"><h2><i class="fas fa-power-off"></i> Step 2: Power Down the DSP Stack</h2></label>
-            </div>
-            <div class="step-content">
-                <p>Locate the two rack-mounted red rocker switches near the DSP equipment stack.</p>
-                <p>Turn OFF both switches.</p>
-                <p>Wait for all indicator lights on the DSPs to fully extinguish (may take several seconds).</p>
-            </div>
-        </section>
-
-        <section id="step3" class="step conditional-step">
-            <div class="step-header">
-                <input type="checkbox" id="step3-check">
-                <label for="step3-check"><h2><i class="fas fa-plug"></i> Step 3: (If Instructed) Power Down the Crestron DM64x64 Matrix Switch</h2></label>
-            </div>
-            <div class="step-content">
-                <p>Locate the Crestron DM64x64 matrix switch in the AV rack.</p>
-                <p>Unplug both redundant power cables from the rear of the DM64x64 unit (both must be disconnected to power cycle completely).</p>
-                <p>Wait a minimum of 10 seconds to ensure full power-down.</p>
-            </div>
-        </section>
-
-        <section id="step4" class="step">
-            <div class="step-header">
-                <input type="checkbox" id="step4-check">
-                <label for="step4-check"><h2><i class="fas fa-sync-alt"></i> Step 4: Reboot the Crestron Control Processor</h2></label>
-            </div>
-            <div class="step-content">
-                <p>Locate the Crestron Control Processor.</p>
-                <p>Using the front panel menu and navigation buttons, select the Reboot option and confirm execution.</p>
-                <p>Visually confirm the reboot process has initiated (monitor processor status display or indicator lights).</p>
-            </div>
-        </section>
-
-        <section id="step5" class="step conditional-step">
-            <div class="step-header">
-                <input type="checkbox" id="step5-check">
-                <label for="step5-check"><h2><i class="fas fa-bolt"></i> Step 5: (If Instructed) Restore Power to the Crestron DM64x64 Matrix Switch</h2></label>
-            </div>
-            <div class="step-content">
-                <p>Reconnect both redundant power cables to the Crestron DM64x64 matrix switch.</p>
-                <p>Verify start-up sequence via status LEDs or front panel display.</p>
-            </div>
-        </section>
-
-        <section id="step6" class="step">
-            <div class="step-header">
-                <input type="checkbox" id="step6-check">
-                <label for="step6-check"><h2><i class="fas fa-power-off"></i> Step 6: Power Up the DSP Stack</h2></label>
-            </div>
-            <div class="step-content">
-                <p>Return to the DSP stack.</p>
-                <p>Turn ON both red rocker switches and confirm the units power up.</p>
-            </div>
-        </section>
-
-        <section id="step7" class="step">
-            <div class="step-header">
-                <input type="checkbox" id="step7-check">
-                <label for="step7-check"><h2><i class="fas fa-hourglass-start"></i> Step 7: Wait 15 Minutes — No User Interaction</h2></label>
-            </div>
-            <div class="step-content">
-                <p>Start a timer for 15 minutes.</p>
-                <p>Do not touch or operate any touch panels or control interfaces during this period.</p>
-                <p>This waiting period is critical; interacting with system controls may disrupt the reset process.</p>
-                <div class="timer">
-                    <div id="timer-display">15:00</div>
-                    <button id="start-timer">Start Timer</button>
+                <div class="form-group disclaimer">
+                    <input type="checkbox" id="disclaimer-check" required>
+                    <label for="disclaimer-check">I understand this procedure impacts the entire conference center and will take approximately 20 minutes.</label>
                 </div>
-            </div>
-        </section>
+                <button type="submit" id="start-recovery-btn" disabled>Start Recovery</button>
+            </form>
+        </div>
 
-        <section id="step8" class="step">
-            <div class="step-header">
-                <input type="checkbox" id="step8-check">
-                <label for="step8-check"><h2><i class="fas fa-check-circle"></i> Step 8: Confirm DSP Status</h2></label>
+        <!-- Step Screen -->
+        <div id="step-screen" style="display:none;">
+            <div id="step-header">
+                <h2 id="step-title"></h2>
+                <div id="step-counter"></div>
             </div>
-            <div class="step-content">
-                <p>After 15 minutes, verify that all DSP units display normal green indicator lights.</p>
+            <div id="step-instructions"></div>
+            <div id="timer-container" style="display:none;">
+                <div id="timer-display">15:00</div>
+                <button id="start-timer-btn">Start 15 Minute Timer</button>
             </div>
-        </section>
+            <div class="navigation-buttons">
+                <button id="restart-btn"><i class="fas fa-redo"></i> Restart</button>
+                <button id="back-btn"><i class="fas fa-arrow-left"></i> Back</button>
+                <button id="next-btn">Next <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
 
-        <section id="step9" class="step">
-            <div class="step-header">
-                <input type="checkbox" id="step9-check">
-                <label for="step9-check"><h2><i class="fas fa-volume-up"></i> Step 9: Verify Touch Panel Functionality and Audio</h2></label>
-            </div>
-            <div class="step-content">
-                <p>Access the main touch panel and check for audio level display.</p>
-                <p>Confirm the Volume Up and Volume Down controls are responsive and update the level indicator appropriately.</p>
-            </div>
-        </section>
-
-        <section id="step10" class="step">
-            <div class="step-header">
-                <input type="checkbox" id="step10-check">
-                <label for="step10-check"><h2><i class="fas fa-cogs"></i> Step 10: Reconfigure Room Settings via Tech Panel</h2></label>
-            </div>
-            <div class="step-content">
-                <p>Disable floor logic on the tech panel.</p>
-                <p>Combine the required spaces (as per event configuration).</p>
-                <p>Select the appropriate display orientation (North, South, East, or West).</p>
-            </div>
-        </section>
-
-        <section id="step11" class="step">
-            <div class="step-header">
-                <input type="checkbox" id="step11-check">
-                <label for="step11-check"><h2><i class="fas fa-desktop"></i> Step 11: System Verification at Main Podium</h2></label>
-            </div>
-            <div class="step-content">
-                <p>Proceed to the main podium.</p>
-                <p>The Harvard Logo should be visible on the podium touch panel.</p>
-                <p>Press the logo and select the desired source.</p>
-                <p>Confirm that the appropriate projection screens lower and the AV system operates normally.</p>
-            </div>
-        </section>
-
-        <section class="completion">
-            <h2><i class="fas fa-flag-checkered"></i> Completion</h2>
+        <!-- Summary Screen -->
+        <div id="summary-screen" style="display:none;">
+            <h2><i class="fas fa-flag-checkered"></i> Procedure Complete</h2>
             <p>If the system is fully restored and operational, the procedure is complete.</p>
-            <p>If issues persist, carefully repeat the checklist starting from Step 2.</p>
+            <p>If issues persist, carefully repeat the checklist by restarting the procedure.</p>
             <p>If further problems arise, escalate to technical support or your designated escalation point.</p>
-        </section>
-    </main>
+            <button id="restart-btn-summary"><i class="fas fa-redo"></i> Restart Procedure</button>
+        </div>
+    </div>
 
     <footer>
-        <p>Note: Strict adherence to these steps and timing is essential for a successful recovery. Do not shortcut the process.</p>
+        <p>Note: Strict adherence to these steps and timing is essential for a successful recovery.</p>
     </footer>
 
     <script src="script.js"></script>

@@ -1,146 +1,179 @@
-@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;700&display=swap');
+
+:root {
+    --background: #0D1117; /* GitHub Dark-like black */
+    --text-color: #33FF33; /* Bright Green */
+    --border-color: #008000; /* Dark Green */
+    --highlight-bg: #008000;
+    --highlight-text: #0D1117;
+    --disabled-color: #555;
+}
 
 body {
-    font-family: 'Lora', serif;
+    font-family: 'Source Code Pro', monospace;
     line-height: 1.6;
     margin: 0;
     padding: 0;
-    background: #F3F3F1; /* Parchment */
-    color: #333;
+    background: var(--background);
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 header {
-    background: #A51C30; /* Harvard Crimson */
-    color: #fff;
-    padding: 1rem 0;
+    background: var(--background);
+    color: var(--text-color);
+    padding: 1rem;
     text-align: center;
+    border-bottom: 1px solid var(--border-color);
 }
 
 header h1 {
     margin: 0;
-    font-size: 2.5rem;
+    font-size: 2rem;
 }
 
 .purpose {
-    font-size: 1.1rem;
-    margin: 1rem 2rem;
-}
-
-.header-meta {
     font-size: 1rem;
+    margin: 0.5rem 1rem 0;
+    color: var(--border-color);
 }
 
-.important-note {
-    background: #ffc107;
-    padding: 1rem;
-    text-align: center;
-    font-weight: bold;
-    color: #000;
-}
-
-#checklist {
-    width: 80%;
+#app {
+    width: 90%;
+    max-width: 800px;
     margin: 2rem auto;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+    background: var(--background);
+    border: 1px solid var(--border-color);
+    box-shadow: none;
+    border-radius: 0;
+    padding: 1rem;
+    flex-grow: 1;
 }
 
-.step {
-    background: #fff;
-    border-left: 5px solid #A51C30; /* Harvard Crimson */
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
+/* --- Screen Styles --- */
+#survey-screen h2, #step-screen h2, #summary-screen h2 {
+    color: var(--text-color);
+    margin-top: 0;
+    border-bottom: none;
+    padding-bottom: 0;
 }
 
-.step:hover {
-    transform: translateY(-5px);
+.cursor {
+    display: inline-block;
+    width: 10px;
+    height: 1.2em;
+    background-color: var(--text-color);
+    animation: blink 1s step-end infinite;
+    vertical-align: middle;
 }
 
-.step-header {
+@keyframes blink {
+    from, to { background-color: transparent; }
+    50% { background-color: var(--text-color); }
+}
+
+/* --- Survey Screen --- */
+.toggle-group {
     display: flex;
-    align-items: center;
-    padding: 1rem;
-    background: #e9ecef;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
+    flex-direction: column;
+    gap: 10px;
+    margin: 1.5rem 0;
 }
 
-.step-header input[type="checkbox"] {
-    margin-right: 1rem;
-    transform: scale(1.5);
-    accent-color: #A51C30; /* Harvard Crimson */
-}
-
-.step-header h2 {
-    margin: 0;
-    font-size: 1.5rem;
-    color: #A51C30; /* Harvard Crimson */
-}
-
-.step-header h2 .fas {
-    margin-right: 0.5rem;
-}
-
-.step-content {
-    padding: 1rem;
-}
-
-.video-issue-toggle {
-    margin-top: 1rem;
-    padding: 0.5rem;
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-}
-
-.conditional-step {
+.toggle-group input[type="radio"] {
     display: none;
 }
 
-.timer {
-    text-align: center;
+.toggle-group label {
+    display: block;
+    padding: 10px;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.toggle-group label:before {
+    content: '[ ]';
+    margin-right: 10px;
+}
+
+.toggle-group input[type="radio"]:checked + label {
+    background-color: var(--highlight-bg);
+    color: var(--highlight-text);
+    border-color: var(--border-color);
+}
+
+.toggle-group input[type="radio"]:checked + label:before {
+    content: '[x]';
+}
+
+.disclaimer {
+    margin-top: 2rem;
+}
+
+/* --- Step Screen --- */
+#step-counter {
+    font-weight: bold;
+    color: var(--border-color);
+}
+
+#step-instructions {
+    font-size: 1.1rem;
+    min-height: 150px;
+    border: 1px solid var(--border-color);
+    padding: 1rem;
     margin-top: 1rem;
+}
+
+#timer-container {
+    text-align: center;
+    margin: 2rem 0;
 }
 
 #timer-display {
     font-size: 3rem;
     font-weight: bold;
-    color: #A51C30; /* Harvard Crimson */
+    color: var(--text-color);
     margin-bottom: 1rem;
 }
 
-#start-timer {
-    background: #28a745;
-    color: #fff;
-    border: none;
-    padding: 0.8rem 1.5rem;
-    font-size: 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-}
-
-#start-timer:hover {
-    background: #218838;
-}
-
-.completion {
-    background: #d4edda;
-    border-left: 5px solid #28a745;
-    padding: 1rem;
+.navigation-buttons {
+    display: flex;
+    justify-content: space-between;
     margin-top: 2rem;
+    padding-top: 1rem;
 }
 
-.completion h2 {
-    color: #155724;
+/* --- General Button Styles --- */
+button {
+    background: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-family: 'Source Code Pro', monospace;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+button:hover {
+    background: var(--highlight-bg);
+    color: var(--highlight-text);
+}
+
+button:disabled {
+    color: var(--disabled-color);
+    border-color: var(--disabled-color);
+    cursor: not-allowed;
+    background: transparent;
 }
 
 footer {
     text-align: center;
     padding: 1rem;
     margin-top: 2rem;
-    background: #343a40;
-    color: #fff;
+    background: var(--background);
+    color: var(--border-color);
+    border-top: 1px solid var(--border-color);
 }
