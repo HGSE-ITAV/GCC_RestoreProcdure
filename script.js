@@ -101,6 +101,14 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         state.currentUserIssue = document.querySelector('input[name="issue"]:checked').value;
 
+        // --- Google Analytics Event ---
+        if (typeof gtag === 'function') {
+            gtag('event', 'recovery_started', {
+                'event_category': 'engagement',
+                'event_label': state.currentUserIssue
+            });
+        }
+
         // Filter steps based on issue
         const isVideoAudio = state.currentUserIssue === 'video' || state.currentUserIssue === 'audio';
         let filteredSteps = allSteps.filter(step => {
@@ -111,17 +119,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.currentUserIssue === 'video') {
             const stepsToRemove = ['step2', 'step6', 'step8', 'step9'];
             filteredSteps = filteredSteps.filter(step => !stepsToRemove.includes(step.stepKey));
-            
-            const step1 = filteredSteps.find(step => step.stepKey === 'step1');
-            if (step1) {
-                step1.mainInstruction = "Have you thoroughly troubleshot the device and endpoint?";
-            }
         } else if (state.currentUserIssue === 'mic') {
             const stepsToRemove = ['step3', 'step8', 'step9'];
             filteredSteps = filteredSteps.filter(step => !stepsToRemove.includes(step.stepKey));
         }
         
         state.stepsToShow = JSON.parse(JSON.stringify(filteredSteps)); // Deep copy
+
+        // ALWAYS change Step 1 instruction
+        const step1 = state.stepsToShow.find(step => step.stepKey === 'step1');
+        if (step1) {
+            step1.mainInstruction = "Have you thoroughly troubleshot the device and endpoint?";
+        }
 
         // Transition to step screen
         surveyScreen.style.display = 'none';
