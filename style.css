@@ -177,3 +177,11 @@ footer {
     color: var(--border-color);
     border-top: 1px solid var(--border-color);
 }
+
+#footer-qr {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 1rem;
+    background: var(--white); /* Add a white background to make it scannable */
+    padding: 5px;
+}
