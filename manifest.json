@@ -1,0 +1,21 @@
+{
+  "name": "GCC_RestoreProcdure",
+  "short_name": "GCC_Restore",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#004a7f",
+  "theme_color": "#004a7f",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

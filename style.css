@@ -1,0 +1,143 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+body {
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background: #f4f4f4;
+    color: #333;
+}
+
+header {
+    background: #004a7f;
+    color: #fff;
+    padding: 1rem 0;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2.5rem;
+}
+
+.purpose {
+    font-size: 1.1rem;
+    margin: 1rem 2rem;
+}
+
+.header-meta {
+    font-size: 1rem;
+}
+
+.important-note {
+    background: #ffc107;
+    padding: 1rem;
+    text-align: center;
+    font-weight: bold;
+}
+
+#checklist {
+    width: 80%;
+    margin: 2rem auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+.step {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.step:hover {
+    transform: translateY(-5px);
+}
+
+.step-header {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: #e9ecef;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.step-header input[type="checkbox"] {
+    margin-right: 1rem;
+    transform: scale(1.5);
+}
+
+.step-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #004a7f;
+}
+
+.step-header h2 .fas {
+    margin-right: 0.5rem;
+}
+
+.step-content {
+    padding: 1rem;
+}
+
+.video-issue-toggle {
+    margin-top: 1rem;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+.conditional-step {
+    display: none;
+}
+
+.timer {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+#timer-display {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #004a7f;
+    margin-bottom: 1rem;
+}
+
+#start-timer {
+    background: #28a745;
+    color: #fff;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+#start-timer:hover {
+    background: #218838;
+}
+
+.completion {
+    background: #d4edda;
+    border-left: 5px solid #28a745;
+    padding: 1rem;
+    margin-top: 2rem;
+}
+
+.completion h2 {
+    color: #155724;
+}
+
+footer {
+    text-align: center;
+    padding: 1rem;
+    margin-top: 2rem;
+    background: #343a40;
+    color: #fff;
+}
