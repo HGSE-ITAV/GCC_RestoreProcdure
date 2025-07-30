@@ -1,16 +1,16 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap');
 
 body {
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Lora', serif;
     line-height: 1.6;
     margin: 0;
     padding: 0;
-    background: #f4f4f4;
+    background: #F3F3F1; /* Parchment */
     color: #333;
 }
 
 header {
-    background: #004a7f;
+    background: #A51C30; /* Harvard Crimson */
     color: #fff;
     padding: 1rem 0;
     text-align: center;
@@ -35,6 +35,7 @@ header h1 {
     padding: 1rem;
     text-align: center;
     font-weight: bold;
+    color: #000;
 }
 
 #checklist {
@@ -47,6 +48,7 @@ header h1 {
 
 .step {
     background: #fff;
+    border-left: 5px solid #A51C30; /* Harvard Crimson */
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     transition: all 0.3s ease;
@@ -68,12 +70,13 @@ header h1 {
 .step-header input[type="checkbox"] {
     margin-right: 1rem;
     transform: scale(1.5);
+    accent-color: #A51C30; /* Harvard Crimson */
 }
 
 .step-header h2 {
     margin: 0;
     font-size: 1.5rem;
-    color: #004a7f;
+    color: #A51C30; /* Harvard Crimson */
 }
 
 .step-header h2 .fas {
@@ -104,7 +107,7 @@ header h1 {
 #timer-display {
     font-size: 3rem;
     font-weight: bold;
-    color: #004a7f;
+    color: #A51C30; /* Harvard Crimson */
     margin-bottom: 1rem;
 }
 

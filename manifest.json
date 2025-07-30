@@ -3,8 +3,8 @@
   "short_name": "GCC_Restore",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#004a7f",
-  "theme_color": "#004a7f",
+  "background_color": "#A51C30",
+  "theme_color": "#A51C30",
   "orientation": "portrait-primary",
   "icons": [
     {

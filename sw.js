@@ -1,9 +1,11 @@
-const CACHE_NAME = 'recovery-checklist-cache-v1';
+const CACHE_NAME = 'recovery-checklist-cache-v2';
 const urlsToCache = [
   '/',
   '/index.html',
   '/style.css',
   '/script.js',
+  '/icon-192.png',
+  '/icon-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css'
 ];
 
