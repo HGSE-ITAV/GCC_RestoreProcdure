@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (state.timeLeft <= 0) {
                 clearInterval(state.timer);
                 timerDisplay.textContent = "Time's up!";
-                alert("15-minute waiting period is over. You may now proceed.");
+                alert("The 15-minute waiting period is complete. You may now proceed to the next step.");
                 startTimerBtn.disabled = false;
             }
         }, 1000);
@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const step1 = filteredSteps.find(step => step.stepKey === 'step1');
             if (step1) {
-                step1.mainInstruction = "Have you thoroughly troubleshot the device and endpoint??";
+                step1.mainInstruction = "Have you thoroughly troubleshot the device and endpoint?";
             }
         } else if (state.currentUserIssue === 'mic') {
             const stepsToRemove = ['step3', 'step8', 'step9'];
