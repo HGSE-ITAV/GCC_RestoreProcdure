@@ -1,4 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- CACHE MANAGEMENT ---
+    function checkForUpdates() {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({ command: 'checkForUpdates' });
+        }
+    }
+
+    // Check for updates when the page becomes visible
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            checkForUpdates();
+        }
+    });
+
     // --- STATE MANAGEMENT ---
     let state = {
         currentUserIssue: null,

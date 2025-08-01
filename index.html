@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>GCC Restore Procedure</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=054840">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#A51C30">
@@ -84,14 +87,36 @@
         <p>Note: Strict adherence to these steps and timing is essential for a successful recovery.</p>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=054840"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js').then(registration => {
                     console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    
+                    // Check for updates every time the page loads
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // New content is available, reload the page
+                                if (confirm('A new version of the application is available. Reload to update?')) {
+                                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                    window.location.reload();
+                                }
+                            }
+                        });
+                    });
+                    
+                    // Force check for updates
+                    registration.update();
                 }, err => {
                     console.log('ServiceWorker registration failed: ', err);
+                });
+                
+                // Listen for service worker updates
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    window.location.reload();
                 });
             });
         }
