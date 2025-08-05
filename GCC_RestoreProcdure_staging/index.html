@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>GCC Restore Procedure</title>
+    <link rel="stylesheet" href="style.css?v=059980">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#A51C30">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-26ZP8BKWYJ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-26ZP8BKWYJ');
+    </script>
+</head>
+<body>
+    <header>
+        <h1>GCC Restore Procedure</h1>
+        <p class="purpose">A guided tool to restore normal system operation for the conference center.</p>
+    </header>
+
+    <div id="app">
+        <!-- Survey Screen -->
+        <div id="survey-screen">
+            <h2><i class="fas fa-tasks"></i> Select Your Issue</h2>
+            <p>Please select the primary issue you are experiencing to begin the recovery process.</p>
+            <form id="issue-form">
+                <div class="toggle-group">
+                    <input type="radio" id="issue-video" name="issue" value="video" required>
+                    <label for="issue-video">Video Issues (no video, distorted video)</label>
+
+                    <input type="radio" id="issue-audio" name="issue" value="audio">
+                    <label for="issue-audio">Program Audio Issues (no audio, garbled audio)</label>
+
+                    <input type="radio" id="issue-touch" name="issue" value="touch">
+                    <label for="issue-touch">Touch Panel/Control Issues (sluggish controls, no control, flashing controls, projectors won't turn on)</label>
+
+                    <input type="radio" id="issue-mic" name="issue" value="mic">
+                    <label for="issue-mic">Microphone Issues (wireless microphones have a flashing light and won't connect, no audio from podium mic, garbled/distorted audio)</label>
+                </div>
+                <div class="form-group disclaimer">
+                    <input type="checkbox" id="disclaimer-check" required>
+                    <label for="disclaimer-check">I understand this procedure impacts the entire conference center and will take approximately 20 minutes.</label>
+                </div>
+                <button type="submit" id="start-recovery-btn" disabled>Start Recovery</button>
+            </form>
+        </div>
+
+        <!-- Step Screen -->
+        <div id="step-screen" style="display:none;">
+            <div id="step-header">
+                <h2 id="step-title"></h2>
+                <div id="step-counter"></div>
+            </div>
+            <div id="step-instructions"></div>
+            <div id="timer-container" style="display:none;">
+                <div id="timer-display">15:00</div>
+                <button id="start-timer-btn">Start 15 Minute Timer</button>
+            </div>
+            <div class="navigation-buttons">
+                <button id="restart-btn"><i class="fas fa-redo"></i> Restart</button>
+                <button id="back-btn"><i class="fas fa-arrow-left"></i> Back</button>
+                <button id="next-btn">Next <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <!-- Summary Screen -->
+        <div id="summary-screen" style="display:none;">
+            <h2><i class="fas fa-flag-checkered"></i> Procedure Complete</h2>
+            <p>If the system is fully restored and operational, the procedure is complete.</p>
+            <p>If issues persist, carefully repeat the checklist by restarting the procedure.</p>
+            <p>If further problems arise, escalate to technical support or your designated escalation point.</p>
+            <button id="restart-btn-summary"><i class="fas fa-redo"></i> Restart Procedure</button>
+        </div>
+    </div>
+
+    <footer>
+        <img src="images/qr.png" alt="QR Code to install this app" id="footer-qr">
+        <p>Note: Strict adherence to these steps and timing is essential for a successful recovery.</p>
+    </footer>
+
+    <script src="script.js?v=059980"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(registration => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    
+                    // Check for updates every time the page loads
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // New content is available, reload the page
+                                if (confirm('A new version of the application is available. Reload to update?')) {
+                                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                    window.location.reload();
+                                }
+                            }
+                        });
+                    });
+                    
+                    // Force check for updates
+                    registration.update();
+                }, err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+                
+                // Listen for service worker updates
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    window.location.reload();
+                });
+            });
+        }
+    </script>
+</body>
+</html>
