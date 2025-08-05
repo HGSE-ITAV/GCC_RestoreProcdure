@@ -25,11 +25,43 @@
     <header>
         <h1>GCC Restore Procedure</h1>
         <p class="purpose">A guided tool to restore normal system operation for the conference center.</p>
+        <button id="logout-btn" class="logout-btn" style="display: none;"><i class="fas fa-sign-out-alt"></i> Logout</button>
     </header>
 
     <div id="app">
+        <!-- Authentication Screen -->
+        <div id="auth-screen">
+            <div class="auth-container">
+                <h2><i class="fas fa-lock"></i> Access Authentication</h2>
+                <p class="auth-description">Enter the current access code to use the GCC Restore Procedure system.</p>
+                
+                <form id="auth-form">
+                    <div class="form-group">
+                        <label for="access-code">Access Code</label>
+                        <input type="text" id="access-code" placeholder="Enter 6-digit code" maxlength="6" required autocomplete="off">
+                        <div class="input-hint">Code expires after 15 minutes</div>
+                    </div>
+                    <button type="submit" id="auth-submit-btn">Authenticate</button>
+                    <div id="auth-error" class="error-message" style="display: none;"></div>
+                </form>
+
+                <div class="auth-admin-section">
+                    <button id="generate-code-btn" class="admin-btn"><i class="fas fa-key"></i> Generate New Code</button>
+                    <div id="generated-code-display" style="display: none;">
+                        <div class="generated-code">
+                            <span id="current-code"></span>
+                            <div class="code-info">
+                                <span id="code-expires">Expires: --</span>
+                                <button id="copy-code-btn" class="copy-btn"><i class="fas fa-copy"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Survey Screen -->
-        <div id="survey-screen">
+        <div id="survey-screen" style="display: none;">
             <h2><i class="fas fa-tasks"></i> Select Your Issue</h2>
             <p>Please select the primary issue you are experiencing to begin the recovery process.</p>
             <form id="issue-form">

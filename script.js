@@ -1,4 +1,92 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- 2FA AUTHENTICATION SYSTEM ---
+    const authManager = {
+        // Generate a random 6-digit code
+        generateCode() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        },
+
+        // Store valid code with expiration timestamp
+        storeCode(code) {
+            const expirationTime = Date.now() + (15 * 60 * 1000); // 15 minutes
+            const codeData = {
+                code: code,
+                expires: expirationTime,
+                generated: Date.now()
+            };
+            localStorage.setItem('gcc_auth_code', JSON.stringify(codeData));
+            return expirationTime;
+        },
+
+        // Validate entered code
+        validateCode(enteredCode) {
+            const storedData = localStorage.getItem('gcc_auth_code');
+            if (!storedData) return false;
+
+            try {
+                const codeData = JSON.parse(storedData);
+                const now = Date.now();
+                
+                // Check if code has expired
+                if (now > codeData.expires) {
+                    localStorage.removeItem('gcc_auth_code');
+                    return false;
+                }
+
+                // Check if code matches
+                return enteredCode === codeData.code;
+            } catch (e) {
+                localStorage.removeItem('gcc_auth_code');
+                return false;
+            }
+        },
+
+        // Check if user has valid session
+        hasValidSession() {
+            const sessionData = localStorage.getItem('gcc_session');
+            if (!sessionData) return false;
+
+            try {
+                const session = JSON.parse(sessionData);
+                const now = Date.now();
+                
+                // Session timeout after 2 hours of inactivity
+                if (now > session.expires) {
+                    localStorage.removeItem('gcc_session');
+                    return false;
+                }
+
+                return true;
+            } catch (e) {
+                localStorage.removeItem('gcc_session');
+                return false;
+            }
+        },
+
+        // Create authenticated session
+        createSession() {
+            const sessionData = {
+                authenticated: true,
+                expires: Date.now() + (2 * 60 * 60 * 1000), // 2 hours
+                created: Date.now()
+            };
+            localStorage.setItem('gcc_session', JSON.stringify(sessionData));
+        },
+
+        // Update session expiration (extend on activity)
+        refreshSession() {
+            if (this.hasValidSession()) {
+                this.createSession();
+            }
+        },
+
+        // Clear all authentication data
+        logout() {
+            localStorage.removeItem('gcc_session');
+            localStorage.removeItem('gcc_auth_code');
+        }
+    };
+
     // --- CACHE MANAGEMENT ---
     function checkForUpdates() {
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
@@ -41,9 +129,20 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     // --- ELEMENT SELECTORS ---
+    const authScreen = document.getElementById('auth-screen');
     const surveyScreen = document.getElementById('survey-screen');
     const stepScreen = document.getElementById('step-screen');
     const summaryScreen = document.getElementById('summary-screen');
+    const authForm = document.getElementById('auth-form');
+    const accessCodeInput = document.getElementById('access-code');
+    const authSubmitBtn = document.getElementById('auth-submit-btn');
+    const authError = document.getElementById('auth-error');
+    const generateCodeBtn = document.getElementById('generate-code-btn');
+    const generatedCodeDisplay = document.getElementById('generated-code-display');
+    const currentCodeSpan = document.getElementById('current-code');
+    const codeExpiresSpan = document.getElementById('code-expires');
+    const copyCodeBtn = document.getElementById('copy-code-btn');
+    const logoutBtn = document.getElementById('logout-btn');
     const issueForm = document.getElementById('issue-form');
     const startRecoveryBtn = document.getElementById('start-recovery-btn');
     const disclaimerCheckbox = document.getElementById('disclaimer-check');
@@ -56,6 +155,78 @@ document.addEventListener('DOMContentLoaded', () => {
     const backBtn = document.getElementById('back-btn');
     const nextBtn = document.getElementById('next-btn');
     const restartBtns = [document.getElementById('restart-btn'), document.getElementById('restart-btn-summary')];
+
+    // --- AUTHENTICATION FUNCTIONS ---
+    function showAuthError(message) {
+        authError.textContent = message;
+        authError.style.display = 'block';
+        setTimeout(() => {
+            authError.style.display = 'none';
+        }, 5000);
+    }
+
+    function updateCodeDisplay(code, expirationTime) {
+        currentCodeSpan.textContent = code;
+        const expiryDate = new Date(expirationTime);
+        codeExpiresSpan.textContent = `Expires: ${expiryDate.toLocaleTimeString()}`;
+        generatedCodeDisplay.style.display = 'block';
+    }
+
+    function initializeApp() {
+        // Check if user already has valid session
+        if (authManager.hasValidSession()) {
+            showMainApp();
+            return;
+        }
+
+        // Show authentication screen
+        showAuthScreen();
+    }
+
+    function showAuthScreen() {
+        authScreen.style.display = 'block';
+        surveyScreen.style.display = 'none';
+        stepScreen.style.display = 'none';
+        summaryScreen.style.display = 'none';
+        logoutBtn.style.display = 'none';
+        accessCodeInput.focus();
+    }
+
+    function showMainApp() {
+        authScreen.style.display = 'none';
+        surveyScreen.style.display = 'block';
+        stepScreen.style.display = 'none';
+        summaryScreen.style.display = 'none';
+        logoutBtn.style.display = 'block';
+        
+        // Refresh session on activity
+        authManager.refreshSession();
+    }
+
+    function authenticateUser(code) {
+        if (authManager.validateCode(code)) {
+            authManager.createSession();
+            showMainApp();
+            
+            // Analytics event
+            if (typeof gtag === 'function') {
+                gtag('event', 'authentication_success', {
+                    'event_category': 'security'
+                });
+            }
+            return true;
+        } else {
+            showAuthError('Invalid or expired access code. Please try again.');
+            
+            // Analytics event
+            if (typeof gtag === 'function') {
+                gtag('event', 'authentication_failed', {
+                    'event_category': 'security'
+                });
+            }
+            return false;
+        }
+    }
 
     // --- FUNCTIONS ---
     function typewriterEffect(element, text, speed = 50) {
@@ -191,10 +362,86 @@ document.addEventListener('DOMContentLoaded', () => {
         issueForm.reset();
         startRecoveryBtn.disabled = true;
         nextBtn.disabled = false; // Reset next button state
-        summaryScreen.style.display = 'none';
-        stepScreen.style.display = 'none';
-        surveyScreen.style.display = 'block';
+        
+        // Check authentication before showing main app
+        if (authManager.hasValidSession()) {
+            showMainApp();
+        } else {
+            showAuthScreen();
+        }
     }
+
+    // --- AUTHENTICATION EVENT LISTENERS ---
+    authForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const enteredCode = accessCodeInput.value.trim();
+        
+        if (enteredCode.length !== 6) {
+            showAuthError('Access code must be 6 digits.');
+            return;
+        }
+
+        authenticateUser(enteredCode);
+        accessCodeInput.value = '';
+    });
+
+    generateCodeBtn.addEventListener('click', () => {
+        const newCode = authManager.generateCode();
+        const expirationTime = authManager.storeCode(newCode);
+        updateCodeDisplay(newCode, expirationTime);
+        
+        // Analytics event
+        if (typeof gtag === 'function') {
+            gtag('event', 'code_generated', {
+                'event_category': 'security'
+            });
+        }
+    });
+
+    copyCodeBtn.addEventListener('click', async () => {
+        const code = currentCodeSpan.textContent;
+        try {
+            await navigator.clipboard.writeText(code);
+            copyCodeBtn.innerHTML = '<i class="fas fa-check"></i>';
+            setTimeout(() => {
+                copyCodeBtn.innerHTML = '<i class="fas fa-copy"></i>';
+            }, 2000);
+        } catch (err) {
+            console.error('Failed to copy code:', err);
+        }
+    });
+
+    // Auto-format access code input
+    accessCodeInput.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+        if (value.length > 6) value = value.slice(0, 6);
+        e.target.value = value;
+    });
+
+    // Logout functionality
+    logoutBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to logout? You will need to re-authenticate to continue.')) {
+            authManager.logout();
+            showAuthScreen();
+            
+            // Analytics event
+            if (typeof gtag === 'function') {
+                gtag('event', 'logout', {
+                    'event_category': 'security'
+                });
+            }
+        }
+    });
+
+    // Session refresh on user activity
+    const activityEvents = ['click', 'keypress', 'mousemove', 'scroll'];
+    activityEvents.forEach(event => {
+        document.addEventListener(event, () => {
+            if (authManager.hasValidSession()) {
+                authManager.refreshSession();
+            }
+        }, { passive: true });
+    });
 
     // --- EVENT LISTENERS ---
     disclaimerCheckbox.addEventListener('change', () => {
@@ -268,5 +515,5 @@ document.addEventListener('DOMContentLoaded', () => {
     startTimerBtn.addEventListener('click', startTimer);
 
     // --- INITIALIZATION ---
-    restartApp(); // Start the app in a clean state
+    initializeApp(); // Start the app with authentication check
 });
