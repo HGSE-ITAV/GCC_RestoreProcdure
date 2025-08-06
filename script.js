@@ -338,11 +338,19 @@ document.addEventListener('DOMContentLoaded', () => {
         summaryScreen.style.display = 'none';
         
         // Clear any error messages and focus on name input
-        nameError.style.display = 'none';
-        userNameInput.value = '';
-        userNameInput.focus();
+        if (nameError) nameError.style.display = 'none';
+        if (userNameInput) {
+            userNameInput.value = '';
+            userNameInput.focus();
+        }
         
         console.log('showNameInputScreen() completed');
+        console.log('📺 Name input screen states:', {
+            nameInputDisplay: nameInputScreen ? nameInputScreen.style.display : 'NOT FOUND',
+            authDisplay: authScreen ? authScreen.style.display : 'NOT FOUND',
+            nameInputExists: !!nameInputScreen,
+            userInputExists: !!userNameInput
+        });
     }
 
     function showWaitingScreen(userName) {
