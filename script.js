@@ -193,6 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const authScreen = document.getElementById('auth-screen');
     const nameInputScreen = document.getElementById('name-input-screen');
     const waitingScreen = document.getElementById('waiting-screen');
+    const codeEntryScreen = document.getElementById('code-entry-screen');
     const surveyScreen = document.getElementById('survey-screen');
     const stepScreen = document.getElementById('step-screen');
     const summaryScreen = document.getElementById('summary-screen');
@@ -204,6 +205,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const waitingUserName = document.getElementById('waiting-user-name');
     const waitingTimer = document.getElementById('waiting-timer');
     const cancelRequestBtn = document.getElementById('cancel-request-btn');
+    const codeForm = document.getElementById('code-form');
+    const accessCodeInput = document.getElementById('access-code');
+    const codeError = document.getElementById('code-error');
+    const codeUserName = document.getElementById('code-user-name');
+    const backToWaitingBtn = document.getElementById('back-to-waiting-btn');
     const issueForm = document.getElementById('issue-form');
     const startRecoveryBtn = document.getElementById('start-recovery-btn');
     const disclaimerCheckbox = document.getElementById('disclaimer-check');
@@ -299,6 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tokenProcessing.style.display = 'block';
         nameInputScreen.style.display = 'none';
         waitingScreen.style.display = 'none';
+        codeEntryScreen.style.display = 'none';
         surveyScreen.style.display = 'none';
         stepScreen.style.display = 'none';
         summaryScreen.style.display = 'none';
@@ -310,6 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
         authScreen.style.visibility = 'visible';
         nameInputScreen.style.display = 'none';
         waitingScreen.style.display = 'none';
+        codeEntryScreen.style.display = 'none';
         surveyScreen.style.display = 'none';
         stepScreen.style.display = 'none';
         summaryScreen.style.display = 'none';
@@ -333,6 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
         authScreen.style.display = 'none';
         nameInputScreen.style.display = 'block';
         waitingScreen.style.display = 'none';
+        codeEntryScreen.style.display = 'none';
         surveyScreen.style.display = 'none';
         stepScreen.style.display = 'none';
         summaryScreen.style.display = 'none';
@@ -358,6 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
         authScreen.style.display = 'none';
         nameInputScreen.style.display = 'none';
         waitingScreen.style.display = 'block';
+        codeEntryScreen.style.display = 'none';
         surveyScreen.style.display = 'none';
         stepScreen.style.display = 'none';
         summaryScreen.style.display = 'none';
@@ -378,6 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
         authScreen.style.visibility = 'hidden';
         nameInputScreen.style.display = 'none';
         waitingScreen.style.display = 'none';
+        codeEntryScreen.style.display = 'none';
         console.log('authScreen after:', authScreen.style.display);
         surveyScreen.style.display = 'block';
         stepScreen.style.display = 'none';
@@ -386,6 +397,27 @@ document.addEventListener('DOMContentLoaded', () => {
         // Refresh session on activity
         authManager.refreshSession();
         console.log('showMainApp() completed');
+    }
+
+    function showCodeEntryScreen(userName) {
+        console.log('showCodeEntryScreen() called for user:', userName);
+        authScreen.style.display = 'none';
+        nameInputScreen.style.display = 'none';
+        waitingScreen.style.display = 'none';
+        codeEntryScreen.style.display = 'block';
+        surveyScreen.style.display = 'none';
+        stepScreen.style.display = 'none';
+        summaryScreen.style.display = 'none';
+        
+        // Set user name
+        if (codeUserName && userName) {
+            codeUserName.textContent = `Hello, ${userName}`;
+        }
+        
+        // Clear any previous errors
+        if (codeError) codeError.style.display = 'none';
+        
+        console.log('showCodeEntryScreen() completed');
     }
 
     // --- NAME CAPTURE & WAITING FUNCTIONS ---
@@ -425,6 +457,54 @@ document.addEventListener('DOMContentLoaded', () => {
             return { valid: false, error: 'Name can only contain letters, spaces, hyphens, and apostrophes' };
         }
         return { valid: true, name: trimmedName };
+    }
+
+    function validateAccessCode(code) {
+        if (!code || code.trim().length === 0) {
+            return { valid: false, error: 'Please enter the access code' };
+        }
+        if (!/^\d{6}$/.test(code.trim())) {
+            return { valid: false, error: 'Access code must be exactly 6 digits' };
+        }
+        return { valid: true, code: code.trim() };
+    }
+
+    async function verifyAccessCode(code) {
+        try {
+            console.log('Verifying access code:', code);
+            
+            // For demo purposes, accept "123456" as valid code
+            // In a real implementation, this would verify against the operator-generated code
+            if (code === '123456' || code === 'test123') {
+                console.log('✅ Access code verified successfully');
+                
+                // Create session and show main app
+                authManager.createSession();
+                showMainApp();
+                
+                // Analytics event
+                if (typeof gtag === 'function') {
+                    gtag('event', 'code_verification_success', {
+                        'event_category': 'security'
+                    });
+                }
+            } else {
+                console.log('❌ Invalid access code');
+                codeError.textContent = 'Invalid access code. Please check with the operator and try again.';
+                codeError.style.display = 'block';
+                
+                // Analytics event
+                if (typeof gtag === 'function') {
+                    gtag('event', 'code_verification_failed', {
+                        'event_category': 'security'
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error verifying access code:', error);
+            codeError.textContent = 'Error verifying code. Please try again.';
+            codeError.style.display = 'block';
+        }
     }
 
     async function submitAccessRequest(userName) {
@@ -541,7 +621,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleApprovalSuccess() {
         console.log('Request approved!');
         stopWaitingTimer();
-        showMainApp();
+        
+        // Get stored user name
+        const storedUserName = sessionStorage.getItem('gcc_user_name');
+        showCodeEntryScreen(storedUserName);
         
         // Analytics event
         if (typeof gtag === 'function') {
@@ -832,6 +915,35 @@ document.addEventListener('DOMContentLoaded', () => {
         // Hide error and submit request
         nameError.style.display = 'none';
         submitAccessRequest(validation.name);
+    });
+
+    // --- CODE ENTRY EVENT LISTENERS ---
+    codeForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const accessCode = accessCodeInput.value.trim();
+        const validation = validateAccessCode(accessCode);
+        
+        if (!validation.valid) {
+            codeError.textContent = validation.error;
+            codeError.style.display = 'block';
+            return;
+        }
+        
+        // Hide error and verify code
+        codeError.style.display = 'none';
+        verifyAccessCode(validation.code);
+    });
+
+    backToWaitingBtn.addEventListener('click', () => {
+        const storedUserName = sessionStorage.getItem('gcc_user_name');
+        showWaitingScreen(storedUserName);
+        
+        // Restart polling
+        const storedRequestId = sessionStorage.getItem('gcc_request_id');
+        if (storedRequestId) {
+            startPollingForApproval(storedRequestId);
+        }
     });
 
     cancelRequestBtn.addEventListener('click', () => {
