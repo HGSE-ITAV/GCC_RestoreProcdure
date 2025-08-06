@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>GCC Restore Procedure</title>
-    <link rel="stylesheet" href="style.css?v=059980">
+    <link rel="stylesheet" href="style.css?v=054840">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#A51C30">
@@ -25,11 +25,34 @@
     <header>
         <h1>GCC Restore Procedure</h1>
         <p class="purpose">A guided tool to restore normal system operation for the conference center.</p>
+        <button id="logout-btn" class="logout-btn" style="display: none;"><i class="fas fa-sign-out-alt"></i> Logout</button>
     </header>
 
     <div id="app">
+        <!-- Authentication Screen -->
+        <div id="auth-screen">
+            <div class="auth-container">
+                <h2><i class="fas fa-lock"></i> Access Authentication</h2>
+                <p class="auth-description">Enter the current access code to use the GCC Restore Procedure system.</p>
+                
+                <div class="access-instructions">
+                    <p><i class="fas fa-qrcode"></i> Scan the QR code in the conference center to access this system.</p>
+                    <p>You must be physically present to use this application.</p>
+                </div>
+                
+                <div id="token-processing" style="display: none;">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Validating access token...</p>
+                    </div>
+                </div>
+
+                <div id="auth-error" class="error-message" style="display: none;"></div>
+            </div>
+        </div>
+
         <!-- Survey Screen -->
-        <div id="survey-screen">
+        <div id="survey-screen" style="display: none;">
             <h2><i class="fas fa-tasks"></i> Select Your Issue</h2>
             <p>Please select the primary issue you are experiencing to begin the recovery process.</p>
             <form id="issue-form">
@@ -83,14 +106,19 @@
     </div>
 
     <footer>
-        <img src="images/qr.png" alt="QR Code to install this app" id="footer-qr">
         <p>Note: Strict adherence to these steps and timing is essential for a successful recovery.</p>
     </footer>
 
-    <script src="script.js?v=059980"></script>
+    <script src="script.js?v=054840"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
+                // Skip service worker registration in development (localhost)
+                if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+                    console.log('ServiceWorker registration skipped in development mode');
+                    return;
+                }
+                
                 navigator.serviceWorker.register('/sw.js').then(registration => {
                     console.log('ServiceWorker registration successful with scope: ', registration.scope);
                     

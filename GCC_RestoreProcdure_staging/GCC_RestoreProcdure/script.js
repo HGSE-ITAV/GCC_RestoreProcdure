@@ -1,109 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- TOKEN-BASED AUTHENTICATION SYSTEM ---
-    const authManager = {
-        // Validate session token from URL or localStorage
-        validateToken(token) {
-            console.log('Validating token:', token);
-            const storedData = localStorage.getItem('gcc_session_token');
-            
-            if (!storedData) {
-                console.log('No stored token found');
-                return false;
-            }
-
-            try {
-                const tokenData = JSON.parse(storedData);
-                const now = Date.now();
-                console.log('Stored token expires:', new Date(tokenData.expires));
-                
-                // Check if token has expired (30 minutes)
-                if (now > tokenData.expires) {
-                    console.log('Token has expired');
-                    localStorage.removeItem('gcc_session_token');
-                    return false;
-                }
-
-                // Check if token matches
-                const matches = token === tokenData.token;
-                console.log('Token matches:', matches);
-                return matches;
-            } catch (e) {
-                console.log('Error parsing stored token:', e);
-                localStorage.removeItem('gcc_session_token');
-                return false;
-            }
-        },
-
-        // Store session token with 30-minute expiration
-        storeToken(token) {
-            const expirationTime = Date.now() + (30 * 60 * 1000); // 30 minutes
-            const tokenData = {
-                token: token,
-                expires: expirationTime,
-                created: Date.now()
-            };
-            localStorage.setItem('gcc_session_token', JSON.stringify(tokenData));
-            return expirationTime;
-        },
-
-        // Check if user has valid session
-        hasValidSession() {
-            const sessionData = localStorage.getItem('gcc_session');
-            if (!sessionData) return false;
-
-            try {
-                const session = JSON.parse(sessionData);
-                const now = Date.now();
-                
-                // Session timeout after 2 hours of inactivity
-                if (now > session.expires) {
-                    localStorage.removeItem('gcc_session');
-                    return false;
-                }
-
-                return true;
-            } catch (e) {
-                localStorage.removeItem('gcc_session');
-                return false;
-            }
-        },
-
-        // Create authenticated session
-        createSession() {
-            const sessionData = {
-                authenticated: true,
-                expires: Date.now() + (2 * 60 * 60 * 1000), // 2 hours
-                created: Date.now()
-            };
-            localStorage.setItem('gcc_session', JSON.stringify(sessionData));
-        },
-
-        // Update session expiration (extend on activity)
-        refreshSession() {
-            if (this.hasValidSession()) {
-                this.createSession();
-            }
-        },
-
-        // Get token from URL parameters
-        getTokenFromUrl() {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('token');
-        },
-
-        // Clear all authentication data
-        logout() {
-            localStorage.removeItem('gcc_session');
-            localStorage.removeItem('gcc_session_token');
-        }
-    };
-
-    // Token validation utility
-    function isValidTokenFormat(token) {
-        // Check if token is base64 URL-safe format (at least 32 characters)
-        return token && typeof token === 'string' && token.length >= 32 && /^[A-Za-z0-9_-]+$/.test(token);
-    }
-
     // --- CACHE MANAGEMENT ---
     function checkForUpdates() {
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
@@ -146,13 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     // --- ELEMENT SELECTORS ---
-    const authScreen = document.getElementById('auth-screen');
     const surveyScreen = document.getElementById('survey-screen');
     const stepScreen = document.getElementById('step-screen');
     const summaryScreen = document.getElementById('summary-screen');
-    const authError = document.getElementById('auth-error');
-    const tokenProcessing = document.getElementById('token-processing');
-    const logoutBtn = document.getElementById('logout-btn');
     const issueForm = document.getElementById('issue-form');
     const startRecoveryBtn = document.getElementById('start-recovery-btn');
     const disclaimerCheckbox = document.getElementById('disclaimer-check');
@@ -165,118 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const backBtn = document.getElementById('back-btn');
     const nextBtn = document.getElementById('next-btn');
     const restartBtns = [document.getElementById('restart-btn'), document.getElementById('restart-btn-summary')];
-
-    // --- AUTHENTICATION FUNCTIONS ---
-    function showAuthError(message) {
-        authError.textContent = message;
-        authError.style.display = 'block';
-        setTimeout(() => {
-            authError.style.display = 'none';
-        }, 5000);
-    }
-
-    function initializeApp() {
-        // Check for token in URL first
-        const tokenFromUrl = authManager.getTokenFromUrl();
-        
-        if (tokenFromUrl) {
-            console.log('Token found in URL:', tokenFromUrl);
-            processTokenFromUrl(tokenFromUrl);
-            return;
-        }
-
-        // Check if user already has valid session
-        if (authManager.hasValidSession()) {
-            showMainApp();
-            return;
-        }
-
-        // Show authentication screen
-        showAuthScreen();
-    }
-
-    function processTokenFromUrl(token) {
-        // Show loading state
-        showTokenProcessing();
-
-        // Validate token format
-        if (!isValidTokenFormat(token)) {
-            showAuthError('Invalid access token format. Please scan the QR code again.');
-            showAuthScreen();
-            return;
-        }
-
-        // Store token and create session
-        try {
-            authManager.storeToken(token);
-            authManager.createSession();
-            
-            // Remove token from URL for security
-            const url = new URL(window.location);
-            url.searchParams.delete('token');
-            window.history.replaceState({}, document.title, url);
-            
-            // Show main app
-            setTimeout(() => {
-                showMainApp();
-                
-                // Analytics event
-                if (typeof gtag === 'function') {
-                    gtag('event', 'token_authentication_success', {
-                        'event_category': 'security'
-                    });
-                }
-            }, 1000); // Brief delay to show processing
-            
-        } catch (error) {
-            console.error('Error processing token:', error);
-            showAuthError('Error processing access token. Please try scanning the QR code again.');
-            showAuthScreen();
-        }
-    }
-
-    function showTokenProcessing() {
-        authScreen.style.display = 'block';
-        authScreen.style.visibility = 'visible';
-        tokenProcessing.style.display = 'block';
-        surveyScreen.style.display = 'none';
-        stepScreen.style.display = 'none';
-        summaryScreen.style.display = 'none';
-        logoutBtn.style.display = 'none';
-    }
-
-    function showAuthScreen() {
-        console.log('showAuthScreen() called');
-        authScreen.style.display = 'block';
-        authScreen.style.visibility = 'visible';
-        surveyScreen.style.display = 'none';
-        stepScreen.style.display = 'none';
-        summaryScreen.style.display = 'none';
-        logoutBtn.style.display = 'none';
-        tokenProcessing.style.display = 'none';
-        
-        // Clear any error messages
-        authError.style.display = 'none';
-        
-        console.log('showAuthScreen() completed');
-    }
-
-    function showMainApp() {
-        console.log('showMainApp() called');
-        console.log('authScreen before:', authScreen.style.display);
-        authScreen.style.display = 'none !important';
-        authScreen.style.visibility = 'hidden';
-        console.log('authScreen after:', authScreen.style.display);
-        surveyScreen.style.display = 'block';
-        stepScreen.style.display = 'none';
-        summaryScreen.style.display = 'none';
-        logoutBtn.style.display = 'block';
-        
-        // Refresh session on activity
-        authManager.refreshSession();
-        console.log('showMainApp() completed');
-    }
-
 
     // --- FUNCTIONS ---
     function typewriterEffect(element, text, speed = 50) {
@@ -412,41 +191,10 @@ document.addEventListener('DOMContentLoaded', () => {
         issueForm.reset();
         startRecoveryBtn.disabled = true;
         nextBtn.disabled = false; // Reset next button state
-        
-        // Check authentication before showing main app
-        if (authManager.hasValidSession()) {
-            showMainApp();
-        } else {
-            showAuthScreen();
-        }
+        summaryScreen.style.display = 'none';
+        stepScreen.style.display = 'none';
+        surveyScreen.style.display = 'block';
     }
-
-    // --- AUTHENTICATION EVENT LISTENERS ---
-
-    // Logout functionality
-    logoutBtn.addEventListener('click', () => {
-        if (confirm('Are you sure you want to logout? You will need to re-authenticate to continue.')) {
-            authManager.logout();
-            showAuthScreen();
-            
-            // Analytics event
-            if (typeof gtag === 'function') {
-                gtag('event', 'logout', {
-                    'event_category': 'security'
-                });
-            }
-        }
-    });
-
-    // Session refresh on user activity
-    const activityEvents = ['click', 'keypress', 'mousemove', 'scroll'];
-    activityEvents.forEach(event => {
-        document.addEventListener(event, () => {
-            if (authManager.hasValidSession()) {
-                authManager.refreshSession();
-            }
-        }, { passive: true });
-    });
 
     // --- EVENT LISTENERS ---
     disclaimerCheckbox.addEventListener('change', () => {
@@ -520,5 +268,5 @@ document.addEventListener('DOMContentLoaded', () => {
     startTimerBtn.addEventListener('click', startTimer);
 
     // --- INITIALIZATION ---
-    initializeApp(); // Start the app with authentication check
+    restartApp(); // Start the app in a clean state
 });
