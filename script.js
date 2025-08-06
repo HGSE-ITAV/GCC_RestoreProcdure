@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return expirationTime;
         },
 
-        // Check if user has valid session
+        // Check if user has valid session WITH procedure access
         hasValidSession() {
             const sessionData = localStorage.getItem('gcc_session');
             if (!sessionData) return false;
@@ -100,9 +100,31 @@ document.addEventListener('DOMContentLoaded', () => {
                     return false;
                 }
 
-                return true;
+                // Must be authenticated AND have procedure access
+                return session.authenticated === true;
             } catch (e) {
                 localStorage.removeItem('gcc_session');
+                return false;
+            }
+        },
+
+        // Check if user has token (but not necessarily full access)
+        hasValidToken() {
+            const tokenData = localStorage.getItem('gcc_session_token');
+            if (!tokenData) return false;
+
+            try {
+                const token = JSON.parse(tokenData);
+                const now = Date.now();
+                
+                if (now > token.expires) {
+                    localStorage.removeItem('gcc_session_token');
+                    return false;
+                }
+
+                return true;
+            } catch (e) {
+                localStorage.removeItem('gcc_session_token');
                 return false;
             }
         },
@@ -239,14 +261,57 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Check if user already has valid session
+        // Check if user has full procedure access
         if (authManager.hasValidSession()) {
             showMainApp();
             return;
         }
 
-        // Show authentication screen
+        // Check if user has a valid token but not full access
+        if (authManager.hasValidToken()) {
+            const userName = sessionStorage.getItem('gcc_user_name');
+            const requestId = sessionStorage.getItem('gcc_request_id');
+            
+            // Check if user has completed the name input
+            if (userName && requestId) {
+                // Check the current status of their request
+                checkUserAuthenticationState(userName, requestId);
+            } else {
+                // Token exists but no name captured - show name input
+                showNameInputScreen();
+            }
+            return;
+        }
+
+        // No token - show authentication screen
         showAuthScreen();
+    }
+
+    async function checkUserAuthenticationState(userName, requestId) {
+        try {
+            const result = await window.githubBackend.checkRequestStatus(requestId);
+            
+            if (result.found) {
+                if (result.status === 'pending') {
+                    showWaitingScreen(userName);
+                    startPollingForApproval(requestId);
+                } else if (result.status === 'approved') {
+                    showAccessGrantedScreen(userName);
+                    startPollingForApproval(requestId);
+                } else if (result.status === 'granted') {
+                    showMainApp();
+                } else if (result.status === 'denied') {
+                    handleApprovalDenied();
+                }
+            } else {
+                // Request not found, restart the flow
+                showNameInputScreen();
+            }
+        } catch (error) {
+            console.error('Error checking authentication state:', error);
+            // On error, show name input screen to restart
+            showNameInputScreen();
+        }
     }
 
     function processTokenFromUrl(token) {
@@ -260,10 +325,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Store token and create session
+        // Store token but don't create full session yet
         try {
             authManager.storeToken(token);
-            authManager.createSession();
             
             // Send QR scan alert email
             sendQRScanAlert(
@@ -601,7 +665,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleAccessGranted() {
         console.log('Access granted to procedure!');
         
-        // Now show the main app
+        // Now create the full session for procedure access
+        authManager.createSession();
+        
+        // Show the main app
         showMainApp();
         
         // Analytics event
