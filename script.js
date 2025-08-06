@@ -12,9 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Development mode check - disable emails during local development
+    // TEMPORARY: Force development mode for remote testing
     const isDevelopmentMode = window.location.hostname === 'localhost' || 
                             window.location.hostname === '127.0.0.1' || 
-                            window.location.protocol === 'file:';
+                            window.location.protocol === 'file:' ||
+                            window.location.hostname === 'hgse-itav.github.io'; // TEMP: Disable emails on GitHub Pages
     
     // Initialize development mode
     if (isDevelopmentMode) {

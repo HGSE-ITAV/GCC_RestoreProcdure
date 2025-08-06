@@ -199,6 +199,8 @@
 
         // Approve request
         function approveRequest(requestId) {
+            console.log('🔄 Approving request:', requestId);
+            console.log('🌐 Environment:', window.location.hostname);
             updateRequestStatus(requestId, 'approved');
         }
 
