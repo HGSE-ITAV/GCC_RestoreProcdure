@@ -140,27 +140,61 @@
             }
 
             noRequests.style.display = 'none';
-            requestsList.innerHTML = requests.map(request => `
-                <div class="request-card" data-id="${request.id}">
-                    <div class="request-header">
-                        <h3><i class="fas fa-user"></i> ${request.userName}</h3>
-                        <span class="request-time">${new Date(request.timestamp).toLocaleString()}</span>
-                    </div>
-                    <div class="request-details">
-                        <p><strong>Browser:</strong> ${request.browserInfo}</p>
-                        <p><strong>User Agent:</strong> ${request.userAgent.substring(0, 100)}...</p>
-                        <p><strong>Status:</strong> <span class="status-${request.status}">${request.status}</span></p>
-                    </div>
-                    <div class="request-actions">
+            requestsList.innerHTML = requests.map(request => {
+                let actionButtons = '';
+                
+                if (request.status === 'pending') {
+                    actionButtons = `
                         <button class="approve-btn" onclick="approveRequest('${request.id}')">
                             <i class="fas fa-check"></i> Approve
                         </button>
                         <button class="deny-btn" onclick="denyRequest('${request.id}')">
                             <i class="fas fa-times"></i> Deny
                         </button>
+                    `;
+                } else if (request.status === 'approved') {
+                    actionButtons = `
+                        <button class="grant-access-btn" onclick="grantAccess('${request.id}')">
+                            <i class="fas fa-key"></i> Grant Access to Procedure
+                        </button>
+                        <button class="revoke-btn" onclick="revokeAccess('${request.id}')">
+                            <i class="fas fa-ban"></i> Revoke
+                        </button>
+                    `;
+                } else if (request.status === 'granted') {
+                    actionButtons = `
+                        <div class="status-message">
+                            <i class="fas fa-check-circle"></i> Access Granted - User has procedure access
+                        </div>
+                        <button class="revoke-btn" onclick="revokeAccess('${request.id}')">
+                            <i class="fas fa-ban"></i> Revoke Access
+                        </button>
+                    `;
+                } else if (request.status === 'denied') {
+                    actionButtons = `
+                        <div class="status-message denied">
+                            <i class="fas fa-times-circle"></i> Request Denied
+                        </div>
+                    `;
+                }
+                
+                return `
+                    <div class="request-card" data-id="${request.id}">
+                        <div class="request-header">
+                            <h3><i class="fas fa-user"></i> ${request.userName}</h3>
+                            <span class="request-time">${new Date(request.timestamp).toLocaleString()}</span>
+                        </div>
+                        <div class="request-details">
+                            <p><strong>Browser:</strong> ${request.browserInfo}</p>
+                            <p><strong>User Agent:</strong> ${request.userAgent.substring(0, 100)}...</p>
+                            <p><strong>Status:</strong> <span class="status-${request.status}">${request.status}</span></p>
+                        </div>
+                        <div class="request-actions">
+                            ${actionButtons}
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         // Approve request
@@ -171,6 +205,20 @@
         // Deny request
         function denyRequest(requestId) {
             if (confirm('Are you sure you want to deny this request?')) {
+                updateRequestStatus(requestId, 'denied');
+            }
+        }
+
+        // Grant access to procedure
+        function grantAccess(requestId) {
+            if (confirm('Grant this user access to the restoration procedure?')) {
+                updateRequestStatus(requestId, 'granted');
+            }
+        }
+
+        // Revoke access
+        function revokeAccess(requestId) {
+            if (confirm('Are you sure you want to revoke access for this user?')) {
                 updateRequestStatus(requestId, 'denied');
             }
         }
@@ -402,13 +450,51 @@
             font-family: 'Source Code Pro', monospace;
         }
 
-        .approve-btn:hover, .deny-btn:hover, .refresh-btn:hover, .test-btn:hover, .clear-btn:hover {
+        .grant-access-btn {
+            background: linear-gradient(45deg, #2980b9, #3498db);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Source Code Pro', monospace;
+        }
+
+        .revoke-btn {
+            background: linear-gradient(45deg, #e67e22, #f39c12);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Source Code Pro', monospace;
+        }
+
+        .status-message {
+            background: rgba(46, 204, 113, 0.1);
+            border: 1px solid var(--primary-color);
+            border-radius: 5px;
+            padding: 8px 12px;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.9rem;
+        }
+
+        .status-message.denied {
+            background: rgba(231, 76, 60, 0.1);
+            border-color: #e74c3c;
+            color: #e74c3c;
+        }
+
+        .approve-btn:hover, .deny-btn:hover, .grant-access-btn:hover, .revoke-btn:hover, .refresh-btn:hover, .test-btn:hover, .clear-btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
 
         .status-pending { color: #f39c12; }
         .status-approved { color: #27ae60; }
+        .status-granted { color: #3498db; }
         .status-denied { color: #e74c3c; }
 
         @media (max-width: 768px) {

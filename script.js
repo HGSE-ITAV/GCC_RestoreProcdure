@@ -193,6 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const authScreen = document.getElementById('auth-screen');
     const nameInputScreen = document.getElementById('name-input-screen');
     const waitingScreen = document.getElementById('waiting-screen');
+    const accessGrantedScreen = document.getElementById('access-granted-screen');
     const surveyScreen = document.getElementById('survey-screen');
     const stepScreen = document.getElementById('step-screen');
     const summaryScreen = document.getElementById('summary-screen');
@@ -204,6 +205,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const waitingUserName = document.getElementById('waiting-user-name');
     const waitingTimer = document.getElementById('waiting-timer');
     const cancelRequestBtn = document.getElementById('cancel-request-btn');
+    const accessUserName = document.getElementById('access-user-name');
+    const approvalTimestamp = document.getElementById('approval-timestamp');
     const issueForm = document.getElementById('issue-form');
     const startRecoveryBtn = document.getElementById('start-recovery-btn');
     const disclaimerCheckbox = document.getElementById('disclaimer-check');
@@ -299,6 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tokenProcessing.style.display = 'block';
         nameInputScreen.style.setProperty('display', 'none', 'important');
         waitingScreen.style.display = 'none';
+        accessGrantedScreen.style.display = 'none';
         surveyScreen.style.display = 'none';
         stepScreen.style.display = 'none';
         summaryScreen.style.display = 'none';
@@ -310,6 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
         authScreen.style.visibility = 'visible';
         nameInputScreen.style.setProperty('display', 'none', 'important');
         waitingScreen.style.display = 'none';
+        accessGrantedScreen.style.display = 'none';
         surveyScreen.style.display = 'none';
         stepScreen.style.display = 'none';
         summaryScreen.style.display = 'none';
@@ -333,6 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
         authScreen.style.setProperty('display', 'none', 'important');
         nameInputScreen.style.setProperty('display', 'block', 'important');
         waitingScreen.style.display = 'none';
+        accessGrantedScreen.style.display = 'none';
         surveyScreen.style.display = 'none';
         stepScreen.style.display = 'none';
         summaryScreen.style.display = 'none';
@@ -361,6 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
         authScreen.style.setProperty('display', 'none', 'important');
         nameInputScreen.style.setProperty('display', 'none', 'important');
         waitingScreen.style.display = 'block';
+        accessGrantedScreen.style.display = 'none';
         surveyScreen.style.display = 'none';
         stepScreen.style.display = 'none';
         summaryScreen.style.display = 'none';
@@ -381,6 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
         authScreen.style.visibility = 'hidden';
         nameInputScreen.style.setProperty('display', 'none', 'important');
         waitingScreen.style.display = 'none';
+        accessGrantedScreen.style.display = 'none';
         console.log('authScreen after:', authScreen.style.display);
         surveyScreen.style.display = 'block';
         stepScreen.style.display = 'none';
@@ -389,6 +397,27 @@ document.addEventListener('DOMContentLoaded', () => {
         // Refresh session on activity
         authManager.refreshSession();
         console.log('showMainApp() completed');
+    }
+
+    function showAccessGrantedScreen(userName) {
+        console.log('showAccessGrantedScreen() called for user:', userName);
+        authScreen.style.setProperty('display', 'none', 'important');
+        nameInputScreen.style.setProperty('display', 'none', 'important');
+        waitingScreen.style.display = 'none';
+        accessGrantedScreen.style.display = 'block';
+        surveyScreen.style.display = 'none';
+        stepScreen.style.display = 'none';
+        summaryScreen.style.display = 'none';
+        
+        // Set user name and timestamp
+        if (accessUserName && userName) {
+            accessUserName.textContent = `Hello, ${userName}`;
+        }
+        if (approvalTimestamp) {
+            approvalTimestamp.textContent = new Date().toLocaleString();
+        }
+        
+        console.log('showAccessGrantedScreen() completed');
     }
 
 
@@ -529,12 +558,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await window.githubBackend.checkRequestStatus(requestId);
             
             if (result.found && result.status !== 'pending') {
-                clearInterval(approvalPollingInterval);
-                approvalPollingInterval = null;
-                
                 if (result.status === 'approved') {
                     handleApprovalSuccess();
+                    // Continue polling to wait for "granted" status
+                } else if (result.status === 'granted') {
+                    clearInterval(approvalPollingInterval);
+                    approvalPollingInterval = null;
+                    handleAccessGranted();
                 } else if (result.status === 'denied') {
+                    clearInterval(approvalPollingInterval);
+                    approvalPollingInterval = null;
                     handleApprovalDenied();
                 }
             }
@@ -547,12 +580,33 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Request approved!');
         stopWaitingTimer();
         
-        // Direct access to main app after approval
-        showMainApp();
+        // Show access granted screen, not main app yet
+        const storedUserName = sessionStorage.getItem('gcc_user_name');
+        showAccessGrantedScreen(storedUserName);
+        
+        // Continue polling to wait for procedure access grant
+        const storedRequestId = sessionStorage.getItem('gcc_request_id');
+        if (storedRequestId && !approvalPollingInterval) {
+            startPollingForApproval(storedRequestId);
+        }
         
         // Analytics event
         if (typeof gtag === 'function') {
             gtag('event', 'access_approved', {
+                'event_category': 'approval'
+            });
+        }
+    }
+
+    function handleAccessGranted() {
+        console.log('Access granted to procedure!');
+        
+        // Now show the main app
+        showMainApp();
+        
+        // Analytics event
+        if (typeof gtag === 'function') {
+            gtag('event', 'access_granted', {
                 'event_category': 'approval'
             });
         }

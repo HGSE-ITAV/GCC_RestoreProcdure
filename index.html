@@ -99,6 +99,34 @@
             </div>
         </div>
 
+        <!-- Access Granted Screen -->
+        <div id="access-granted-screen" style="display: none;">
+            <div class="access-container">
+                <h2><i class="fas fa-check-circle"></i> Access Approved</h2>
+                <p id="access-user-name">Hello, [User Name]</p>
+                <p class="access-message">Your request has been approved by the operator.</p>
+                
+                <div class="access-status">
+                    <div class="success-animation">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <p><i class="fas fa-shield-check"></i> Status: Access Approved</p>
+                    <p class="approval-time">Approved at: <span id="approval-timestamp"></span></p>
+                </div>
+
+                <div class="access-instructions">
+                    <p><i class="fas fa-info-circle"></i> Please wait for the operator to grant you access to the restoration procedure.</p>
+                    <p>You will automatically be redirected when access is granted.</p>
+                </div>
+
+                <div class="access-waiting">
+                    <div class="loading-dots">
+                        <span>.</span><span>.</span><span>.</span>
+                    </div>
+                    <p>Waiting for procedure access...</p>
+                </div>
+            </div>
+        </div>
 
         <!-- Survey Screen -->
         <div id="survey-screen" style="display: none;">

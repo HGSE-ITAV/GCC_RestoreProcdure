@@ -649,6 +649,108 @@ header h1 {
     animation: terminalGlow 2s ease-in-out infinite alternate;
 }
 
+/* Access Granted Screen */
+#access-granted-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--background);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1001;
+    padding: 2rem;
+}
+
+.access-container {
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid var(--primary-color);
+    border-radius: 10px;
+    padding: 3rem;
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(46, 204, 113, 0.3);
+    animation: terminalGlow 2s ease-in-out infinite alternate;
+}
+
+.access-container h2 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    font-size: 1.8rem;
+}
+
+#access-user-name {
+    color: #f39c12;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.access-message {
+    color: var(--text-color);
+    margin-bottom: 2rem;
+    font-size: 1rem;
+}
+
+.access-status {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: rgba(46, 204, 113, 0.1);
+    border: 1px solid var(--primary-color);
+    border-radius: 5px;
+}
+
+.success-animation {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.access-status p {
+    color: var(--text-color);
+    margin: 0.5rem 0;
+}
+
+.approval-time {
+    color: #f39c12;
+    font-size: 0.9rem;
+}
+
+.access-instructions {
+    margin: 2rem 0;
+    padding: 1rem;
+    background: rgba(52, 152, 219, 0.1);
+    border: 1px solid #3498db;
+    border-radius: 5px;
+}
+
+.access-instructions p {
+    color: #3498db;
+    margin: 0.5rem 0;
+    font-size: 0.95rem;
+}
+
+.access-waiting {
+    margin-top: 2rem;
+    color: #95a5a6;
+}
+
+.access-waiting p {
+    margin-top: 1rem;
+    font-style: italic;
+}
+
 .waiting-container h2 {
     color: var(--primary-color);
     margin-bottom: 1rem;
