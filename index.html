@@ -99,31 +99,6 @@
             </div>
         </div>
 
-        <!-- Code Entry Screen -->
-        <div id="code-entry-screen" style="display: none;">
-            <div class="code-container">
-                <h2><i class="fas fa-key"></i> Access Code Required</h2>
-                <p id="code-user-name">Hello, [User Name]</p>
-                <p class="code-message">Your request has been approved! Please enter the 6-digit access code provided by the operator.</p>
-                
-                <form id="code-form">
-                    <div class="input-group">
-                        <label for="access-code">Access Code:</label>
-                        <input type="text" id="access-code" placeholder="Enter 6-digit code" required maxlength="6" 
-                               pattern="[0-9]{6}" title="Please enter a 6-digit numeric code">
-                    </div>
-                    <button type="submit" class="submit-btn">
-                        <i class="fas fa-unlock"></i> Verify Code
-                    </button>
-                </form>
-
-                <div id="code-error" class="error-message" style="display: none;"></div>
-                
-                <button id="back-to-waiting-btn" class="cancel-btn">
-                    <i class="fas fa-arrow-left"></i> Back to Waiting
-                </button>
-            </div>
-        </div>
 
         <!-- Survey Screen -->
         <div id="survey-screen" style="display: none;">
