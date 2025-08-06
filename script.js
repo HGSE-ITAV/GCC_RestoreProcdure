@@ -431,8 +431,26 @@ document.addEventListener('DOMContentLoaded', () => {
             if (result.success) {
                 console.log('✅ Request submitted to backend');
                 
-                // Send email notification with user name
+                // Send email notification with user name  
                 sendQRScanAlert(navigator.userAgent, Date.now(), userName);
+                
+                // Show share code in waiting screen
+                const shareCode = window.githubBackend.generateShareCode(request);
+                const shareCodeElement = document.createElement('div');
+                shareCodeElement.innerHTML = `
+                    <div style="margin: 1rem 0; padding: 1rem; background: rgba(52, 152, 219, 0.1); border: 1px solid #3498db; border-radius: 5px;">
+                        <p style="color: #3498db; margin: 0 0 0.5rem 0; font-weight: bold;">
+                            <i class="fas fa-share-alt"></i> Share Code for Operator:
+                        </p>
+                        <p style="font-family: 'Courier New', monospace; font-size: 1.2rem; color: var(--primary-color); margin: 0; word-break: break-all;">
+                            ${shareCode}
+                        </p>
+                        <p style="color: #95a5a6; font-size: 0.9rem; margin: 0.5rem 0 0 0;">
+                            Give this code to the operator to process your request
+                        </p>
+                    </div>
+                `;
+                waitingScreen.querySelector('.waiting-container').appendChild(shareCodeElement);
                 
                 // Start polling for approval
                 startPollingForApproval(requestId);

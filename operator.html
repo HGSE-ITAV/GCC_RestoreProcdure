@@ -6,7 +6,7 @@
     <title>GCC Restore Operator Dashboard</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="github-api.js"></script>
+    <script src="simple-backend.js"></script>
 </head>
 <body>
     <header>
@@ -54,6 +54,18 @@
                 </div>
 
                 <div id="requests-container">
+                    <!-- Import Share Code Section -->
+                    <div class="import-section" style="margin-bottom: 2rem;">
+                        <h3><i class="fas fa-download"></i> Import Request</h3>
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                            <input type="text" id="share-code-input" placeholder="Enter share code from user..." 
+                                   style="flex: 1; padding: 8px; background: rgba(0,0,0,0.8); border: 1px solid var(--primary-color); color: var(--text-color); border-radius: 3px;">
+                            <button id="import-btn" class="refresh-btn">
+                                <i class="fas fa-plus"></i> Import
+                            </button>
+                        </div>
+                    </div>
+                    
                     <div id="no-requests" style="display: none;">
                         <p><i class="fas fa-inbox"></i> No pending requests</p>
                     </div>
@@ -75,6 +87,8 @@
         const logoutBtn = document.getElementById('operator-logout');
         const testModeBtn = document.getElementById('test-mode-btn');
         const clearAllBtn = document.getElementById('clear-all-btn');
+        const importBtn = document.getElementById('import-btn');
+        const shareCodeInput = document.getElementById('share-code-input');
         const requestsList = document.getElementById('requests-list');
         const noRequests = document.getElementById('no-requests');
 
@@ -256,6 +270,31 @@
         
         // Manual refresh
         refreshBtn.addEventListener('click', loadRequests);
+
+        // Import share code
+        importBtn.addEventListener('click', () => {
+            const shareCode = shareCodeInput.value.trim();
+            if (!shareCode) {
+                alert('Please enter a share code');
+                return;
+            }
+            
+            const result = window.githubBackend.importRequestByShareCode(shareCode);
+            if (result.success) {
+                shareCodeInput.value = '';
+                loadRequests();
+                alert(`Request imported successfully for ${result.request.userName}`);
+            } else {
+                alert(`Import failed: ${result.error}`);
+            }
+        });
+
+        // Allow enter key to import
+        shareCodeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                importBtn.click();
+            }
+        });
     </script>
 
     <style>

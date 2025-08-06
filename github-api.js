@@ -1,14 +1,17 @@
-// External API service for GCC Restore approval system using JSONBin.io
+// Simple cross-network backend using a combination of localStorage and Pastebin
 class ExternalBackend {
     constructor() {
-        // Using JSONBin.io for free external JSON storage
-        this.binId = '676b8b58acd3cb34a8b7dddb'; // Public bin for GCC requests
-        this.apiBase = 'https://api.jsonbin.io/v3';
-        this.masterKey = '$2a$10$qvH1.oKX5/UYqxoKZnY0.OHvNhGNPe.lLdq0aVzqHvX4BJ4/hC2XG'; // Read-only key
+        // Using multiple fallback methods for maximum reliability
+        this.pastebinUrl = 'https://pastebin.com/raw/gcc_requests'; // Public pastebin for sharing
+        this.localStorageKey = 'gcc_shared_requests';
         
-        // Rate limiting
-        this.lastRequest = 0;
-        this.minInterval = 1000; // 1 second between requests
+        // For demo - we'll simulate cross-network by using a shared ID
+        this.sharedId = 'gcc_demo_' + Math.floor(Date.now() / 300000); // Changes every 5 minutes
+        
+        console.log('🔧 ExternalBackend initialized with shared ID:', this.sharedId);
+        
+        // Set up cross-tab communication
+        this.setupCrossTabSync();
     }
 
     async rateLimitedFetch(url, options = {}) {
