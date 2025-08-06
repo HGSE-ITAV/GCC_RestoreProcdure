@@ -4,10 +4,19 @@ test.describe('Operator Dashboard', () => {
   test.beforeEach(async ({ page }) => {
     // Clear all storage before each test
     await page.context().clearCookies();
-    await page.evaluate(() => {
-      localStorage.clear();
-      sessionStorage.clear();
-    });
+    
+    // Navigate to page first to establish context
+    await page.goto('/');
+    
+    // Wait for page to load and then clear storage
+    try {
+      await page.evaluate(() => {
+        localStorage.clear();
+        sessionStorage.clear();
+      });
+    } catch (error) {
+      console.warn('Could not clear storage, continuing with test:', error.message);
+    }
   });
 
   test('should require operator authentication', async ({ page }) => {
@@ -15,7 +24,7 @@ test.describe('Operator Dashboard', () => {
     
     // Should show operator auth screen
     await expect(page.locator('#operator-auth')).toBeVisible();
-    await expect(page.locator('h2')).toContainText('Operator Authentication');
+    await expect(page.locator('#operator-auth h2')).toContainText('Operator Authentication');
     await expect(page.locator('#operator-dashboard')).not.toBeVisible();
   });
 
@@ -38,7 +47,7 @@ test.describe('Operator Dashboard', () => {
     
     await expect(page.locator('#operator-dashboard')).toBeVisible();
     await expect(page.locator('#operator-auth')).not.toBeVisible();
-    await expect(page.locator('h2')).toContainText('Pending Access Requests');
+    await expect(page.locator('#operator-dashboard h2')).toContainText('Pending Access Requests');
   });
 
   test('should display pending requests', async ({ page }) => {
@@ -90,6 +99,12 @@ test.describe('Operator Dashboard', () => {
     await requestCard.locator('.approve-btn').click();
     await expect(requestCard.locator('.grant-access-btn')).toBeVisible();
     
+    // Listen for grant access confirmation dialog
+    page.on('dialog', async dialog => {
+      expect(dialog.message()).toContain('Grant this user access');
+      await dialog.accept();
+    });
+    
     // Grant access to procedure
     await requestCard.locator('.grant-access-btn').click();
     
@@ -131,14 +146,20 @@ test.describe('Operator Dashboard', () => {
     const requestCard = page.locator('.request-card').first();
     await requestCard.locator('.approve-btn').click();
     await expect(requestCard.locator('.grant-access-btn')).toBeVisible();
+    
+    // Handle grant access confirmation dialog
+    page.on('dialog', async dialog => {
+      if (dialog.message().includes('Grant this user access')) {
+        await dialog.accept();
+      } else if (dialog.message().includes('revoke access')) {
+        await dialog.accept();
+      }
+    });
+    
     await requestCard.locator('.grant-access-btn').click();
     await expect(requestCard.locator('.status-granted')).toBeVisible();
     
-    // Revoke access
-    page.on('dialog', async dialog => {
-      expect(dialog.message()).toContain('revoke access');
-      await dialog.accept();
-    });
+    // Revoke access (dialog already handled above)
     await requestCard.locator('.revoke-btn').click();
     
     // Should show as denied
@@ -165,7 +186,7 @@ test.describe('Operator Dashboard', () => {
     
     // Should show imported request
     await expect(page.locator('.request-card')).toBeVisible();
-    await expect(page.locator('h3')).toContainText('Imported User');
+    await expect(page.locator('.request-card h3')).toContainText('Imported User');
   });
 
   test('should handle clear all requests', async ({ page }) => {

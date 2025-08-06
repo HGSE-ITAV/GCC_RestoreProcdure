@@ -60,7 +60,33 @@ class SimpleBackend {
     async getPendingRequests() {
         try {
             const data = this.getCurrentData();
-            return data.pending || [];
+            // Return requests that need operator visibility:
+            // - pending: need approval/denial  
+            // - approved: need access grant
+            // - granted: show status and allow revocation
+            // - denied: show recent denials (last 5 minutes)
+            const pending = data.pending || [];
+            const processed = data.processed || [];
+            
+            const now = Date.now();
+            const fiveMinutesAgo = now - (5 * 60 * 1000);
+            
+            const activeRequests = processed.filter(r => {
+                if (r.status === 'approved' || r.status === 'granted') {
+                    return true;
+                }
+                if (r.status === 'denied') {
+                    // Show denied requests for 5 minutes after processing
+                    return r.processedAt && r.processedAt > fiveMinutesAgo;
+                }
+                return false;
+            });
+            
+            // Combine and sort by timestamp (newest first)
+            const allOperatorRequests = [...pending, ...activeRequests];
+            allOperatorRequests.sort((a, b) => b.timestamp - a.timestamp);
+            
+            return allOperatorRequests;
         } catch (error) {
             console.error('Error getting pending requests:', error);
             return [];
@@ -72,21 +98,39 @@ class SimpleBackend {
             console.log(`🔄 Processing request ${requestId} as ${status}`);
             
             const data = this.getCurrentData();
-            const requestIndex = data.pending.findIndex(r => r.id === requestId);
             
-            if (requestIndex === -1) {
-                throw new Error('Request not found');
+            // Look for request in pending array first
+            let requestIndex = data.pending.findIndex(r => r.id === requestId);
+            let request;
+            let fromPending = true;
+            
+            if (requestIndex !== -1) {
+                // Found in pending array
+                request = data.pending[requestIndex];
+            } else {
+                // Look in processed array (for already approved requests)
+                requestIndex = data.processed.findIndex(r => r.id === requestId);
+                if (requestIndex !== -1) {
+                    request = data.processed[requestIndex];
+                    fromPending = false;
+                } else {
+                    throw new Error('Request not found');
+                }
             }
             
-            const request = data.pending[requestIndex];
+            // Update request status
             request.status = status;
             request.processedAt = Date.now();
             
-            // Move to processed
-            data.processed.push(request);
-            data.pending.splice(requestIndex, 1);
-            data.lastUpdated = Date.now();
+            // Handle array movement
+            if (fromPending) {
+                // Moving from pending to processed
+                data.processed.push(request);
+                data.pending.splice(requestIndex, 1);
+            }
+            // If already in processed array, just update it in place
             
+            data.lastUpdated = Date.now();
             localStorage.setItem(this.storageKey, JSON.stringify(data));
             
             console.log(`✅ Request ${requestId} processed as ${status}`);

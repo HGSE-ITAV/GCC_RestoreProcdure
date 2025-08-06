@@ -4,10 +4,19 @@ test.describe('Security Boundary Tests', () => {
   test.beforeEach(async ({ page }) => {
     // Clear all storage before each test
     await page.context().clearCookies();
-    await page.evaluate(() => {
-      localStorage.clear();
-      sessionStorage.clear();
-    });
+    
+    // Navigate to page first to establish context
+    await page.goto('/');
+    
+    // Wait for page to load and then clear storage
+    try {
+      await page.evaluate(() => {
+        localStorage.clear();
+        sessionStorage.clear();
+      });
+    } catch (error) {
+      console.warn('Could not clear storage, continuing with test:', error.message);
+    }
   });
 
   test('should prevent direct access to procedure without authentication', async ({ page }) => {

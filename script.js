@@ -11,8 +11,54 @@ document.addEventListener('DOMContentLoaded', () => {
         emailjs.init(emailConfig.publicKey);
     }
 
+    // Development mode check - disable emails during local development
+    const isDevelopmentMode = window.location.hostname === 'localhost' || 
+                            window.location.hostname === '127.0.0.1' || 
+                            window.location.protocol === 'file:';
+    
+    // Initialize development mode
+    if (isDevelopmentMode) {
+        console.group('🛠️ Development Mode');
+        console.log('📧 Email notifications: DISABLED');
+        console.log('🌐 Current hostname:', window.location.hostname);
+        console.log('🔧 Testing mode: Active');
+        console.groupEnd();
+        
+        // Add visual development mode indicator
+        document.addEventListener('DOMContentLoaded', () => {
+            const devIndicator = document.createElement('div');
+            devIndicator.innerHTML = '🛠️ DEV MODE - Emails Disabled';
+            devIndicator.style.cssText = `
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                background: #f39c12;
+                color: white;
+                padding: 5px 10px;
+                border-radius: 3px;
+                font-size: 12px;
+                font-family: 'Source Code Pro', monospace;
+                z-index: 9999;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+                opacity: 0.9;
+                pointer-events: none;
+            `;
+            document.body.appendChild(devIndicator);
+        });
+    }
+    
     // Email notification function
     function sendQRScanAlert(userAgent, timestamp, userName = null) {
+        if (isDevelopmentMode) {
+            console.group('📧 Email Alert (Development Mode)');
+            console.log('Status: SKIPPED - Development mode active');
+            console.log('Recipient: jared_ambrose@gse.harvard.edu');
+            console.log('User:', userName || 'Anonymous User');
+            console.log('Timestamp:', new Date(timestamp).toLocaleString());
+            console.groupEnd();
+            return;
+        }
+        
         if (typeof emailjs === 'undefined') {
             console.warn('EmailJS not loaded, skipping email notification');
             return;
@@ -245,10 +291,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- AUTHENTICATION FUNCTIONS ---
     function showAuthError(message) {
         authError.textContent = message;
-        authError.style.display = 'block';
+        authError.style.setProperty('display', 'block', 'important');
+        console.log('🚨 showAuthError called:', message);
+        console.log('🚨 Error element display after setting:', authError.style.display);
+        // Keep error visible for testing - clear it when user navigates away
         setTimeout(() => {
-            authError.style.display = 'none';
+            authError.style.setProperty('display', 'none', 'important');
         }, 5000);
+    }
+    
+    function clearAuthError() {
+        authError.style.display = 'none';
+        authError.textContent = '';
     }
 
     function initializeApp() {
@@ -399,6 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showNameInputScreen() {
         console.log('showNameInputScreen() called');
+        clearAuthError(); // Clear any error messages when transitioning
         authScreen.style.setProperty('display', 'none', 'important');
         nameInputScreen.style.setProperty('display', 'block', 'important');
         waitingScreen.style.display = 'none';
@@ -447,6 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showMainApp() {
         console.log('showMainApp() called');
+        clearAuthError(); // Clear any error messages when transitioning
         console.log('authScreen before:', authScreen.style.display);
         authScreen.style.setProperty('display', 'none', 'important');
         authScreen.style.visibility = 'hidden';

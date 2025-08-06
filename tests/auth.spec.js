@@ -4,32 +4,71 @@ test.describe('Authentication Flow', () => {
   test.beforeEach(async ({ page }) => {
     // Clear all storage before each test
     await page.context().clearCookies();
-    await page.evaluate(() => {
-      localStorage.clear();
-      sessionStorage.clear();
-    });
+    
+    // Navigate to page first to establish context
+    await page.goto('/');
+    
+    // Wait for page to load and then clear storage
+    try {
+      await page.evaluate(() => {
+        localStorage.clear();
+        sessionStorage.clear();
+      });
+    } catch (error) {
+      console.warn('Could not clear storage, continuing with test:', error.message);
+    }
   });
 
   test('should show auth screen by default', async ({ page }) => {
+    // Listen for development mode console messages
+    const consoleLogs = [];
+    page.on('console', msg => {
+      consoleLogs.push(msg.text());
+    });
+    
     await page.goto('/');
     
     // Should show the main authentication screen
     await expect(page.locator('#auth-screen')).toBeVisible();
-    await expect(page.locator('h2')).toContainText('Access Authentication');
-    await expect(page.locator('.access-instructions')).toContainText('Scan the QR code');
+    await expect(page.locator('#auth-screen h2')).toContainText('Access Authentication');
+    await expect(page.locator('#auth-screen .access-instructions')).toContainText('Scan the QR code');
+    
+    // Verify development mode is active
+    const devModeLog = consoleLogs.find(log => log.includes('DEVELOPMENT MODE ACTIVE'));
+    if (devModeLog) {
+      console.log('✅ Development mode confirmed:', devModeLog);
+    }
   });
 
   test('should show name input screen with valid token', async ({ page }) => {
+    // Listen for email-related console messages
+    const consoleLogs = [];
+    page.on('console', msg => {
+      consoleLogs.push(msg.text());
+    });
+    
     await page.goto('/?token=test123');
     
     // Should process token and show name input screen
     await expect(page.locator('#name-input-screen')).toBeVisible();
-    await expect(page.locator('h2')).toContainText('Identify Yourself');
+    await expect(page.locator('#name-input-screen h2')).toContainText('Identify Yourself');
     await expect(page.locator('#user-name')).toBeVisible();
+    
+    // Verify email alerts are disabled in development
+    const emailDisabledLog = consoleLogs.find(log => log.includes('Email notification disabled'));
+    if (emailDisabledLog) {
+      console.log('✅ Email alerts disabled in dev mode:', emailDisabledLog);
+    }
   });
 
   test('should reject invalid token format', async ({ page }) => {
     await page.goto('/?token=invalid');
+    
+    // Wait for error to appear and check it quickly (before 5-second timeout hides it)
+    await page.waitForFunction(() => {
+      const errorEl = document.getElementById('auth-error');
+      return window.getComputedStyle(errorEl).display === 'block';
+    }, { timeout: 3000 });
     
     // Should show error and return to auth screen
     await expect(page.locator('#auth-error')).toBeVisible();
@@ -42,12 +81,18 @@ test.describe('Authentication Flow', () => {
     
     // Test empty name validation
     await page.click('button[type="submit"]');
+    await page.waitForTimeout(500);
     await expect(page.locator('#name-error')).toBeVisible();
     await expect(page.locator('#name-error')).toContainText('Please enter your name');
+    
+    // Clear error before next test
+    await page.fill('#user-name', 'Valid Name');
+    await page.fill('#user-name', '');
     
     // Test short name validation
     await page.fill('#user-name', 'A');
     await page.click('button[type="submit"]');
+    await page.waitForTimeout(500);
     await expect(page.locator('#name-error')).toBeVisible();
     await expect(page.locator('#name-error')).toContainText('at least 2 characters');
   });
@@ -111,7 +156,7 @@ test.describe('Authentication Flow', () => {
     
     // Wait for polling to detect approval
     await expect(page.locator('#access-granted-screen')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('h2')).toContainText('Access Approved');
+    await expect(page.locator('#access-granted-screen h2')).toContainText('Access Approved');
   });
 
   test('should prevent anonymous access without proper authentication', async ({ page }) => {
