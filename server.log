@@ -1,0 +1,12 @@
+🚀 GCC Access Control Server running on http://localhost:8000
+📱 Main App: http://localhost:8000/
+🔧 Admin Dashboard: http://localhost:8000/admin.html
+🎯 QR Generator: http://localhost:8000/qr-generator.html
+New WebSocket connection from: ::1
+Received: { type: 'register_admin' }
+WebSocket connection closed
+New WebSocket connection from: ::1
+Received: { type: 'register_admin' }
+WebSocket connection closed
+New WebSocket connection from: ::1
+Received: { type: 'register_admin' }

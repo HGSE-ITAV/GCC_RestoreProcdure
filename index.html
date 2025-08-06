@@ -36,14 +36,23 @@
                 <p class="auth-description">Enter the current access code to use the GCC Restore Procedure system.</p>
                 
                 <div class="access-instructions">
-                    <p><i class="fas fa-qrcode"></i> Scan the QR code in the conference center to access this system.</p>
+                    <p><i class="fas fa-qrcode"></i> Scan the QR code in the conference center to request access to this system.</p>
                     <p>You must be physically present to use this application.</p>
                 </div>
                 
-                <div id="token-processing" style="display: none;">
+                <div id="request-processing" style="display: none;">
                     <div class="loading-spinner">
                         <i class="fas fa-spinner fa-spin"></i>
-                        <p>Validating access token...</p>
+                        <p id="request-status">Connecting to access control system...</p>
+                    </div>
+                </div>
+
+                <div id="access-code-input" style="display: none;">
+                    <h3><i class="fas fa-key"></i> Enter Access Code</h3>
+                    <p>The administrator has approved your request. Enter the provided access code:</p>
+                    <div class="code-input-container">
+                        <input type="text" id="access-code-field" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}">
+                        <button id="submit-code-btn" class="submit-btn">Authenticate</button>
                     </div>
                 </div>
 

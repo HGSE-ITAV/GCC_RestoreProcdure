@@ -119,18 +119,18 @@
 </head>
 <body>
     <div class="generator-container">
-        <h1><i class="fas fa-qrcode"></i> GCC Access Token Generator</h1>
+        <h1><i class="fas fa-qrcode"></i> GCC Access Request Generator</h1>
         <p class="description">
-            Generate secure access tokens for the GCC Restore Procedure system. 
-            Each token grants 30-minute access when scanned via QR code.
+            Generate QR codes that allow users to request access to the GCC Restore Procedure system. 
+            When scanned, users will request access and wait for admin approval.
         </p>
 
         <button id="generate-token-btn" class="generate-btn">
-            <i class="fas fa-key"></i> Generate New Access Token
+            <i class="fas fa-qrcode"></i> Generate Request QR Code
         </button>
 
         <div id="token-display" class="token-display hidden">
-            <h3>Generated Token URL:</h3>
+            <h3>Generated Request URL:</h3>
             <div class="token-url" id="token-url"></div>
             <button id="copy-url-btn" class="copy-btn">
                 <i class="fas fa-copy"></i> Copy URL
@@ -140,7 +140,8 @@
                 1. Copy this URL<br>
                 2. Create a QR code pointing to this URL<br>
                 3. Post the QR code in the conference center<br>
-                4. Users scan the QR code to access the system
+                4. Users scan the QR code to request access<br>
+                5. Admin approves/denies requests in real-time
             </div>
         </div>
     </div>
@@ -161,15 +162,13 @@
         }
 
         document.getElementById('generate-token-btn').addEventListener('click', () => {
-            const token = generateSecureToken();
             const baseUrl = window.location.origin + window.location.pathname.replace('qr-generator.html', '');
-            const tokenUrl = `${baseUrl}?token=${token}`;
+            const requestUrl = `${baseUrl}?request=access`;
             
-            document.getElementById('token-url').textContent = tokenUrl;
+            document.getElementById('token-url').textContent = requestUrl;
             document.getElementById('token-display').classList.remove('hidden');
             
-            console.log('Generated secure token:', token);
-            console.log('Token URL:', tokenUrl);
+            console.log('Generated request URL:', requestUrl);
         });
 
         document.getElementById('copy-url-btn').addEventListener('click', async () => {

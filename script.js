@@ -91,6 +91,12 @@ document.addEventListener('DOMContentLoaded', () => {
             return urlParams.get('token');
         },
 
+        // Check if this is an access request
+        isAccessRequest() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('request') === 'access';
+        },
+
         // Clear all authentication data
         logout() {
             localStorage.removeItem('gcc_session');
@@ -151,7 +157,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const stepScreen = document.getElementById('step-screen');
     const summaryScreen = document.getElementById('summary-screen');
     const authError = document.getElementById('auth-error');
-    const tokenProcessing = document.getElementById('token-processing');
+    const requestProcessing = document.getElementById('request-processing');
+    const requestStatus = document.getElementById('request-status');
+    const accessCodeInput = document.getElementById('access-code-input');
+    const accessCodeField = document.getElementById('access-code-field');
+    const submitCodeBtn = document.getElementById('submit-code-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const issueForm = document.getElementById('issue-form');
     const startRecoveryBtn = document.getElementById('start-recovery-btn');
@@ -176,9 +186,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initializeApp() {
-        // Check for token in URL first
-        const tokenFromUrl = authManager.getTokenFromUrl();
+        // Check for access request in URL first
+        if (authManager.isAccessRequest()) {
+            console.log('Access request detected from URL');
+            initiateAccessRequest();
+            return;
+        }
         
+        // Check for token in URL
+        const tokenFromUrl = authManager.getTokenFromUrl();
         if (tokenFromUrl) {
             console.log('Token found in URL:', tokenFromUrl);
             processTokenFromUrl(tokenFromUrl);
@@ -235,14 +251,138 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function showTokenProcessing() {
+    // --- WEBSOCKET ACCESS REQUEST SYSTEM ---
+    let websocket = null;
+    let currentRequestId = null;
+
+    function initiateAccessRequest() {
+        showRequestProcessing();
+        connectWebSocket();
+        
+        // Clear URL parameters
+        const url = new URL(window.location);
+        url.searchParams.delete('request');
+        window.history.replaceState({}, document.title, url);
+    }
+
+    function connectWebSocket() {
+        const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${location.host}`;
+        
+        websocket = new WebSocket(wsUrl);
+        
+        websocket.onopen = () => {
+            console.log('Connected to WebSocket server');
+            updateRequestStatus('Connected to access control system...');
+            
+            // Register as user and request access
+            websocket.send(JSON.stringify({
+                type: 'register_user'
+            }));
+            
+            // Send access request
+            setTimeout(() => {
+                websocket.send(JSON.stringify({
+                    type: 'request_access',
+                    userInfo: navigator.userAgent || 'Unknown User'
+                }));
+            }, 500);
+        };
+        
+        websocket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            handleWebSocketMessage(data);
+        };
+        
+        websocket.onclose = () => {
+            console.log('WebSocket connection closed');
+            updateRequestStatus('Connection lost. Please try scanning the QR code again.');
+        };
+        
+        websocket.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            showAuthError('Connection failed. Please check your network and try again.');
+            showAuthScreen();
+        };
+    }
+
+    function handleWebSocketMessage(data) {
+        console.log('Received WebSocket message:', data);
+        
+        switch (data.type) {
+            case 'user_registered':
+                updateRequestStatus('Registered successfully...');
+                break;
+                
+            case 'request_submitted':
+                currentRequestId = data.requestId;
+                updateRequestStatus('Access request sent to administrator. Waiting for approval...');
+                break;
+                
+            case 'request_approved':
+                updateRequestStatus('Access approved! Enter the provided code below.');
+                showAccessCodeInput();
+                break;
+                
+            case 'request_denied':
+                showAuthError('Access request denied by administrator.');
+                setTimeout(() => {
+                    showAuthScreen();
+                }, 3000);
+                break;
+                
+            case 'code_validation':
+                if (data.valid) {
+                    // Create session and show main app
+                    authManager.createSession();
+                    showMainApp();
+                    
+                    // Analytics event
+                    if (typeof gtag === 'function') {
+                        gtag('event', 'access_approved_authentication_success', {
+                            'event_category': 'security'
+                        });
+                    }
+                } else {
+                    showAuthError(data.message || 'Invalid or expired access code');
+                    accessCodeField.value = '';
+                }
+                break;
+        }
+    }
+
+    function updateRequestStatus(message) {
+        if (requestStatus) {
+            requestStatus.textContent = message;
+        }
+    }
+
+    function showRequestProcessing() {
         authScreen.style.display = 'block';
         authScreen.style.visibility = 'visible';
-        tokenProcessing.style.display = 'block';
+        requestProcessing.style.display = 'block';
+        accessCodeInput.style.display = 'none';
         surveyScreen.style.display = 'none';
         stepScreen.style.display = 'none';
         summaryScreen.style.display = 'none';
         logoutBtn.style.display = 'none';
+    }
+
+    function showAccessCodeInput() {
+        requestProcessing.style.display = 'none';
+        accessCodeInput.style.display = 'block';
+        accessCodeField.focus();
+    }
+
+    function validateAccessCode(code) {
+        if (websocket && websocket.readyState === WebSocket.OPEN) {
+            websocket.send(JSON.stringify({
+                type: 'validate_code',
+                code: code
+            }));
+        } else {
+            showAuthError('Connection lost. Please scan the QR code again.');
+        }
     }
 
     function showAuthScreen() {
@@ -253,10 +393,18 @@ document.addEventListener('DOMContentLoaded', () => {
         stepScreen.style.display = 'none';
         summaryScreen.style.display = 'none';
         logoutBtn.style.display = 'none';
-        tokenProcessing.style.display = 'none';
+        requestProcessing.style.display = 'none';
+        accessCodeInput.style.display = 'none';
         
-        // Clear any error messages
+        // Clear any error messages and input fields
         authError.style.display = 'none';
+        if (accessCodeField) accessCodeField.value = '';
+        
+        // Close WebSocket connection if open
+        if (websocket) {
+            websocket.close();
+            websocket = null;
+        }
         
         console.log('showAuthScreen() completed');
     }
@@ -422,6 +570,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- AUTHENTICATION EVENT LISTENERS ---
+
+    // Access code submission
+    if (submitCodeBtn) {
+        submitCodeBtn.addEventListener('click', () => {
+            const code = accessCodeField.value.trim();
+            if (code.length === 6 && /^[0-9]+$/.test(code)) {
+                submitCodeBtn.disabled = true;
+                validateAccessCode(code);
+            } else {
+                showAuthError('Please enter a valid 6-digit access code.');
+            }
+        });
+    }
+
+    // Access code input - Enter key support
+    if (accessCodeField) {
+        accessCodeField.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && accessCodeField.value.trim().length === 6) {
+                submitCodeBtn.click();
+            }
+        });
+
+        // Auto-format input to numbers only
+        accessCodeField.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            submitCodeBtn.disabled = false; // Re-enable button when user types
+        });
+    }
 
     // Logout functionality
     logoutBtn.addEventListener('click', () => {

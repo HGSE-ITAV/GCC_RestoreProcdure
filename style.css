@@ -193,6 +193,68 @@ body::after {
     text-align: center;
 }
 
+.code-input-container {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+#access-code-field {
+    flex: 1;
+    padding: 12px;
+    font-size: 1.2rem;
+    font-family: 'Source Code Pro', monospace;
+    background: var(--background);
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
+    border-radius: 5px;
+    text-align: center;
+    letter-spacing: 0.3rem;
+}
+
+#access-code-field:focus {
+    outline: none;
+    border-color: var(--text-color);
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.submit-btn {
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-family: 'Source Code Pro', monospace;
+    background: var(--highlight-bg);
+    color: var(--highlight-text);
+    border: 2px solid var(--border-color);
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.submit-btn:hover {
+    background: var(--text-color);
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+}
+
+.submit-btn:disabled {
+    background: var(--disabled-color);
+    color: #888;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+#access-code-input h3 {
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+#access-code-input p {
+    margin-bottom: 1rem;
+    opacity: 0.9;
+}
+
 .auth-admin-section {
     margin-top: 2rem;
     padding-top: 2rem;
