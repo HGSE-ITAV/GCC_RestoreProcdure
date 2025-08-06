@@ -347,6 +347,13 @@
 
         // Initialize WebSocket connection
         function initWebSocket() {
+            // Check if running on GitHub Pages (no WebSocket server available)
+            if (location.hostname.includes('github.io')) {
+                console.log('GitHub Pages detected - WebSocket not available');
+                showGitHubPagesMessage();
+                return;
+            }
+            
             const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
             const wsUrl = `${protocol}//${location.host}`;
             
@@ -578,6 +585,29 @@
             } catch (error) {
                 console.log('Audio notification not available');
             }
+        }
+
+        function showGitHubPagesMessage() {
+            const container = document.getElementById('requests-container');
+            container.innerHTML = `
+                <div style="text-align: center; padding: 2rem; background: rgba(255, 170, 0, 0.1); border: 1px solid #ffaa00; border-radius: 8px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #ffaa00; margin-bottom: 1rem;"></i>
+                    <h3 style="color: #ffaa00; margin-bottom: 1rem;">GitHub Pages Demo Mode</h3>
+                    <p>This admin dashboard requires a WebSocket server to function.</p>
+                    <p><strong>GitHub Pages only serves static files and cannot run the Node.js server.</strong></p>
+                    <div style="margin: 1.5rem 0; padding: 1rem; background: rgba(0, 0, 0, 0.3); border-radius: 5px;">
+                        <h4>For Full Testing:</h4>
+                        <p style="margin: 0.5rem 0;">1. Clone the repository locally</p>
+                        <p style="margin: 0.5rem 0;">2. Run <code style="background: rgba(0, 255, 0, 0.2); padding: 2px 6px; border-radius: 3px;">npm install</code></p>
+                        <p style="margin: 0.5rem 0;">3. Start server with <code style="background: rgba(0, 255, 0, 0.2); padding: 2px 6px; border-radius: 3px;">node server.js</code></p>
+                        <p style="margin: 0.5rem 0;">4. Open <code style="background: rgba(0, 255, 0, 0.2); padding: 2px 6px; border-radius: 3px;">http://localhost:8000/admin.html</code></p>
+                    </div>
+                    <p style="font-size: 0.9rem; opacity: 0.8;">The real-time approval system works perfectly in a local environment!</p>
+                </div>
+            `;
+            
+            // Update connection status
+            updateConnectionStatus(false);
         }
 
         // Initialize when page loads

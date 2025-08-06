@@ -266,6 +266,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function connectWebSocket() {
+        // Check if running on GitHub Pages (no WebSocket server available)
+        if (location.hostname.includes('github.io')) {
+            console.log('GitHub Pages detected - WebSocket not available');
+            showGitHubPagesError();
+            return;
+        }
+        
         const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${location.host}`;
         
@@ -383,6 +390,16 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             showAuthError('Connection lost. Please scan the QR code again.');
         }
+    }
+
+    function showGitHubPagesError() {
+        updateRequestStatus('GitHub Pages Demo - WebSocket Not Available');
+        setTimeout(() => {
+            showAuthError('This real-time approval system requires a WebSocket server. For full testing, run locally with "node server.js"');
+            setTimeout(() => {
+                showAuthScreen();
+            }, 5000);
+        }, 2000);
     }
 
     function showAuthScreen() {

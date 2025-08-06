@@ -10,3 +10,4 @@ Received: { type: 'register_admin' }
 WebSocket connection closed
 New WebSocket connection from: ::1
 Received: { type: 'register_admin' }
+WebSocket connection closed
