@@ -6,6 +6,7 @@
     <title>GCC Restore Operator Dashboard</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="github-api.js"></script>
 </head>
 <body>
     <header>
@@ -104,11 +105,16 @@
             operatorAuthError.style.display = 'none';
         });
 
-        // Load requests (mock for now)
-        function loadRequests() {
-            // This would be replaced with actual API calls
-            const requests = JSON.parse(localStorage.getItem('gcc_pending_requests') || '[]');
-            displayRequests(requests);
+        // Load requests from GitHub backend
+        async function loadRequests() {
+            try {
+                const requests = await window.githubBackend.getPendingRequests();
+                displayRequests(requests);
+                console.log('📋 Loaded requests:', requests.length);
+            } catch (error) {
+                console.error('Error loading requests:', error);
+                displayRequests([]);
+            }
         }
 
         // Display requests
@@ -156,24 +162,23 @@
         }
 
         // Update request status
-        function updateRequestStatus(requestId, status) {
-            let requests = JSON.parse(localStorage.getItem('gcc_pending_requests') || '[]');
-            const requestIndex = requests.findIndex(r => r.id === requestId);
-            
-            if (requestIndex !== -1) {
-                requests[requestIndex].status = status;
-                requests[requestIndex].approvedAt = Date.now();
+        async function updateRequestStatus(requestId, status) {
+            try {
+                console.log(`🔄 Processing request ${requestId} as ${status}`);
                 
-                // Move to processed requests
-                let processed = JSON.parse(localStorage.getItem('gcc_processed_requests') || '[]');
-                processed.push(requests[requestIndex]);
-                localStorage.setItem('gcc_processed_requests', JSON.stringify(processed));
+                const result = await window.githubBackend.processRequest(requestId, status);
                 
-                // Remove from pending
-                requests.splice(requestIndex, 1);
-                localStorage.setItem('gcc_pending_requests', JSON.stringify(requests));
-                
-                displayRequests(requests);
+                if (result.success) {
+                    console.log(`✅ Request ${requestId} processed successfully`);
+                    // Reload requests to show updated list
+                    await loadRequests();
+                } else {
+                    console.error('❌ Failed to process request:', result.error);
+                    alert(`Failed to ${status} request: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('❌ Error processing request:', error);
+                alert(`Error processing request: ${error.message}`);
             }
         }
 
@@ -183,11 +188,16 @@
         });
 
         // Clear all requests
-        clearAllBtn.addEventListener('click', () => {
+        clearAllBtn.addEventListener('click', async () => {
             if (confirm('Are you sure you want to clear all requests? This will remove both pending and processed requests.')) {
-                localStorage.removeItem('gcc_pending_requests');
-                localStorage.removeItem('gcc_processed_requests');
-                loadRequests();
+                try {
+                    await window.githubBackend.clearAllRequests();
+                    await loadRequests();
+                    console.log('🗑️ All requests cleared');
+                } catch (error) {
+                    console.error('❌ Error clearing requests:', error);
+                    alert(`Error clearing requests: ${error.message}`);
+                }
             }
         });
 
@@ -228,13 +238,15 @@
                 status: 'pending'
             };
 
-            // Add to pending requests
-            let pendingRequests = JSON.parse(localStorage.getItem('gcc_pending_requests') || '[]');
-            pendingRequests.push(testRequest);
-            localStorage.setItem('gcc_pending_requests', JSON.stringify(pendingRequests));
-
-            // Refresh display
-            loadRequests();
+            // Add to pending requests via backend
+            window.githubBackend.submitRequest(testRequest).then((result) => {
+                if (result.success) {
+                    console.log('✅ Test request generated');
+                    loadRequests();
+                } else {
+                    console.error('❌ Failed to generate test request:', result.error);
+                }
+            });
             
             console.log('Generated test request:', testRequest);
         }

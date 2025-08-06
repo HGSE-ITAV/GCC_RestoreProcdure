@@ -401,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return { valid: true, name: trimmedName };
     }
 
-    function submitAccessRequest(userName) {
+    async function submitAccessRequest(userName) {
         console.log('Submitting access request for:', userName);
         
         // Generate unique request ID
@@ -417,23 +417,43 @@ document.addEventListener('DOMContentLoaded', () => {
             status: 'pending'
         };
         
-        // Store in pending requests
-        let pendingRequests = JSON.parse(localStorage.getItem('gcc_pending_requests') || '[]');
-        pendingRequests.push(request);
-        localStorage.setItem('gcc_pending_requests', JSON.stringify(pendingRequests));
-        
         // Store user request ID in session
         sessionStorage.setItem('gcc_user_name', userName);
         sessionStorage.setItem('gcc_request_id', requestId);
         
-        // Send email notification with user name
-        sendQRScanAlert(navigator.userAgent, Date.now(), userName);
-        
         // Show waiting screen
         showWaitingScreen(userName);
         
-        // Start polling for approval
-        startPollingForApproval(requestId);
+        try {
+            // Submit to GitHub backend
+            const result = await window.githubBackend.submitRequest(request);
+            
+            if (result.success) {
+                console.log('✅ Request submitted to backend');
+                
+                // Send email notification with user name
+                sendQRScanAlert(navigator.userAgent, Date.now(), userName);
+                
+                // Start polling for approval
+                startPollingForApproval(requestId);
+            } else {
+                throw new Error(result.error || 'Failed to submit request');
+            }
+        } catch (error) {
+            console.error('❌ Failed to submit request:', error);
+            
+            // Show error message
+            waitingScreen.innerHTML = `
+                <div class="waiting-container">
+                    <h2><i class="fas fa-exclamation-triangle" style="color: #e74c3c;"></i> Submission Failed</h2>
+                    <p style="color: #e74c3c; font-size: 1.1rem;">Unable to submit your access request. Please try again.</p>
+                    <p style="color: #95a5a6; font-size: 0.9rem;">Error: ${error.message}</p>
+                    <button onclick="location.reload()" class="submit-btn" style="margin-top: 2rem;">
+                        <i class="fas fa-redo"></i> Try Again
+                    </button>
+                </div>
+            `;
+        }
     }
 
     // --- APPROVAL POLLING ---
@@ -455,20 +475,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 600000); // 10 minutes
     }
 
-    function checkApprovalStatus(requestId) {
-        // Check processed requests
-        const processedRequests = JSON.parse(localStorage.getItem('gcc_processed_requests') || '[]');
-        const processedRequest = processedRequests.find(r => r.id === requestId);
-        
-        if (processedRequest) {
-            clearInterval(approvalPollingInterval);
-            approvalPollingInterval = null;
+    async function checkApprovalStatus(requestId) {
+        try {
+            const result = await window.githubBackend.checkRequestStatus(requestId);
             
-            if (processedRequest.status === 'approved') {
-                handleApprovalSuccess();
-            } else if (processedRequest.status === 'denied') {
-                handleApprovalDenied();
+            if (result.found && result.status !== 'pending') {
+                clearInterval(approvalPollingInterval);
+                approvalPollingInterval = null;
+                
+                if (result.status === 'approved') {
+                    handleApprovalSuccess();
+                } else if (result.status === 'denied') {
+                    handleApprovalDenied();
+                }
             }
+        } catch (error) {
+            console.error('Error checking approval status:', error);
         }
     }
 
