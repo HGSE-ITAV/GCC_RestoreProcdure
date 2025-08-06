@@ -294,10 +294,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showTokenProcessing() {
-        authScreen.style.display = 'block';
+        authScreen.style.setProperty('display', 'flex', 'important');
         authScreen.style.visibility = 'visible';
         tokenProcessing.style.display = 'block';
-        nameInputScreen.style.display = 'none';
+        nameInputScreen.style.setProperty('display', 'none', 'important');
         waitingScreen.style.display = 'none';
         surveyScreen.style.display = 'none';
         stepScreen.style.display = 'none';
@@ -306,9 +306,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showAuthScreen() {
         console.log('🔍 showAuthScreen() called');
-        authScreen.style.display = 'block';
+        authScreen.style.setProperty('display', 'flex', 'important');
         authScreen.style.visibility = 'visible';
-        nameInputScreen.style.display = 'none';
+        nameInputScreen.style.setProperty('display', 'none', 'important');
         waitingScreen.style.display = 'none';
         surveyScreen.style.display = 'none';
         stepScreen.style.display = 'none';
@@ -330,8 +330,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showNameInputScreen() {
         console.log('showNameInputScreen() called');
-        authScreen.style.display = 'none';
-        nameInputScreen.style.display = 'block';
+        authScreen.style.setProperty('display', 'none', 'important');
+        nameInputScreen.style.setProperty('display', 'block', 'important');
         waitingScreen.style.display = 'none';
         surveyScreen.style.display = 'none';
         stepScreen.style.display = 'none';
@@ -349,14 +349,28 @@ document.addEventListener('DOMContentLoaded', () => {
             nameInputDisplay: nameInputScreen ? nameInputScreen.style.display : 'NOT FOUND',
             authDisplay: authScreen ? authScreen.style.display : 'NOT FOUND',
             nameInputExists: !!nameInputScreen,
-            userInputExists: !!userNameInput
+            userInputExists: !!userNameInput,
+            nameInputVisible: nameInputScreen ? window.getComputedStyle(nameInputScreen).display : 'NOT FOUND',
+            nameInputId: nameInputScreen ? nameInputScreen.id : 'NOT FOUND'
         });
+        
+        // Force visibility check
+        if (nameInputScreen) {
+            console.log('🔍 Forcing name input screen visibility check');
+            nameInputScreen.style.display = 'block';
+            nameInputScreen.style.visibility = 'visible';
+            console.log('After force:', {
+                display: nameInputScreen.style.display,
+                visibility: nameInputScreen.style.visibility,
+                computedDisplay: window.getComputedStyle(nameInputScreen).display
+            });
+        }
     }
 
     function showWaitingScreen(userName) {
         console.log('showWaitingScreen() called for user:', userName);
-        authScreen.style.display = 'none';
-        nameInputScreen.style.display = 'none';
+        authScreen.style.setProperty('display', 'none', 'important');
+        nameInputScreen.style.setProperty('display', 'none', 'important');
         waitingScreen.style.display = 'block';
         surveyScreen.style.display = 'none';
         stepScreen.style.display = 'none';
@@ -374,9 +388,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function showMainApp() {
         console.log('showMainApp() called');
         console.log('authScreen before:', authScreen.style.display);
-        authScreen.style.display = 'none !important';
+        authScreen.style.setProperty('display', 'none', 'important');
         authScreen.style.visibility = 'hidden';
-        nameInputScreen.style.display = 'none';
+        nameInputScreen.style.setProperty('display', 'none', 'important');
         waitingScreen.style.display = 'none';
         console.log('authScreen after:', authScreen.style.display);
         surveyScreen.style.display = 'block';
