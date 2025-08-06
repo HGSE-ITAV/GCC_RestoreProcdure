@@ -265,6 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Show name input screen instead of main app
             setTimeout(() => {
+                console.log('🎯 Token validated successfully - showing name input screen');
                 showNameInputScreen();
                 
                 // Analytics event
@@ -294,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showAuthScreen() {
-        console.log('showAuthScreen() called');
+        console.log('🔍 showAuthScreen() called');
         authScreen.style.display = 'block';
         authScreen.style.visibility = 'visible';
         nameInputScreen.style.display = 'none';
@@ -307,7 +308,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Clear any error messages
         authError.style.display = 'none';
         
-        console.log('showAuthScreen() completed');
+        console.log('✅ showAuthScreen() completed - should see auth screen now');
+        
+        // Debug current screen states
+        console.log('📺 Screen states:', {
+            auth: authScreen.style.display,
+            nameInput: nameInputScreen ? nameInputScreen.style.display : 'NOT FOUND',
+            waiting: waitingScreen ? waitingScreen.style.display : 'NOT FOUND'
+        });
     }
 
     function showNameInputScreen() {
