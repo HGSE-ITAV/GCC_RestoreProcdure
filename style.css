@@ -585,6 +585,7 @@ header h1 {
 
 #user-name {
     width: 100%;
+    max-width: 400px;
     padding: 12px 15px;
     background: rgba(0, 0, 0, 0.8);
     border: 2px solid var(--primary-color);
@@ -592,7 +593,15 @@ header h1 {
     color: var(--text-color);
     font-family: 'Source Code Pro', monospace;
     font-size: 1.1rem;
+    text-align: center;
+    margin: 0 auto;
+    display: block;
     transition: all 0.3s ease;
+}
+
+#user-name::placeholder {
+    color: rgba(51, 255, 51, 0.6);
+    text-align: center;
 }
 
 #user-name:focus {
