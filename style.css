@@ -344,26 +344,6 @@ footer {
     margin-top: 2rem;
 }
 
-/* Logout Button */
-.logout-btn {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: rgba(255, 68, 68, 0.2);
-    color: #ff4444;
-    border: 1px solid #ff4444;
-    padding: 8px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-family: 'Source Code Pro', monospace;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-}
-
-.logout-btn:hover {
-    background: rgba(255, 68, 68, 0.3);
-    box-shadow: 0 0 10px rgba(255, 68, 68, 0.3);
-}
 
 @keyframes screenFlicker {
     0% { opacity: 1; }

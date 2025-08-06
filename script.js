@@ -130,11 +130,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return urlParams.get('token');
         },
 
-        // Clear all authentication data
-        logout() {
-            localStorage.removeItem('gcc_session');
-            localStorage.removeItem('gcc_session_token');
-        }
     };
 
     // Token validation utility
@@ -191,7 +186,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const summaryScreen = document.getElementById('summary-screen');
     const authError = document.getElementById('auth-error');
     const tokenProcessing = document.getElementById('token-processing');
-    const logoutBtn = document.getElementById('logout-btn');
     const issueForm = document.getElementById('issue-form');
     const startRecoveryBtn = document.getElementById('start-recovery-btn');
     const disclaimerCheckbox = document.getElementById('disclaimer-check');
@@ -287,7 +281,6 @@ document.addEventListener('DOMContentLoaded', () => {
         surveyScreen.style.display = 'none';
         stepScreen.style.display = 'none';
         summaryScreen.style.display = 'none';
-        logoutBtn.style.display = 'none';
     }
 
     function showAuthScreen() {
@@ -297,7 +290,6 @@ document.addEventListener('DOMContentLoaded', () => {
         surveyScreen.style.display = 'none';
         stepScreen.style.display = 'none';
         summaryScreen.style.display = 'none';
-        logoutBtn.style.display = 'none';
         tokenProcessing.style.display = 'none';
         
         // Clear any error messages
@@ -315,7 +307,6 @@ document.addEventListener('DOMContentLoaded', () => {
         surveyScreen.style.display = 'block';
         stepScreen.style.display = 'none';
         summaryScreen.style.display = 'none';
-        logoutBtn.style.display = 'block';
         
         // Refresh session on activity
         authManager.refreshSession();
@@ -468,20 +459,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- AUTHENTICATION EVENT LISTENERS ---
 
-    // Logout functionality
-    logoutBtn.addEventListener('click', () => {
-        if (confirm('Are you sure you want to logout? You will need to re-authenticate to continue.')) {
-            authManager.logout();
-            showAuthScreen();
-            
-            // Analytics event
-            if (typeof gtag === 'function') {
-                gtag('event', 'logout', {
-                    'event_category': 'security'
-                });
-            }
-        }
-    });
 
     // Session refresh on user activity
     const activityEvents = ['click', 'keypress', 'mousemove', 'scroll'];
