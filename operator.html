@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GCC Restore Operator Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1>GCC Restore - Operator Dashboard</h1>
+        <p class="purpose">Approve or deny user access requests to the GCC Restore Procedure system.</p>
+    </header>
+
+    <div id="operator-app">
+        <!-- Auth Screen -->
+        <div id="operator-auth" style="display: block;">
+            <div class="auth-container">
+                <h2><i class="fas fa-shield-alt"></i> Operator Authentication</h2>
+                <form id="operator-login">
+                    <div class="input-group">
+                        <label for="operator-code">Operator Code:</label>
+                        <input type="password" id="operator-code" placeholder="Enter operator access code" required>
+                    </div>
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-sign-in-alt"></i> Access Dashboard
+                    </button>
+                </form>
+                <div id="operator-auth-error" class="error-message" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="operator-dashboard" style="display: none;">
+            <div class="dashboard-container">
+                <div class="dashboard-header">
+                    <h2><i class="fas fa-users"></i> Pending Access Requests</h2>
+                    <button id="refresh-requests" class="refresh-btn">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                    <button id="operator-logout" class="cancel-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+
+                <div id="requests-container">
+                    <div id="no-requests" style="display: none;">
+                        <p><i class="fas fa-inbox"></i> No pending requests</p>
+                    </div>
+                    
+                    <div id="requests-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple operator dashboard logic
+        const operatorAuth = document.getElementById('operator-auth');
+        const operatorDashboard = document.getElementById('operator-dashboard');
+        const operatorLogin = document.getElementById('operator-login');
+        const operatorCode = document.getElementById('operator-code');
+        const operatorAuthError = document.getElementById('operator-auth-error');
+        const refreshBtn = document.getElementById('refresh-requests');
+        const logoutBtn = document.getElementById('operator-logout');
+        const requestsList = document.getElementById('requests-list');
+        const noRequests = document.getElementById('no-requests');
+
+        // Mock data for demo (replace with actual backend calls)
+        let mockRequests = [];
+
+        // Operator login
+        operatorLogin.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const code = operatorCode.value;
+            
+            // Simple hardcoded check (replace with proper auth)
+            if (code === 'gcc2024' || code === 'operator123') {
+                operatorAuth.style.display = 'none';
+                operatorDashboard.style.display = 'block';
+                loadRequests();
+            } else {
+                operatorAuthError.textContent = 'Invalid operator code';
+                operatorAuthError.style.display = 'block';
+            }
+        });
+
+        // Logout
+        logoutBtn.addEventListener('click', () => {
+            operatorAuth.style.display = 'block';
+            operatorDashboard.style.display = 'none';
+            operatorCode.value = '';
+            operatorAuthError.style.display = 'none';
+        });
+
+        // Load requests (mock for now)
+        function loadRequests() {
+            // This would be replaced with actual API calls
+            const requests = JSON.parse(localStorage.getItem('gcc_pending_requests') || '[]');
+            displayRequests(requests);
+        }
+
+        // Display requests
+        function displayRequests(requests) {
+            if (requests.length === 0) {
+                requestsList.innerHTML = '';
+                noRequests.style.display = 'block';
+                return;
+            }
+
+            noRequests.style.display = 'none';
+            requestsList.innerHTML = requests.map(request => `
+                <div class="request-card" data-id="${request.id}">
+                    <div class="request-header">
+                        <h3><i class="fas fa-user"></i> ${request.userName}</h3>
+                        <span class="request-time">${new Date(request.timestamp).toLocaleString()}</span>
+                    </div>
+                    <div class="request-details">
+                        <p><strong>Browser:</strong> ${request.browserInfo}</p>
+                        <p><strong>User Agent:</strong> ${request.userAgent.substring(0, 100)}...</p>
+                        <p><strong>Status:</strong> <span class="status-${request.status}">${request.status}</span></p>
+                    </div>
+                    <div class="request-actions">
+                        <button class="approve-btn" onclick="approveRequest('${request.id}')">
+                            <i class="fas fa-check"></i> Approve
+                        </button>
+                        <button class="deny-btn" onclick="denyRequest('${request.id}')">
+                            <i class="fas fa-times"></i> Deny
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Approve request
+        function approveRequest(requestId) {
+            updateRequestStatus(requestId, 'approved');
+        }
+
+        // Deny request
+        function denyRequest(requestId) {
+            if (confirm('Are you sure you want to deny this request?')) {
+                updateRequestStatus(requestId, 'denied');
+            }
+        }
+
+        // Update request status
+        function updateRequestStatus(requestId, status) {
+            let requests = JSON.parse(localStorage.getItem('gcc_pending_requests') || '[]');
+            const requestIndex = requests.findIndex(r => r.id === requestId);
+            
+            if (requestIndex !== -1) {
+                requests[requestIndex].status = status;
+                requests[requestIndex].approvedAt = Date.now();
+                
+                // Move to processed requests
+                let processed = JSON.parse(localStorage.getItem('gcc_processed_requests') || '[]');
+                processed.push(requests[requestIndex]);
+                localStorage.setItem('gcc_processed_requests', JSON.stringify(processed));
+                
+                // Remove from pending
+                requests.splice(requestIndex, 1);
+                localStorage.setItem('gcc_pending_requests', JSON.stringify(requests));
+                
+                displayRequests(requests);
+            }
+        }
+
+        // Auto-refresh every 5 seconds
+        setInterval(loadRequests, 5000);
+        
+        // Manual refresh
+        refreshBtn.addEventListener('click', loadRequests);
+    </script>
+
+    <style>
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(45deg, var(--primary-color), #3498db);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Source Code Pro', monospace;
+        }
+
+        .request-card {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.2);
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .request-header h3 {
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .request-time {
+            color: #f39c12;
+            font-size: 0.9rem;
+        }
+
+        .request-details {
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+
+        .request-details p {
+            margin: 0.5rem 0;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .approve-btn {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Source Code Pro', monospace;
+        }
+
+        .deny-btn {
+            background: linear-gradient(45deg, #c0392b, #e74c3c);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Source Code Pro', monospace;
+        }
+
+        .approve-btn:hover, .deny-btn:hover, .refresh-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .status-pending { color: #f39c12; }
+        .status-approved { color: #27ae60; }
+        .status-denied { color: #e74c3c; }
+
+        @media (max-width: 768px) {
+            .request-actions {
+                flex-direction: column;
+            }
+            
+            .approve-btn, .deny-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</body>
+</html>

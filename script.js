@@ -404,8 +404,27 @@ document.addEventListener('DOMContentLoaded', () => {
     function submitAccessRequest(userName) {
         console.log('Submitting access request for:', userName);
         
-        // Store user name in session
+        // Generate unique request ID
+        const requestId = 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        
+        // Create request object
+        const request = {
+            id: requestId,
+            userName: userName,
+            timestamp: Date.now(),
+            userAgent: navigator.userAgent,
+            browserInfo: `${navigator.platform} - ${navigator.userAgent.split('(')[1]?.split(')')[0] || 'Unknown Browser'}`,
+            status: 'pending'
+        };
+        
+        // Store in pending requests
+        let pendingRequests = JSON.parse(localStorage.getItem('gcc_pending_requests') || '[]');
+        pendingRequests.push(request);
+        localStorage.setItem('gcc_pending_requests', JSON.stringify(pendingRequests));
+        
+        // Store user request ID in session
         sessionStorage.setItem('gcc_user_name', userName);
+        sessionStorage.setItem('gcc_request_id', requestId);
         
         // Send email notification with user name
         sendQRScanAlert(navigator.userAgent, Date.now(), userName);
@@ -413,13 +432,94 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show waiting screen
         showWaitingScreen(userName);
         
-        // TODO: In future phases, this will submit to backend API
-        // For now, simulate approval after 5 seconds for testing
+        // Start polling for approval
+        startPollingForApproval(requestId);
+    }
+
+    // --- APPROVAL POLLING ---
+    let approvalPollingInterval = null;
+
+    function startPollingForApproval(requestId) {
+        console.log('Starting approval polling for request:', requestId);
+        
+        approvalPollingInterval = setInterval(() => {
+            checkApprovalStatus(requestId);
+        }, 2000); // Poll every 2 seconds
+        
+        // Stop polling after 10 minutes
         setTimeout(() => {
-            console.log('Simulating approval for testing...');
-            stopWaitingTimer();
-            showMainApp();
-        }, 5000);
+            if (approvalPollingInterval) {
+                clearInterval(approvalPollingInterval);
+                handleApprovalTimeout(requestId);
+            }
+        }, 600000); // 10 minutes
+    }
+
+    function checkApprovalStatus(requestId) {
+        // Check processed requests
+        const processedRequests = JSON.parse(localStorage.getItem('gcc_processed_requests') || '[]');
+        const processedRequest = processedRequests.find(r => r.id === requestId);
+        
+        if (processedRequest) {
+            clearInterval(approvalPollingInterval);
+            approvalPollingInterval = null;
+            
+            if (processedRequest.status === 'approved') {
+                handleApprovalSuccess();
+            } else if (processedRequest.status === 'denied') {
+                handleApprovalDenied();
+            }
+        }
+    }
+
+    function handleApprovalSuccess() {
+        console.log('Request approved!');
+        stopWaitingTimer();
+        showMainApp();
+        
+        // Analytics event
+        if (typeof gtag === 'function') {
+            gtag('event', 'access_approved', {
+                'event_category': 'approval'
+            });
+        }
+    }
+
+    function handleApprovalDenied() {
+        console.log('Request denied');
+        stopWaitingTimer();
+        
+        // Show denial message
+        waitingScreen.innerHTML = `
+            <div class="waiting-container">
+                <h2><i class="fas fa-times-circle" style="color: #e74c3c;"></i> Access Denied</h2>
+                <p style="color: #e74c3c; font-size: 1.2rem;">Your access request has been denied by the operator.</p>
+                <button onclick="location.reload()" class="submit-btn" style="margin-top: 2rem;">
+                    <i class="fas fa-redo"></i> Try Again
+                </button>
+            </div>
+        `;
+    }
+
+    function handleApprovalTimeout(requestId) {
+        console.log('Request timed out');
+        stopWaitingTimer();
+        
+        // Remove from pending
+        let pendingRequests = JSON.parse(localStorage.getItem('gcc_pending_requests') || '[]');
+        pendingRequests = pendingRequests.filter(r => r.id !== requestId);
+        localStorage.setItem('gcc_pending_requests', JSON.stringify(pendingRequests));
+        
+        // Show timeout message
+        waitingScreen.innerHTML = `
+            <div class="waiting-container">
+                <h2><i class="fas fa-clock" style="color: #f39c12;"></i> Request Timeout</h2>
+                <p style="color: #f39c12; font-size: 1.2rem;">Your access request has timed out after 10 minutes.</p>
+                <button onclick="location.reload()" class="submit-btn" style="margin-top: 2rem;">
+                    <i class="fas fa-redo"></i> Try Again
+                </button>
+            </div>
+        `;
     }
 
 
