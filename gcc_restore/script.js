@@ -1,4 +1,43 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- EMAILJS CONFIGURATION ---
+    const emailConfig = {
+        serviceId: 'service_pc4qthj',
+        templateId: 'template_1cjpnbs',
+        publicKey: 'qcBM1dZvUgg9wAXKx'
+    };
+
+    // Initialize EmailJS
+    if (typeof emailjs !== 'undefined') {
+        emailjs.init(emailConfig.publicKey);
+    }
+
+    // Email notification function
+    function sendQRScanAlert(userAgent, timestamp) {
+        if (typeof emailjs === 'undefined') {
+            console.warn('EmailJS not loaded, skipping email notification');
+            return;
+        }
+
+        const templateParams = {
+            procedure_name: 'GCC Restore Procedure',
+            user_name: `User at ${new Date(timestamp).toLocaleString()}`,
+            name: 'GCC System Alert',
+            email: 'gcc-system@harvard.edu',
+            scan_time: new Date(timestamp).toLocaleString(),
+            user_agent: userAgent,
+            location: 'GCC Conference Center',
+            browser_info: `${navigator.platform} - ${userAgent.split('(')[1]?.split(')')[0] || 'Unknown Browser'}`
+        };
+
+        emailjs.send(emailConfig.serviceId, emailConfig.templateId, templateParams)
+            .then((response) => {
+                console.log('QR scan alert sent successfully:', response.status, response.text);
+            })
+            .catch((error) => {
+                console.error('Failed to send QR scan alert:', error);
+            });
+    }
+
     // --- TOKEN-BASED AUTHENTICATION SYSTEM ---
     const authManager = {
         // Validate session token from URL or localStorage
@@ -210,6 +249,12 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             authManager.storeToken(token);
             authManager.createSession();
+            
+            // Send QR scan alert email
+            sendQRScanAlert(
+                navigator.userAgent,
+                Date.now()
+            );
             
             // Remove token from URL for security
             const url = new URL(window.location);
