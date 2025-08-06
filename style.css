@@ -539,10 +539,18 @@ header h1 {
 
 /* Name Input Screen */
 #name-input-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--background);
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
+    z-index: 1001;
     padding: 2rem;
 }
 
@@ -614,10 +622,18 @@ header h1 {
 
 /* Waiting Screen */
 #waiting-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--background);
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
+    z-index: 1001;
     padding: 2rem;
 }
 
