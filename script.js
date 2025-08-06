@@ -134,8 +134,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Token validation utility
     function isValidTokenFormat(token) {
+        // Accept demo token 'test123' or base64 URL-safe format (at least 32 characters)
+        if (token === 'test123') {
+            console.log('🎯 Demo token accepted:', token);
+            return true;
+        }
         // Check if token is base64 URL-safe format (at least 32 characters)
-        return token && typeof token === 'string' && token.length >= 32 && /^[A-Za-z0-9_-]+$/.test(token);
+        const isValid = token && typeof token === 'string' && token.length >= 32 && /^[A-Za-z0-9_-]+$/.test(token);
+        console.log('🔍 Token validation result:', { token, isValid });
+        return isValid;
     }
 
     // --- CACHE MANAGEMENT ---
