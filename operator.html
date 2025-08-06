@@ -36,12 +36,20 @@
             <div class="dashboard-container">
                 <div class="dashboard-header">
                     <h2><i class="fas fa-users"></i> Pending Access Requests</h2>
-                    <button id="refresh-requests" class="refresh-btn">
-                        <i class="fas fa-sync-alt"></i> Refresh
-                    </button>
-                    <button id="operator-logout" class="cancel-btn">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </button>
+                    <div class="dashboard-actions">
+                        <button id="test-mode-btn" class="test-btn">
+                            <i class="fas fa-flask"></i> Add Test Request
+                        </button>
+                        <button id="clear-all-btn" class="clear-btn">
+                            <i class="fas fa-trash"></i> Clear All
+                        </button>
+                        <button id="refresh-requests" class="refresh-btn">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <button id="operator-logout" class="cancel-btn">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
                 </div>
 
                 <div id="requests-container">
@@ -64,6 +72,8 @@
         const operatorAuthError = document.getElementById('operator-auth-error');
         const refreshBtn = document.getElementById('refresh-requests');
         const logoutBtn = document.getElementById('operator-logout');
+        const testModeBtn = document.getElementById('test-mode-btn');
+        const clearAllBtn = document.getElementById('clear-all-btn');
         const requestsList = document.getElementById('requests-list');
         const noRequests = document.getElementById('no-requests');
 
@@ -167,6 +177,68 @@
             }
         }
 
+        // Test mode - generate sample requests
+        testModeBtn.addEventListener('click', () => {
+            generateTestRequest();
+        });
+
+        // Clear all requests
+        clearAllBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear all requests? This will remove both pending and processed requests.')) {
+                localStorage.removeItem('gcc_pending_requests');
+                localStorage.removeItem('gcc_processed_requests');
+                loadRequests();
+            }
+        });
+
+        // Generate test request
+        function generateTestRequest() {
+            const testNames = [
+                'John Smith', 'Sarah Johnson', 'Mike Brown', 'Emily Davis', 
+                'Chris Wilson', 'Amanda Miller', 'David Garcia', 'Lisa Martinez',
+                'Kevin Anderson', 'Jennifer Taylor', 'Robert Thomas', 'Michelle White'
+            ];
+            
+            const testUserAgents = [
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+                'Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
+            ];
+
+            const testBrowserInfo = [
+                'Windows - Windows NT 10.0; Win64; x64',
+                'MacIntel - Intel Mac OS X 10_15_7',
+                'iPhone - CPU iPhone OS 17_0 like Mac OS X',
+                'iPad - CPU OS 17_0 like Mac OS X'
+            ];
+
+            const randomName = testNames[Math.floor(Math.random() * testNames.length)];
+            const randomUA = testUserAgents[Math.floor(Math.random() * testUserAgents.length)];
+            const randomBrowser = testBrowserInfo[Math.floor(Math.random() * testBrowserInfo.length)];
+            
+            const requestId = 'test_req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            const testRequest = {
+                id: requestId,
+                userName: randomName,
+                timestamp: Date.now() - Math.random() * 300000, // Random time within last 5 minutes
+                userAgent: randomUA,
+                browserInfo: randomBrowser,
+                status: 'pending'
+            };
+
+            // Add to pending requests
+            let pendingRequests = JSON.parse(localStorage.getItem('gcc_pending_requests') || '[]');
+            pendingRequests.push(testRequest);
+            localStorage.setItem('gcc_pending_requests', JSON.stringify(pendingRequests));
+
+            // Refresh display
+            loadRequests();
+            
+            console.log('Generated test request:', testRequest);
+        }
+
         // Auto-refresh every 5 seconds
         setInterval(loadRequests, 5000);
         
@@ -190,14 +262,33 @@
             gap: 1rem;
         }
 
-        .refresh-btn {
-            background: linear-gradient(45deg, var(--primary-color), #3498db);
+        .dashboard-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .refresh-btn, .test-btn, .clear-btn {
             color: white;
             border: none;
             padding: 8px 16px;
             border-radius: 5px;
             cursor: pointer;
             font-family: 'Source Code Pro', monospace;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(45deg, var(--primary-color), #3498db);
+        }
+
+        .test-btn {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+        }
+
+        .clear-btn {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
         }
 
         .request-card {
@@ -260,7 +351,7 @@
             font-family: 'Source Code Pro', monospace;
         }
 
-        .approve-btn:hover, .deny-btn:hover, .refresh-btn:hover {
+        .approve-btn:hover, .deny-btn:hover, .refresh-btn:hover, .test-btn:hover, .clear-btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
