@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Email notification function
-    function sendQRScanAlert(userAgent, timestamp) {
+    function sendQRScanAlert(userAgent, timestamp, userName = null) {
         if (typeof emailjs === 'undefined') {
             console.warn('EmailJS not loaded, skipping email notification');
             return;
@@ -20,8 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const templateParams = {
             procedure_name: 'GCC Restore Procedure',
-            user_name: `User at ${new Date(timestamp).toLocaleString()}`,
-            name: 'GCC System Alert',
+            user_name: userName || `Anonymous User at ${new Date(timestamp).toLocaleString()}`,
+            name: 'GCC System Access Request',
             email: 'jared_ambrose@gse.harvard.edu',
             scan_time: new Date(timestamp).toLocaleString(),
             user_agent: userAgent,
@@ -181,11 +181,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- ELEMENT SELECTORS ---
     const authScreen = document.getElementById('auth-screen');
+    const nameInputScreen = document.getElementById('name-input-screen');
+    const waitingScreen = document.getElementById('waiting-screen');
     const surveyScreen = document.getElementById('survey-screen');
     const stepScreen = document.getElementById('step-screen');
     const summaryScreen = document.getElementById('summary-screen');
     const authError = document.getElementById('auth-error');
     const tokenProcessing = document.getElementById('token-processing');
+    const nameForm = document.getElementById('name-form');
+    const userNameInput = document.getElementById('user-name');
+    const nameError = document.getElementById('name-error');
+    const waitingUserName = document.getElementById('waiting-user-name');
+    const waitingTimer = document.getElementById('waiting-timer');
+    const cancelRequestBtn = document.getElementById('cancel-request-btn');
     const issueForm = document.getElementById('issue-form');
     const startRecoveryBtn = document.getElementById('start-recovery-btn');
     const disclaimerCheckbox = document.getElementById('disclaimer-check');
@@ -255,9 +263,9 @@ document.addEventListener('DOMContentLoaded', () => {
             url.searchParams.delete('token');
             window.history.replaceState({}, document.title, url);
             
-            // Show main app
+            // Show name input screen instead of main app
             setTimeout(() => {
-                showMainApp();
+                showNameInputScreen();
                 
                 // Analytics event
                 if (typeof gtag === 'function') {
@@ -278,6 +286,8 @@ document.addEventListener('DOMContentLoaded', () => {
         authScreen.style.display = 'block';
         authScreen.style.visibility = 'visible';
         tokenProcessing.style.display = 'block';
+        nameInputScreen.style.display = 'none';
+        waitingScreen.style.display = 'none';
         surveyScreen.style.display = 'none';
         stepScreen.style.display = 'none';
         summaryScreen.style.display = 'none';
@@ -287,6 +297,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('showAuthScreen() called');
         authScreen.style.display = 'block';
         authScreen.style.visibility = 'visible';
+        nameInputScreen.style.display = 'none';
+        waitingScreen.style.display = 'none';
         surveyScreen.style.display = 'none';
         stepScreen.style.display = 'none';
         summaryScreen.style.display = 'none';
@@ -298,11 +310,48 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('showAuthScreen() completed');
     }
 
+    function showNameInputScreen() {
+        console.log('showNameInputScreen() called');
+        authScreen.style.display = 'none';
+        nameInputScreen.style.display = 'block';
+        waitingScreen.style.display = 'none';
+        surveyScreen.style.display = 'none';
+        stepScreen.style.display = 'none';
+        summaryScreen.style.display = 'none';
+        
+        // Clear any error messages and focus on name input
+        nameError.style.display = 'none';
+        userNameInput.value = '';
+        userNameInput.focus();
+        
+        console.log('showNameInputScreen() completed');
+    }
+
+    function showWaitingScreen(userName) {
+        console.log('showWaitingScreen() called for user:', userName);
+        authScreen.style.display = 'none';
+        nameInputScreen.style.display = 'none';
+        waitingScreen.style.display = 'block';
+        surveyScreen.style.display = 'none';
+        stepScreen.style.display = 'none';
+        summaryScreen.style.display = 'none';
+        
+        // Set user name in waiting screen
+        waitingUserName.textContent = `Hello, ${userName}`;
+        
+        // Start waiting timer
+        startWaitingTimer();
+        
+        console.log('showWaitingScreen() completed');
+    }
+
     function showMainApp() {
         console.log('showMainApp() called');
         console.log('authScreen before:', authScreen.style.display);
         authScreen.style.display = 'none !important';
         authScreen.style.visibility = 'hidden';
+        nameInputScreen.style.display = 'none';
+        waitingScreen.style.display = 'none';
         console.log('authScreen after:', authScreen.style.display);
         surveyScreen.style.display = 'block';
         stepScreen.style.display = 'none';
@@ -311,6 +360,66 @@ document.addEventListener('DOMContentLoaded', () => {
         // Refresh session on activity
         authManager.refreshSession();
         console.log('showMainApp() completed');
+    }
+
+    // --- NAME CAPTURE & WAITING FUNCTIONS ---
+    let waitingStartTime = null;
+    let waitingTimerInterval = null;
+
+    function startWaitingTimer() {
+        waitingStartTime = Date.now();
+        waitingTimerInterval = setInterval(() => {
+            const elapsed = Date.now() - waitingStartTime;
+            const minutes = Math.floor(elapsed / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            waitingTimer.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }, 1000);
+    }
+
+    function stopWaitingTimer() {
+        if (waitingTimerInterval) {
+            clearInterval(waitingTimerInterval);
+            waitingTimerInterval = null;
+        }
+    }
+
+    function validateUserName(name) {
+        const trimmedName = name.trim();
+        if (!trimmedName) {
+            return { valid: false, error: 'Please enter your name' };
+        }
+        if (trimmedName.length < 2) {
+            return { valid: false, error: 'Name must be at least 2 characters long' };
+        }
+        if (trimmedName.length > 50) {
+            return { valid: false, error: 'Name must be less than 50 characters' };
+        }
+        // Basic sanitization - only allow letters, spaces, hyphens, apostrophes
+        if (!/^[a-zA-Z\s\-']+$/.test(trimmedName)) {
+            return { valid: false, error: 'Name can only contain letters, spaces, hyphens, and apostrophes' };
+        }
+        return { valid: true, name: trimmedName };
+    }
+
+    function submitAccessRequest(userName) {
+        console.log('Submitting access request for:', userName);
+        
+        // Store user name in session
+        sessionStorage.setItem('gcc_user_name', userName);
+        
+        // Send email notification with user name
+        sendQRScanAlert(navigator.userAgent, Date.now(), userName);
+        
+        // Show waiting screen
+        showWaitingScreen(userName);
+        
+        // TODO: In future phases, this will submit to backend API
+        // For now, simulate approval after 5 seconds for testing
+        setTimeout(() => {
+            console.log('Simulating approval for testing...');
+            stopWaitingTimer();
+            showMainApp();
+        }, 5000);
     }
 
 
@@ -540,6 +649,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     restartBtns.forEach(btn => btn.addEventListener('click', restartApp));
     startTimerBtn.addEventListener('click', startTimer);
+
+    // --- NAME CAPTURE EVENT LISTENERS ---
+    nameForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const userName = userNameInput.value;
+        const validation = validateUserName(userName);
+        
+        if (!validation.valid) {
+            nameError.textContent = validation.error;
+            nameError.style.display = 'block';
+            return;
+        }
+        
+        // Hide error and submit request
+        nameError.style.display = 'none';
+        submitAccessRequest(validation.name);
+    });
+
+    cancelRequestBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to cancel your access request?')) {
+            stopWaitingTimer();
+            sessionStorage.removeItem('gcc_user_name');
+            showAuthScreen();
+        }
+    });
 
     // --- INITIALIZATION ---
     initializeApp(); // Start the app with authentication check
