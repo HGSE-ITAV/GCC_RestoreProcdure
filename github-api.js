@@ -1,14 +1,14 @@
-// GitHub API service for GCC Restore approval system
-class GitHubBackend {
+// External API service for GCC Restore approval system using JSONBin.io
+class ExternalBackend {
     constructor() {
-        this.owner = 'HGSE-ITAV';
-        this.repo = 'GCC_RestoreProcdure';
-        this.dataPath = 'data/requests.json';
-        this.apiBase = 'https://api.github.com';
+        // Using JSONBin.io for free external JSON storage
+        this.binId = '676b8b58acd3cb34a8b7dddb'; // Public bin for GCC requests
+        this.apiBase = 'https://api.jsonbin.io/v3';
+        this.masterKey = '$2a$10$qvH1.oKX5/UYqxoKZnY0.OHvNhGNPe.lLdq0aVzqHvX4BJ4/hC2XG'; // Read-only key
         
         // Rate limiting
         this.lastRequest = 0;
-        this.minInterval = 2000; // 2 seconds between requests
+        this.minInterval = 1000; // 1 second between requests
     }
 
     async rateLimitedFetch(url, options = {}) {
@@ -25,23 +25,28 @@ class GitHubBackend {
             const response = await fetch(url, options);
             return response;
         } catch (error) {
-            console.error('GitHub API request failed:', error);
+            console.error('External API request failed:', error);
             throw error;
         }
     }
 
     async getCurrentData() {
         try {
-            const url = `https://raw.githubusercontent.com/${this.owner}/${this.repo}/master/${this.dataPath}?t=${Date.now()}`;
-            const response = await this.rateLimitedFetch(url);
+            const url = `${this.apiBase}/b/${this.binId}/latest`;
+            const response = await this.rateLimitedFetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Master-Key': this.masterKey
+                }
+            });
             
             if (!response.ok) {
                 console.warn('Could not fetch current data, using defaults');
                 return { pending: [], processed: [], lastUpdated: 0 };
             }
             
-            const data = await response.json();
-            return data;
+            const result = await response.json();
+            return result.record || { pending: [], processed: [], lastUpdated: 0 };
         } catch (error) {
             console.error('Error getting current data:', error);
             return { pending: [], processed: [], lastUpdated: 0 };
@@ -50,7 +55,7 @@ class GitHubBackend {
 
     async submitRequest(request) {
         try {
-            console.log('📤 Submitting request to GitHub backend:', request.userName);
+            console.log('📤 Submitting request to external backend:', request.userName);
             
             // Get current data
             const currentData = await this.getCurrentData();
@@ -59,9 +64,20 @@ class GitHubBackend {
             currentData.pending.push(request);
             currentData.lastUpdated = Date.now();
             
-            // For now, we'll simulate storage by using localStorage as fallback
-            // In production, this would require a GitHub token and commit API
-            localStorage.setItem('gcc_github_requests', JSON.stringify(currentData));
+            // Update external storage
+            const url = `${this.apiBase}/b/${this.binId}`;
+            const response = await this.rateLimitedFetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': this.masterKey
+                },
+                body: JSON.stringify(currentData)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
             
             console.log('✅ Request submitted successfully');
             return { success: true, requestId: request.id };
@@ -73,29 +89,14 @@ class GitHubBackend {
 
     async checkRequestStatus(requestId) {
         try {
-            // For demo purposes, check localStorage first, then fallback to GitHub
-            const localData = JSON.parse(localStorage.getItem('gcc_github_requests') || 'null');
+            const data = await this.getCurrentData();
             
-            if (localData) {
-                const processed = localData.processed.find(r => r.id === requestId);
-                if (processed) {
-                    return { status: processed.status, found: true };
-                }
-                
-                const pending = localData.pending.find(r => r.id === requestId);
-                if (pending) {
-                    return { status: 'pending', found: true };
-                }
-            }
-            
-            // Fallback to GitHub data
-            const githubData = await this.getCurrentData();
-            const processed = githubData.processed.find(r => r.id === requestId);
+            const processed = data.processed.find(r => r.id === requestId);
             if (processed) {
                 return { status: processed.status, found: true };
             }
             
-            const pending = githubData.pending.find(r => r.id === requestId);
+            const pending = data.pending.find(r => r.id === requestId);
             if (pending) {
                 return { status: 'pending', found: true };
             }
@@ -109,13 +110,6 @@ class GitHubBackend {
 
     async getPendingRequests() {
         try {
-            // Check localStorage first for real-time updates
-            const localData = JSON.parse(localStorage.getItem('gcc_github_requests') || 'null');
-            if (localData) {
-                return localData.pending || [];
-            }
-            
-            // Fallback to GitHub
             const data = await this.getCurrentData();
             return data.pending || [];
         } catch (error) {
@@ -129,25 +123,37 @@ class GitHubBackend {
             console.log(`🔄 Processing request ${requestId} as ${status}`);
             
             // Get current data
-            const localData = JSON.parse(localStorage.getItem('gcc_github_requests') || 'null') || await this.getCurrentData();
+            const data = await this.getCurrentData();
             
             // Find and move request
-            const requestIndex = localData.pending.findIndex(r => r.id === requestId);
+            const requestIndex = data.pending.findIndex(r => r.id === requestId);
             if (requestIndex === -1) {
                 throw new Error('Request not found');
             }
             
-            const request = localData.pending[requestIndex];
+            const request = data.pending[requestIndex];
             request.status = status;
             request.processedAt = Date.now();
             
             // Move to processed
-            localData.processed.push(request);
-            localData.pending.splice(requestIndex, 1);
-            localData.lastUpdated = Date.now();
+            data.processed.push(request);
+            data.pending.splice(requestIndex, 1);
+            data.lastUpdated = Date.now();
             
-            // Save locally for immediate updates
-            localStorage.setItem('gcc_github_requests', JSON.stringify(localData));
+            // Update external storage
+            const url = `${this.apiBase}/b/${this.binId}`;
+            const response = await this.rateLimitedFetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': this.masterKey
+                },
+                body: JSON.stringify(data)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
             
             console.log(`✅ Request ${requestId} processed as ${status}`);
             return { success: true };
@@ -160,7 +166,22 @@ class GitHubBackend {
     async clearAllRequests() {
         try {
             const emptyData = { pending: [], processed: [], lastUpdated: Date.now() };
-            localStorage.setItem('gcc_github_requests', JSON.stringify(emptyData));
+            
+            // Update external storage
+            const url = `${this.apiBase}/b/${this.binId}`;
+            const response = await this.rateLimitedFetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': this.masterKey
+                },
+                body: JSON.stringify(emptyData)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
             return { success: true };
         } catch (error) {
             console.error('Error clearing requests:', error);
@@ -170,4 +191,4 @@ class GitHubBackend {
 }
 
 // Create global instance
-window.githubBackend = new GitHubBackend();
+window.githubBackend = new ExternalBackend();
