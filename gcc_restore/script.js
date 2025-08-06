@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
             procedure_name: 'GCC Restore Procedure',
             user_name: `User at ${new Date(timestamp).toLocaleString()}`,
             name: 'GCC System Alert',
-            email: 'gcc-system@harvard.edu',
+            email: 'jared_ambrose@gse.harvard.edu',
             scan_time: new Date(timestamp).toLocaleString(),
             user_agent: userAgent,
             location: 'GCC Conference Center',
