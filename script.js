@@ -354,16 +354,31 @@ document.addEventListener('DOMContentLoaded', () => {
             nameInputId: nameInputScreen ? nameInputScreen.id : 'NOT FOUND'
         });
         
+        console.log('🚨 AGGRESSIVE DEBUGGING - Name Input Screen');
+        console.log('All screens check:', {
+            authScreen: document.getElementById('auth-screen'),
+            nameInputScreen: document.getElementById('name-input-screen'),
+            waitingScreen: document.getElementById('waiting-screen'),
+            surveyScreen: document.getElementById('survey-screen')
+        });
+        
         // Force visibility check
         if (nameInputScreen) {
             console.log('🔍 Forcing name input screen visibility check');
             nameInputScreen.style.display = 'block';
             nameInputScreen.style.visibility = 'visible';
+            nameInputScreen.style.position = 'relative';
+            nameInputScreen.style.zIndex = '9999';
             console.log('After force:', {
                 display: nameInputScreen.style.display,
                 visibility: nameInputScreen.style.visibility,
-                computedDisplay: window.getComputedStyle(nameInputScreen).display
+                computedDisplay: window.getComputedStyle(nameInputScreen).display,
+                offsetHeight: nameInputScreen.offsetHeight,
+                offsetWidth: nameInputScreen.offsetWidth
             });
+            
+            // Add a temporary alert to confirm function execution
+            alert('Name input screen should be visible now. Check console for details.');
         }
     }
 
