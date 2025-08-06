@@ -127,7 +127,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Get token from URL parameters
         getTokenFromUrl() {
             const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('token');
+            const token = urlParams.get('token');
+            console.log('🔍 URL search params:', window.location.search);
+            console.log('🔍 Extracted token:', token);
+            return token;
         },
 
     };
