@@ -347,40 +347,80 @@ class UserApp {
         const nameInputScreen = document.getElementById('name-input-screen');
         if (!nameInputScreen) {
             console.error('❌ ERROR: name-input-screen element not found!');
+            // Create the screen if it doesn't exist
+            this.createNameInputScreen();
             return;
         }
         
-        // Force display the screen
-        nameInputScreen.style.display = 'block';
+        // Force display the screen with multiple CSS properties
+        nameInputScreen.style.display = 'flex';
         nameInputScreen.style.visibility = 'visible';
         nameInputScreen.style.opacity = '1';
+        nameInputScreen.style.position = 'fixed';
+        nameInputScreen.style.top = '0';
+        nameInputScreen.style.left = '0';
+        nameInputScreen.style.width = '100vw';
+        nameInputScreen.style.height = '100vh';
+        nameInputScreen.style.zIndex = '9999';
+        nameInputScreen.style.background = 'var(--background, #0D1117)';
+        nameInputScreen.style.justifyContent = 'center';
+        nameInputScreen.style.alignItems = 'center';
         
-        console.log('🔍 DEBUG: Name input screen display set to block');
+        console.log('🔍 DEBUG: Name input screen display forced');
         
-        // Ensure the name form exists and is properly structured
-        const nameForm = document.getElementById('name-form');
-        if (!nameForm) {
-            console.error('❌ ERROR: name-form element not found!');
-            return;
+        // Get or create the name container
+        let nameContainer = nameInputScreen.querySelector('.name-container');
+        if (!nameContainer) {
+            nameContainer = document.createElement('div');
+            nameContainer.className = 'name-container';
+            nameInputScreen.appendChild(nameContainer);
         }
         
-        // Always rebuild the form to ensure it's fresh
-        console.log('🔍 DEBUG: Rebuilding name form HTML');
-        nameForm.innerHTML = `
-            <div class="input-group">
-                <label for="user-name">Your Name:</label>
-                <input type="text" id="user-name" placeholder="Enter your full name" required maxlength="50">
-            </div>
-            <button type="submit" class="submit-btn">
-                <i class="fas fa-arrow-right"></i> Request Access
-            </button>
+        // Set container styles
+        nameContainer.style.background = 'rgba(0, 0, 0, 0.9)';
+        nameContainer.style.border = '2px solid #2ecc71';
+        nameContainer.style.borderRadius = '10px';
+        nameContainer.style.padding = '3rem';
+        nameContainer.style.maxWidth = '500px';
+        nameContainer.style.width = '100%';
+        nameContainer.style.textAlign = 'center';
+        nameContainer.style.boxShadow = '0 0 30px rgba(46, 204, 113, 0.3)';
+        
+        // Create the complete form HTML
+        nameContainer.innerHTML = `
+            <h2 style="color: #2ecc71; margin-bottom: 1rem; font-size: 1.8rem;">
+                <i class="fas fa-user"></i> Identify Yourself
+            </h2>
+            <p style="color: #33FF33; margin-bottom: 2rem;">Please enter your name to request access to the system.</p>
+            
+            <form id="name-form" style="width: 100%;">
+                <div class="input-group" style="margin: 2rem 0;">
+                    <label for="user-name" style="display: block; color: #33FF33; margin-bottom: 0.5rem; font-weight: bold;">Your Name:</label>
+                    <input type="text" id="user-name" placeholder="Enter your full name" required maxlength="50" 
+                           style="width: 100%; max-width: 400px; padding: 12px 15px; background: rgba(0, 0, 0, 0.8); 
+                                  border: 2px solid #2ecc71; color: #33FF33; border-radius: 5px; font-size: 1rem;
+                                  font-family: 'Source Code Pro', monospace;">
+                </div>
+                <button type="submit" class="submit-btn" 
+                        style="background: linear-gradient(45deg, #2ecc71, #3498db); color: white; border: none; 
+                               padding: 12px 24px; border-radius: 5px; cursor: pointer; font-size: 1rem;
+                               font-family: 'Source Code Pro', monospace; margin-top: 1rem;">
+                    <i class="fas fa-arrow-right"></i> Request Access
+                </button>
+            </form>
+
+            <div id="name-error" class="error-message" style="display: none; color: #e74c3c; margin-top: 1rem;"></div>
         `;
         
-        // Re-attach event listener to the form
-        nameForm.removeEventListener('submit', this.handleNameSubmission);
-        nameForm.addEventListener('submit', (e) => this.handleNameSubmission(e));
+        console.log('🔍 DEBUG: Form HTML created');
         
-        console.log('🔍 DEBUG: Form event listener attached');
+        // Re-attach event listener to the form
+        const nameForm = document.getElementById('name-form');
+        if (nameForm) {
+            nameForm.removeEventListener('submit', this.handleNameSubmission);
+            nameForm.addEventListener('submit', (e) => this.handleNameSubmission(e));
+            console.log('🔍 DEBUG: Form event listener attached');
+        }
         
         // Clear any existing errors
         const errorElement = document.getElementById('name-error');
@@ -402,7 +442,7 @@ class UserApp {
         
         // Final verification
         setTimeout(() => {
-            const isVisible = nameInputScreen.style.display === 'block';
+            const isVisible = nameInputScreen.style.display === 'flex';
             const formExists = document.getElementById('name-form') !== null;
             const inputExists = document.getElementById('user-name') !== null;
             
@@ -413,10 +453,42 @@ class UserApp {
             
             if (!isVisible || !formExists || !inputExists) {
                 console.error('❌ ERROR: Name input screen not properly displayed!');
-                // Force show with alert as backup
-                alert('Ready to enter your name! Please check the form below.');
+            } else {
+                console.log('✅ SUCCESS: Name input form is ready!');
             }
         }, 500);
+    }
+    
+    createNameInputScreen() {
+        console.log('🔧 Creating name input screen from scratch');
+        
+        const app = document.getElementById('app');
+        if (!app) {
+            console.error('❌ App container not found');
+            return;
+        }
+        
+        const nameInputScreen = document.createElement('div');
+        nameInputScreen.id = 'name-input-screen';
+        nameInputScreen.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #0D1117;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 2rem;
+        `;
+        
+        app.appendChild(nameInputScreen);
+        console.log('🔧 Name input screen created');
+        
+        // Now call showNameInput again
+        this.showNameInput();
     }
 
     showWaitingScreen() {
