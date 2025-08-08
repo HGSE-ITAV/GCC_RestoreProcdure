@@ -822,8 +822,8 @@ class UserApp {
         if (userNameElement) {
             userNameElement.textContent = `Hello, ${this.currentUser}`;
         }
-        
-        // Enhanced waiting animation with better visual feedback
+
+        // Simple, clean waiting animation
         const waitingAnimation = document.querySelector('.waiting-animation');
         if (waitingAnimation) {
             waitingAnimation.innerHTML = `
@@ -834,20 +834,10 @@ class UserApp {
                         <span>Processing Request...</span>
                     </div>
                 </div>
-                <div class="status-indicators">
-                    <div class="status-step completed">
-                        <i class="fas fa-check"></i> Request Submitted
-                    </div>
-                    <div class="status-step pending">
-                        <i class="fas fa-clock"></i> Awaiting Operator Review
-                    </div>
-                    <div class="status-step waiting">
-                        <i class="fas fa-key"></i> Access Decision Pending
-                    </div>
-                </div>
             `;
         }
-        
+
+        // Clean status display
         const waitingStatus = document.querySelector('.waiting-status');
         if (waitingStatus) {
             waitingStatus.innerHTML = `
@@ -862,111 +852,13 @@ class UserApp {
                 </div>
             `;
         }
-        
+
+        // Ensure cancel button has proper content
         const cancelBtn = document.getElementById('cancel-request-btn');
         if (cancelBtn && !cancelBtn.innerHTML.trim()) {
             cancelBtn.innerHTML = `
                 <i class="fas fa-times"></i> Cancel Request
             `;
-        }
-        
-        // Add dynamic styles for the enhanced animation
-        if (!document.getElementById('waiting-animation-styles')) {
-            const styles = document.createElement('style');
-            styles.id = 'waiting-animation-styles';
-            styles.textContent = `
-                .approval-spinner {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    margin: 2rem 0;
-                }
-                
-                .spinner-circle {
-                    width: 60px;
-                    height: 60px;
-                    border: 4px solid rgba(46, 204, 113, 0.3);
-                    border-top: 4px solid #2ecc71;
-                    border-radius: 50%;
-                    animation: spin 2s linear infinite;
-                    margin-bottom: 1rem;
-                }
-                
-                .spinner-text {
-                    color: #2ecc71;
-                    font-family: 'Source Code Pro', monospace;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                }
-                
-                .status-indicators {
-                    margin: 2rem 0;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 1rem;
-                    max-width: 400px;
-                    margin-left: auto;
-                    margin-right: auto;
-                }
-                
-                .status-step {
-                    padding: 0.8rem 1.2rem;
-                    border-radius: 8px;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.8rem;
-                    font-family: 'Source Code Pro', monospace;
-                    transition: all 0.3s ease;
-                }
-                
-                .status-step.completed {
-                    background: rgba(46, 204, 113, 0.2);
-                    border: 1px solid #2ecc71;
-                    color: #2ecc71;
-                }
-                
-                .status-step.pending {
-                    background: rgba(243, 156, 18, 0.2);
-                    border: 1px solid #f39c12;
-                    color: #f39c12;
-                    animation: pulse 2s infinite;
-                }
-                
-                .status-step.waiting {
-                    background: rgba(52, 73, 94, 0.3);
-                    border: 1px solid #34495e;
-                    color: #7f8c8d;
-                }
-                
-                .status-info {
-                    background: rgba(46, 204, 113, 0.1);
-                    border: 1px solid #2ecc71;
-                    border-radius: 8px;
-                    padding: 1rem;
-                    margin-bottom: 1rem;
-                }
-                
-                .waiting-instructions {
-                    background: rgba(52, 152, 219, 0.1);
-                    border: 1px solid #3498db;
-                    border-radius: 8px;
-                    padding: 1rem;
-                    color: #3498db;
-                    font-style: italic;
-                }
-                
-                @keyframes spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                }
-                
-                @keyframes pulse {
-                    0%, 100% { opacity: 1; }
-                    50% { opacity: 0.5; }
-                }
-            `;
-            document.head.appendChild(styles);
         }
     }
 

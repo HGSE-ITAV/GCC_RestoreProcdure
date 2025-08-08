@@ -95,15 +95,20 @@
                 <p class="waiting-message">Your access request has been submitted. Please wait for operator approval.</p>
                 
                 <div class="waiting-animation">
-                    <div class="terminal-cursor"></div>
-                    <div class="loading-dots">
-                        <span>.</span><span>.</span><span>.</span>
+                    <div class="approval-spinner">
+                        <div class="spinner-circle"></div>
+                        <div class="spinner-text">
+                            <i class="fas fa-hourglass-half"></i>
+                            <span>Processing Request...</span>
+                        </div>
                     </div>
                 </div>
 
                 <div class="waiting-status">
-                    <p><i class="fas fa-hourglass-half"></i> Status: Pending approval</p>
-                    <p class="time-waiting">Waiting time: <span id="waiting-timer">0:00</span></p>
+                    <div class="status-info">
+                        <p><i class="fas fa-hourglass-half"></i> Status: Pending approval</p>
+                        <p class="time-waiting"><i class="fas fa-clock"></i> Waiting time: <span id="waiting-timer">0:00</span></p>
+                    </div>
                 </div>
 
                 <button id="cancel-request-btn" class="cancel-btn">

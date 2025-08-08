@@ -658,12 +658,128 @@ header h1 {
     background: rgba(0, 0, 0, 0.9);
     border: 2px solid var(--primary-color);
     border-radius: 10px;
-    padding: 3rem;
-    max-width: 600px;
+    padding: 2rem;
+    max-width: 500px;
     width: 100%;
     text-align: center;
     box-shadow: 0 0 30px rgba(46, 204, 113, 0.3);
     animation: terminalGlow 2s ease-in-out infinite alternate;
+    position: relative;
+}
+
+.waiting-container h2 {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+#waiting-user-name {
+    color: #3498db;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.waiting-message {
+    color: var(--text-color);
+    margin-bottom: 2rem;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.waiting-animation {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 2rem 0;
+    height: 60px;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.waiting-status {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: rgba(46, 204, 113, 0.1);
+    border: 1px solid var(--primary-color);
+    border-radius: 8px;
+}
+
+.waiting-status p {
+    color: var(--text-color);
+    margin: 0.8rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.time-waiting {
+    color: #f39c12 !important;
+}
+
+#waiting-timer {
+    font-weight: bold;
+    color: #e74c3c;
+}
+
+/* Status indicators */
+.status-info {
+    background: rgba(46, 204, 113, 0.1);
+    border: 1px solid #2ecc71;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.status-info p {
+    margin: 0.5rem 0;
+    font-size: 0.95rem;
+}
+
+.waiting-instructions {
+    background: rgba(52, 152, 219, 0.1);
+    border: 1px solid #3498db;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.waiting-instructions p {
+    color: #3498db;
+    margin: 0.5rem 0;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+/* Spinner animation */
+.approval-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.spinner-circle {
+    width: 50px;
+    height: 50px;
+    border: 3px solid rgba(46, 204, 113, 0.3);
+    border-top: 3px solid #2ecc71;
+    border-radius: 50%;
+    animation: spin 2s linear infinite;
+}
+
+.spinner-text {
+    color: #2ecc71;
+    font-family: 'Source Code Pro', monospace;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
 }
 
 /* Access Granted Screen */
@@ -768,32 +884,7 @@ header h1 {
     font-style: italic;
 }
 
-.waiting-container h2 {
-    color: var(--primary-color);
-    margin-bottom: 1rem;
-    font-size: 1.8rem;
-}
-
-#waiting-user-name {
-    color: #3498db;
-    font-size: 1.3rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
-}
-
-.waiting-message {
-    color: var(--text-color);
-    margin-bottom: 2rem;
-    font-size: 1.1rem;
-}
-
-.waiting-animation {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 2rem 0;
-    height: 60px;
-}
+/* Remove duplicate waiting-container styles */
 
 .terminal-cursor {
     width: 15px;
@@ -833,26 +924,9 @@ header h1 {
     }
 }
 
-.waiting-status {
-    margin: 2rem 0;
-    padding: 1.5rem;
-    background: rgba(46, 204, 113, 0.1);
-    border: 1px solid var(--primary-color);
-    border-radius: 5px;
-}
-
-.waiting-status p {
-    color: var(--text-color);
-    margin: 0.5rem 0;
-}
-
-.time-waiting {
-    color: #f39c12 !important;
-}
-
-#waiting-timer {
-    font-weight: bold;
-    color: #e74c3c;
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 .cancel-btn {
@@ -865,7 +939,11 @@ header h1 {
     font-family: 'Source Code Pro', monospace;
     font-size: 1rem;
     transition: all 0.3s ease;
-    margin-top: 1rem;
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 .cancel-btn:hover {
