@@ -1,0 +1,292 @@
+<!DOCTYPE htm    <link rel="stylesheet" href="src/css/style.css?v=20250808094000">
+    <link rel="stylesheet" href="src/css/admin-styles.css?v=20250808094000">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    
+    <!-- CRT Terminal Effects -->
+    <script src="src/js/crt-effects.js?v=20250808094500"></script>
+    
+    <!-- Data Service Layer -->
+    <script src="src/js/data-service.js?v=20250808093000"></script>
+    
+    <!-- Admin Application -->
+    <script src="src/js/admin-app.js?v=20250808093000"></script>Data Service Layer -->
+    <script src="src/js/data-service.js?v=20250808092000"></script>
+    
+    <!-- Admin Application -->
+    <script src="src/js/admin-app.js?v=20250808092000"></script>lang="en">
+<head>
+        <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>GCC Restore Operator Dashboard</title>
+    <link rel="icon" type="image/png" href="./favicon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/icon-192.png">
+    <link rel="stylesheet" href="src/css/style.css?v=20250808091500">
+    <link rel="stylesheet" href="src/css/admin-styles.css?v=20250808091500">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    
+    <!-- Data Service Layer -->
+    <script src="src/js/data-service.js?v=20250808092000"></script>
+    
+    <!-- Admin Application -->
+    <script src="src/js/admin-app.js?v=20250808092000"></script>
+</head>
+<body>
+    <header>
+        <h1>GCC Restore - Operator Dashboard</h1>
+        <p class="purpose">Approve or deny user access requests to the GCC Restore Procedure system.</p>
+    </header>
+
+    <div id="operator-app">
+        <!-- Auth Screen -->
+        <div id="operator-auth" style="display: block;">
+            <div class="auth-container">
+                <h2><i class="fas fa-shield-alt"></i> Operator Authentication</h2>
+                <form id="operator-login">
+                    <div class="input-group">
+                        <label for="operator-code">Operator Code:</label>
+                        <input type="password" id="operator-code" placeholder="ACCESS CODE" required>
+                    </div>
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-sign-in-alt"></i> Access Dashboard
+                    </button>
+                </form>
+                <div id="operator-auth-error" class="error-message" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="operator-dashboard" style="display: none;">
+            <div class="dashboard-container">
+                <div class="dashboard-header">
+                    <h2><i class="fas fa-users"></i> Pending Access Requests</h2>
+                    <div class="dashboard-actions">
+                        <button id="clear-all-btn" class="clear-btn">
+                            <i class="fas fa-trash"></i> Clear All
+                        </button>
+                        <button id="refresh-requests" class="refresh-btn">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <button id="operator-logout" class="cancel-btn">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+
+                <div id="requests-container">
+                    <div id="no-requests" style="display: none;">
+                        <p><i class="fas fa-inbox"></i> No pending requests</p>
+                    </div>
+                    
+                    <div id="requests-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // The AdminApp is now initialized automatically from admin-app.js
+        // All functionality has been moved to the AdminApp class
+        
+        console.log('🔧 Operator Dashboard loaded');
+        console.log('� Backend:', window.dataService ? 'DataService Ready' : 'DataService Loading...');
+        
+        // Add development mode indicator if in development
+        const isDevelopment = window.location.hostname === 'localhost' || 
+                             window.location.hostname === '127.0.0.1' ||
+                             window.location.protocol === 'file:';
+        
+        if (isDevelopment) {
+            const devIndicator = document.createElement('div');
+            devIndicator.innerHTML = '🛠️ ADMIN DEV MODE';
+            devIndicator.style.cssText = `
+                position: fixed;
+                top: 10px;
+                left: 10px;
+                background: #e74c3c;
+                color: white;
+                padding: 5px 10px;
+                border-radius: 3px;
+                font-size: 12px;
+                font-family: 'Source Code Pro', monospace;
+                z-index: 9999;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+                opacity: 0.9;
+                pointer-events: none;
+            `;
+            document.body.appendChild(devIndicator);
+        }
+    </script>
+
+    <style>
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .dashboard-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .refresh-btn, .test-btn, .clear-btn {
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(45deg, var(--primary-color), #3498db);
+        }
+
+        .test-btn {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+        }
+
+        .clear-btn {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+        }
+
+        .request-card {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.2);
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .request-header h3 {
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .request-time {
+            color: #f39c12;
+            font-size: 0.9rem;
+        }
+
+        .request-details {
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+
+        .request-details p {
+            margin: 0.5rem 0;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .approve-btn {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Source Code Pro', monospace;
+        }
+
+        .deny-btn {
+            background: linear-gradient(45deg, #c0392b, #e74c3c);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Source Code Pro', monospace;
+        }
+
+        .grant-access-btn {
+            background: linear-gradient(45deg, #2980b9, #3498db);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Source Code Pro', monospace;
+        }
+
+        .revoke-btn {
+            background: linear-gradient(45deg, #e67e22, #f39c12);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Source Code Pro', monospace;
+        }
+
+        .status-message {
+            background: rgba(46, 204, 113, 0.1);
+            border: 1px solid var(--primary-color);
+            border-radius: 5px;
+            padding: 8px 12px;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.9rem;
+        }
+
+        .status-message.denied {
+            background: rgba(231, 76, 60, 0.1);
+            border-color: #e74c3c;
+            color: #e74c3c;
+        }
+
+        .approve-btn:hover, .deny-btn:hover, .grant-access-btn:hover, .revoke-btn:hover, .refresh-btn:hover, .test-btn:hover, .clear-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .status-pending { color: #f39c12; }
+        .status-approved { color: #27ae60; }
+        .status-granted { color: #3498db; }
+        .status-denied { color: #e74c3c; }
+
+        @media (max-width: 768px) {
+            .request-actions {
+                flex-direction: column;
+            }
+            
+            .approve-btn, .deny-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</body>
+</html>

@@ -68,28 +68,33 @@ class CRTEffects {
     }
 
     addPowerOnEffect() {
-        // Simulate old CRT power-on effect - full screen width
+        // Simulate old CRT power-on effect - guarantee full screen width
         const powerOn = document.createElement('div');
         powerOn.style.cssText = `
             position: fixed;
             top: 50%;
             left: 0;
             right: 0;
+            bottom: 0;
             width: 100vw;
+            max-width: none;
             height: 1px;
+            margin: 0;
+            padding: 0;
             background: linear-gradient(90deg, 
                 transparent 0%, 
-                var(--crt-bright-green) 20%, 
+                var(--crt-bright-green) 10%, 
                 var(--crt-white) 50%, 
-                var(--crt-bright-green) 80%, 
+                var(--crt-bright-green) 90%, 
                 transparent 100%);
             box-shadow: 
                 0 0 30px var(--crt-bright-green),
                 0 0 60px var(--crt-bright-green),
                 0 0 90px rgba(0, 255, 65, 0.8);
-            z-index: 9999;
+            z-index: 10001;
             animation: crt-power-on 2.5s ease-out forwards;
             transform: translateY(-50%);
+            overflow: hidden;
         `;
 
         const style = document.createElement('style');
@@ -113,7 +118,10 @@ class CRTEffects {
                 }
                 50% {
                     height: 100vh;
+                    width: 100vw;
                     top: 0;
+                    left: 0;
+                    right: 0;
                     transform: translateY(0);
                     opacity: 0.9;
                     background: linear-gradient(180deg, 
@@ -126,14 +134,20 @@ class CRTEffects {
                 }
                 75% {
                     height: 100vh;
+                    width: 100vw;
                     top: 0;
+                    left: 0;
+                    right: 0;
                     transform: translateY(0);
                     opacity: 0.4;
                     background: rgba(0, 255, 65, 0.05);
                 }
                 100% {
                     height: 100vh;
+                    width: 100vw;
                     top: 0;
+                    left: 0;
+                    right: 0;
                     transform: translateY(0);
                     opacity: 0;
                     visibility: hidden;
