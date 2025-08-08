@@ -1,5 +1,6 @@
 // Frontend User Application - Handles user authentication and access requests
 // Integrates with DataService for Firebase/localStorage operations
+// Version: 20250808095000
 
 class UserApp {
     constructor() {

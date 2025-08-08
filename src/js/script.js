@@ -1,3 +1,6 @@
+// Main Application Script - GCC Restore Procedure
+// Version: 20250808095000
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- EMAILJS CONFIGURATION ---
     const emailConfig = {
