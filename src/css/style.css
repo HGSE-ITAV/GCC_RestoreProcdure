@@ -951,3 +951,112 @@ footer {
     background: var(--white); /* Add a white background to make it scannable */
     padding: 5px;
 }
+
+/* Screen Container Standardization - Prevents Quirks Mode Issues */
+.screen-container {
+    display: none;
+    position: relative;
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+.screen-container.active {
+    display: block;
+}
+
+/* Access Denied Screen Styles */
+.access-denied-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    text-align: center;
+    padding: 2rem;
+    background: rgba(231, 76, 60, 0.1);
+    border: 2px solid #e74c3c;
+    border-radius: 10px;
+    margin: 2rem auto;
+    max-width: 500px;
+    box-shadow: 0 0 30px rgba(231, 76, 60, 0.3);
+}
+
+.access-denied-container h2 {
+    color: #e74c3c;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.access-denied-container p {
+    color: var(--text-color);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+/* Ensure all dynamic screens follow standard structure */
+#location-permission-screen,
+#access-denied-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--background);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    box-sizing: border-box;
+}
+
+/* Permission dialog styles to prevent quirks mode */
+.permission-dialog {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.permission-content {
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid #f39c12;
+    border-radius: 10px;
+    padding: 3rem;
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(243, 156, 18, 0.3);
+}
+
+/* Quirks Mode Prevention CSS Rules */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure all containers maintain proper document flow */
+.screen-container,
+div[id$="-screen"] {
+    position: relative;
+    display: none;
+    width: 100%;
+    min-height: 100vh;
+}
+
+.screen-container.active,
+div[id$="-screen"]:not([style*="display: none"]) {
+    display: block;
+}

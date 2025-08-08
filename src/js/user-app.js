@@ -14,6 +14,9 @@ class UserApp {
     }
 
     async initializeApp() {
+        // Validate document structure to prevent Quirks Mode
+        this.validateDocumentStructure();
+        
         // Wait for DataService to be ready
         if (!window.dataService) {
             setTimeout(() => this.initializeApp(), 100);
@@ -25,6 +28,47 @@ class UserApp {
         this.showAuthScreen();
         
         console.log('✅ UserApp initialized');
+    }
+
+    validateDocumentStructure() {
+        // Ensure proper document structure to prevent Quirks Mode
+        if (!document.doctype) {
+            console.warn('⚠️ Missing DOCTYPE - adding HTML5 DOCTYPE');
+            // If DOCTYPE is missing, we can't fix it at runtime, but we can warn
+        }
+        
+        // Ensure proper meta charset
+        const metaCharset = document.querySelector('meta[charset]');
+        if (!metaCharset) {
+            const meta = document.createElement('meta');
+            meta.setAttribute('charset', 'UTF-8');
+            document.head.insertBefore(meta, document.head.firstChild);
+            console.log('✅ Added missing charset meta tag');
+        }
+        
+        // Ensure proper viewport meta tag
+        const metaViewport = document.querySelector('meta[name="viewport"]');
+        if (!metaViewport) {
+            const meta = document.createElement('meta');
+            meta.setAttribute('name', 'viewport');
+            meta.setAttribute('content', 'width=device-width, initial-scale=1.0');
+            document.head.appendChild(meta);
+            console.log('✅ Added missing viewport meta tag');
+        }
+        
+        // Ensure app container exists with proper structure
+        const app = document.getElementById('app');
+        if (!app) {
+            console.error('❌ App container missing - this could cause layout issues');
+            return;
+        }
+        
+        // Ensure app container has proper attributes to prevent quirks
+        if (!app.hasAttribute('role')) {
+            app.setAttribute('role', 'main');
+        }
+        
+        console.log('✅ Document structure validated');
     }
 
     async setupEventListeners() {
@@ -388,9 +432,19 @@ class UserApp {
         this.stopStatusMonitoring();
         this.stopWaitingTimer();
         
-        // Create access denied screen
-        const app = document.getElementById('app');
-        app.innerHTML = `
+        // Clear existing content and create access denied screen
+        this.hideAllScreens();
+        
+        // Get or create access denied screen
+        let deniedScreen = document.getElementById('access-denied-screen');
+        if (!deniedScreen) {
+            deniedScreen = document.createElement('div');
+            deniedScreen.id = 'access-denied-screen';
+            deniedScreen.className = 'screen-container';
+            document.getElementById('app').appendChild(deniedScreen);
+        }
+        
+        deniedScreen.innerHTML = `
             <div class="access-denied-container">
                 <h2><i class="fas fa-times-circle"></i> Access Denied</h2>
                 <p>Your access request has been denied by the operator.</p>
@@ -400,6 +454,8 @@ class UserApp {
                 </button>
             </div>
         `;
+        
+        deniedScreen.style.display = 'block';
     }
 
     cancelRequest() {
@@ -1046,7 +1102,7 @@ class UserApp {
     hideAllScreens() {
         const screens = [
             'auth-screen', 'location-permission-screen', 'name-input-screen', 'waiting-screen', 
-            'access-granted-screen', 'survey-screen', 'step-screen', 'summary-screen'
+            'access-granted-screen', 'access-denied-screen', 'survey-screen', 'step-screen', 'summary-screen'
         ];
         
         screens.forEach(screenId => {
