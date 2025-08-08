@@ -163,7 +163,7 @@
 
         document.getElementById('generate-token-btn').addEventListener('click', () => {
             const token = generateSecureToken();
-            const baseUrl = window.location.origin + window.location.pathname.replace('qr-generator.html', '');
+            const baseUrl = window.location.origin + '/GCC_RestoreProcdure/';
             const tokenUrl = `${baseUrl}?token=${token}`;
             
             document.getElementById('token-url').textContent = tokenUrl;
