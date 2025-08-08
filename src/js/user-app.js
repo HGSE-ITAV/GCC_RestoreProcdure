@@ -446,8 +446,8 @@ class UserApp {
                 break;
                 
             case 'granted':
-                console.log('🚀 DEBUG: Status is granted - redirecting to troubleshooting');
-                // Go directly to troubleshooting guide
+                console.log('🚀 DEBUG: Status is granted - redirecting to survey screen');
+                // Go directly to survey screen
                 this.redirectToTroubleshooting();
                 break;
                 
@@ -499,10 +499,10 @@ class UserApp {
     }
 
     redirectToTroubleshooting() {
-        console.log('🚀 Redirecting to troubleshooting guide...');
+        console.log('🚀 Redirecting to survey screen...');
         this.stopStatusMonitoring();
         this.stopWaitingTimer();
-        this.showStepScreen();
+        this.showSurveyScreen();
     }
 
     redirectToProcedure() {
