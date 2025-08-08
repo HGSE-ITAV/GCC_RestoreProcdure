@@ -339,7 +339,8 @@ class DataService {
     async clearAllRequests() {
         try {
             if (this.isFirebaseEnabled) {
-                await this.db.ref('requests').remove();
+                // TEMPORARY: Clear from metadata/requests path due to Firebase rules
+                await this.db.ref('metadata/requests').remove();
                 await this.db.ref('metadata').update({
                     lastUpdated: Date.now(),
                     totalRequests: 0

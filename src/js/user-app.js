@@ -115,6 +115,9 @@ class UserApp {
         if (token) {
             console.log('🔑 Access token found in URL - forcing immediate name input');
             
+            // Store the token immediately
+            this.accessToken = token;
+            
             // FORCE name input immediately - bypass everything else
             setTimeout(() => {
                 console.log('🚀 FORCE: Calling showNameInput directly');
@@ -312,7 +315,8 @@ class UserApp {
         const validTokens = [
             'gcc_access_2024',
             'conference_token_valid',
-            'qr_code_access_granted'
+            'qr_code_access_granted',
+            'metadata_path_test'
         ];
         
         if (validTokens.includes(token)) {
