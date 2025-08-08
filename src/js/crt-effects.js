@@ -15,11 +15,12 @@ class CRTEffects {
         // Add CRT overlay effects
         this.createCRTOverlay();
         this.addPowerOnEffect();
+        this.addFullScreenFlash();
         this.addScreenBurn();
     }
 
     createCRTOverlay() {
-        // Create additional CRT effects overlay
+        // Create additional CRT effects overlay - ensure full screen coverage
         const overlay = document.createElement('div');
         overlay.className = 'crt-overlay';
         overlay.style.cssText = `
@@ -28,6 +29,8 @@ class CRTEffects {
             left: 0;
             width: 100vw;
             height: 100vh;
+            max-width: 100%;
+            max-height: 100%;
             pointer-events: none;
             z-index: 998;
             background: 
@@ -52,42 +55,89 @@ class CRTEffects {
                 75% { opacity: 0.99; }
                 100% { opacity: 1; }
             }
+            
+            /* Ensure full viewport coverage */
+            .crt-overlay {
+                margin: 0;
+                padding: 0;
+                border: none;
+                outline: none;
+            }
         `;
         document.head.appendChild(style);
     }
 
     addPowerOnEffect() {
-        // Simulate old CRT power-on effect
+        // Simulate old CRT power-on effect - full screen width
         const powerOn = document.createElement('div');
         powerOn.style.cssText = `
             position: fixed;
             top: 50%;
             left: 0;
+            right: 0;
             width: 100vw;
-            height: 2px;
-            background: var(--crt-bright-green);
-            box-shadow: 0 0 20px var(--crt-bright-green);
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                var(--crt-bright-green) 20%, 
+                var(--crt-white) 50%, 
+                var(--crt-bright-green) 80%, 
+                transparent 100%);
+            box-shadow: 
+                0 0 30px var(--crt-bright-green),
+                0 0 60px var(--crt-bright-green),
+                0 0 90px rgba(0, 255, 65, 0.8);
             z-index: 9999;
-            animation: crt-power-on 2s ease-out forwards;
+            animation: crt-power-on 2.5s ease-out forwards;
+            transform: translateY(-50%);
         `;
 
         const style = document.createElement('style');
         style.textContent = `
             @keyframes crt-power-on {
                 0% {
-                    height: 2px;
+                    height: 1px;
                     opacity: 1;
+                    box-shadow: 
+                        0 0 30px var(--crt-bright-green),
+                        0 0 60px var(--crt-bright-green),
+                        0 0 90px rgba(0, 255, 65, 0.8);
+                }
+                25% {
+                    height: 3px;
+                    opacity: 1;
+                    box-shadow: 
+                        0 0 40px var(--crt-bright-green),
+                        0 0 80px var(--crt-bright-green),
+                        0 0 120px rgba(0, 255, 65, 0.9);
                 }
                 50% {
                     height: 100vh;
                     top: 0;
-                    opacity: 0.8;
+                    transform: translateY(0);
+                    opacity: 0.9;
+                    background: linear-gradient(180deg, 
+                        transparent 0%, 
+                        rgba(0, 255, 65, 0.1) 45%, 
+                        rgba(0, 255, 65, 0.3) 50%, 
+                        rgba(0, 255, 65, 0.1) 55%, 
+                        transparent 100%);
+                    box-shadow: none;
+                }
+                75% {
+                    height: 100vh;
+                    top: 0;
+                    transform: translateY(0);
+                    opacity: 0.4;
+                    background: rgba(0, 255, 65, 0.05);
                 }
                 100% {
                     height: 100vh;
                     top: 0;
+                    transform: translateY(0);
                     opacity: 0;
                     visibility: hidden;
+                    background: transparent;
                 }
             }
         `;
@@ -97,7 +147,55 @@ class CRTEffects {
         // Remove after animation
         setTimeout(() => {
             powerOn.remove();
-        }, 2000);
+            style.remove();
+        }, 2500);
+    }
+
+    addFullScreenFlash() {
+        // Add a full screen flash effect at startup for extra authenticity
+        const flash = document.createElement('div');
+        flash.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--crt-bright-green);
+            z-index: 10000;
+            animation: crt-startup-flash 0.8s ease-out forwards;
+            pointer-events: none;
+        `;
+
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes crt-startup-flash {
+                0% {
+                    opacity: 0.8;
+                    background: var(--crt-bright-green);
+                }
+                20% {
+                    opacity: 0.3;
+                    background: rgba(0, 255, 65, 0.8);
+                }
+                40% {
+                    opacity: 0.1;
+                    background: rgba(0, 255, 65, 0.3);
+                }
+                100% {
+                    opacity: 0;
+                    background: transparent;
+                    visibility: hidden;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        document.body.appendChild(flash);
+
+        // Remove after animation
+        setTimeout(() => {
+            flash.remove();
+            style.remove();
+        }, 800);
     }
 
     addScreenBurn() {

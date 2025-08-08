@@ -3,7 +3,8 @@
 
 /* Admin Authentication Container */
 .auth-container {
-    max-width: 500px !important;
+    max-width: 550px !important;
+    width: 90% !important;
     background: rgba(0, 20, 0, 0.9) !important;
     border: 3px solid var(--crt-green) !important;
     box-shadow: 
@@ -15,16 +16,20 @@
 
 /* Operator Code Input Styling */
 #operator-code {
-    font-size: 1.6rem !important;
+    width: 100% !important;
+    padding: 15px !important;
+    font-size: 1.3rem !important;
     font-family: 'VT323', monospace !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.4rem !important;
+    letter-spacing: 0.2rem !important;
     text-align: center !important;
     background: var(--crt-black) !important;
     color: var(--crt-green) !important;
     border: 2px solid var(--crt-green) !important;
+    border-radius: 5px !important;
     text-shadow: 0 0 8px var(--crt-green) !important;
     transition: all 0.3s ease !important;
+    box-sizing: border-box !important;
 }
 
 #operator-code:focus {
@@ -194,6 +199,33 @@
     color: var(--crt-red);
     border: 1px solid var(--crt-red);
     text-shadow: 0 0 5px var(--crt-red);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 600px) {
+    .auth-container {
+        max-width: 95% !important;
+        margin: 20px auto !important;
+        padding: 1.5rem !important;
+    }
+    
+    #operator-code {
+        font-size: 1.1rem !important;
+        letter-spacing: 0.1rem !important;
+        padding: 12px !important;
+    }
+    
+    .dashboard-container {
+        margin: 1rem !important;
+        padding: 1rem !important;
+    }
+}
+
+@media (max-width: 400px) {
+    #operator-code {
+        font-size: 1rem !important;
+        letter-spacing: 0.05rem !important;
+    }
 }
 
 /* Dashboard Actions */
