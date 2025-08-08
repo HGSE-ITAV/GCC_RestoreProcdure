@@ -4,9 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GCC Restore Operator Dashboard</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="src/css/style.css">
+    <link rel="stylesheet" href="src/css/admin-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="simple-backend.js?v=20250106"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    
+    <!-- Data Service Layer -->
+    <script src="src/js/data-service.js?v=20250108"></script>
+    
+    <!-- Admin Application -->
+    <script src="src/js/admin-app.js?v=20250108"></script>
 </head>
 <body>
     <header>
@@ -77,274 +87,37 @@
     </div>
 
     <script>
-        // Simple operator dashboard logic
-        const operatorAuth = document.getElementById('operator-auth');
-        const operatorDashboard = document.getElementById('operator-dashboard');
-        const operatorLogin = document.getElementById('operator-login');
-        const operatorCode = document.getElementById('operator-code');
-        const operatorAuthError = document.getElementById('operator-auth-error');
-        const refreshBtn = document.getElementById('refresh-requests');
-        const logoutBtn = document.getElementById('operator-logout');
-        const testModeBtn = document.getElementById('test-mode-btn');
-        const clearAllBtn = document.getElementById('clear-all-btn');
-        const importBtn = document.getElementById('import-btn');
-        const shareCodeInput = document.getElementById('share-code-input');
-        const requestsList = document.getElementById('requests-list');
-        const noRequests = document.getElementById('no-requests');
-
-        // Mock data for demo (replace with actual backend calls)
-        let mockRequests = [];
-
-        // Operator login
-        operatorLogin.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const code = operatorCode.value;
-            
-            // Simple hardcoded check (replace with proper auth)
-            if (code === 'gcc2024' || code === 'operator123') {
-                operatorAuth.style.display = 'none';
-                operatorDashboard.style.display = 'block';
-                loadRequests();
-            } else {
-                operatorAuthError.textContent = 'Invalid operator code';
-                operatorAuthError.style.display = 'block';
-            }
-        });
-
-        // Logout
-        logoutBtn.addEventListener('click', () => {
-            operatorAuth.style.display = 'block';
-            operatorDashboard.style.display = 'none';
-            operatorCode.value = '';
-            operatorAuthError.style.display = 'none';
-        });
-
-        // Load requests from GitHub backend
-        async function loadRequests() {
-            try {
-                const requests = await window.githubBackend.getPendingRequests();
-                displayRequests(requests);
-                console.log('📋 Loaded requests:', requests.length);
-            } catch (error) {
-                console.error('Error loading requests:', error);
-                displayRequests([]);
-            }
-        }
-
-        // Display requests
-        function displayRequests(requests) {
-            if (requests.length === 0) {
-                requestsList.innerHTML = '';
-                noRequests.style.display = 'block';
-                return;
-            }
-
-            noRequests.style.display = 'none';
-            requestsList.innerHTML = requests.map(request => {
-                let actionButtons = '';
-                
-                if (request.status === 'pending') {
-                    actionButtons = `
-                        <button class="approve-btn" onclick="approveRequest('${request.id}')">
-                            <i class="fas fa-check"></i> Approve
-                        </button>
-                        <button class="deny-btn" onclick="denyRequest('${request.id}')">
-                            <i class="fas fa-times"></i> Deny
-                        </button>
-                    `;
-                } else if (request.status === 'approved') {
-                    actionButtons = `
-                        <button class="grant-access-btn" onclick="grantAccess('${request.id}')">
-                            <i class="fas fa-key"></i> Grant Access to Procedure
-                        </button>
-                        <button class="revoke-btn" onclick="revokeAccess('${request.id}')">
-                            <i class="fas fa-ban"></i> Revoke
-                        </button>
-                    `;
-                } else if (request.status === 'granted') {
-                    actionButtons = `
-                        <div class="status-message">
-                            <i class="fas fa-check-circle"></i> Access Granted - User has procedure access
-                        </div>
-                        <button class="revoke-btn" onclick="revokeAccess('${request.id}')">
-                            <i class="fas fa-ban"></i> Revoke Access
-                        </button>
-                    `;
-                } else if (request.status === 'denied') {
-                    actionButtons = `
-                        <div class="status-message denied">
-                            <i class="fas fa-times-circle"></i> Request Denied
-                        </div>
-                    `;
-                }
-                
-                return `
-                    <div class="request-card" data-id="${request.id}">
-                        <div class="request-header">
-                            <h3><i class="fas fa-user"></i> ${request.userName}</h3>
-                            <span class="request-time">${new Date(request.timestamp).toLocaleString()}</span>
-                        </div>
-                        <div class="request-details">
-                            <p><strong>Browser:</strong> ${request.browserInfo}</p>
-                            <p><strong>User Agent:</strong> ${request.userAgent.substring(0, 100)}...</p>
-                            <p><strong>Status:</strong> <span class="status-${request.status}">${request.status}</span></p>
-                        </div>
-                        <div class="request-actions">
-                            ${actionButtons}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Approve request
-        function approveRequest(requestId) {
-            console.log('🔄 Approving request:', requestId);
-            console.log('🌐 Environment:', window.location.hostname);
-            updateRequestStatus(requestId, 'approved');
-        }
-
-        // Deny request
-        function denyRequest(requestId) {
-            if (confirm('Are you sure you want to deny this request?')) {
-                updateRequestStatus(requestId, 'denied');
-            }
-        }
-
-        // Grant access to procedure
-        function grantAccess(requestId) {
-            if (confirm('Grant this user access to the restoration procedure?')) {
-                updateRequestStatus(requestId, 'granted');
-            }
-        }
-
-        // Revoke access
-        function revokeAccess(requestId) {
-            if (confirm('Are you sure you want to revoke access for this user?')) {
-                updateRequestStatus(requestId, 'denied');
-            }
-        }
-
-        // Update request status
-        async function updateRequestStatus(requestId, status) {
-            try {
-                console.log(`🔄 Processing request ${requestId} as ${status}`);
-                
-                const result = await window.githubBackend.processRequest(requestId, status);
-                
-                if (result.success) {
-                    console.log(`✅ Request ${requestId} processed successfully`);
-                    // Reload requests to show updated list
-                    await loadRequests();
-                } else {
-                    console.error('❌ Failed to process request:', result.error);
-                    alert(`Failed to ${status} request: ${result.error}`);
-                }
-            } catch (error) {
-                console.error('❌ Error processing request:', error);
-                alert(`Error processing request: ${error.message}`);
-            }
-        }
-
-        // Test mode - generate sample requests
-        testModeBtn.addEventListener('click', () => {
-            generateTestRequest();
-        });
-
-        // Clear all requests
-        clearAllBtn.addEventListener('click', async () => {
-            if (confirm('Are you sure you want to clear all requests? This will remove both pending and processed requests.')) {
-                try {
-                    await window.githubBackend.clearAllRequests();
-                    await loadRequests();
-                    console.log('🗑️ All requests cleared');
-                } catch (error) {
-                    console.error('❌ Error clearing requests:', error);
-                    alert(`Error clearing requests: ${error.message}`);
-                }
-            }
-        });
-
-        // Generate test request
-        function generateTestRequest() {
-            const testNames = [
-                'John Smith', 'Sarah Johnson', 'Mike Brown', 'Emily Davis', 
-                'Chris Wilson', 'Amanda Miller', 'David Garcia', 'Lisa Martinez',
-                'Kevin Anderson', 'Jennifer Taylor', 'Robert Thomas', 'Michelle White'
-            ];
-            
-            const testUserAgents = [
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-                'Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
-            ];
-
-            const testBrowserInfo = [
-                'Windows - Windows NT 10.0; Win64; x64',
-                'MacIntel - Intel Mac OS X 10_15_7',
-                'iPhone - CPU iPhone OS 17_0 like Mac OS X',
-                'iPad - CPU OS 17_0 like Mac OS X'
-            ];
-
-            const randomName = testNames[Math.floor(Math.random() * testNames.length)];
-            const randomUA = testUserAgents[Math.floor(Math.random() * testUserAgents.length)];
-            const randomBrowser = testBrowserInfo[Math.floor(Math.random() * testBrowserInfo.length)];
-            
-            const requestId = 'test_req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            
-            const testRequest = {
-                id: requestId,
-                userName: randomName,
-                timestamp: Date.now() - Math.random() * 300000, // Random time within last 5 minutes
-                userAgent: randomUA,
-                browserInfo: randomBrowser,
-                status: 'pending'
-            };
-
-            // Add to pending requests via backend
-            window.githubBackend.submitRequest(testRequest).then((result) => {
-                if (result.success) {
-                    console.log('✅ Test request generated');
-                    loadRequests();
-                } else {
-                    console.error('❌ Failed to generate test request:', result.error);
-                }
-            });
-            
-            console.log('Generated test request:', testRequest);
-        }
-
-        // Auto-refresh every 5 seconds
-        setInterval(loadRequests, 5000);
+        // The AdminApp is now initialized automatically from admin-app.js
+        // All functionality has been moved to the AdminApp class
         
-        // Manual refresh
-        refreshBtn.addEventListener('click', loadRequests);
-
-        // Import share code
-        importBtn.addEventListener('click', () => {
-            const shareCode = shareCodeInput.value.trim();
-            if (!shareCode) {
-                alert('Please enter a share code');
-                return;
-            }
-            
-            const result = window.githubBackend.importRequestByShareCode(shareCode);
-            if (result.success) {
-                shareCodeInput.value = '';
-                loadRequests();
-                alert(`Request imported successfully for ${result.request.userName}`);
-            } else {
-                alert(`Import failed: ${result.error}`);
-            }
-        });
-
-        // Allow enter key to import
-        shareCodeInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                importBtn.click();
-            }
-        });
+        console.log('🔧 Operator Dashboard loaded');
+        console.log('� Backend:', window.dataService ? 'DataService Ready' : 'DataService Loading...');
+        
+        // Add development mode indicator if in development
+        const isDevelopment = window.location.hostname === 'localhost' || 
+                             window.location.hostname === '127.0.0.1' ||
+                             window.location.protocol === 'file:';
+        
+        if (isDevelopment) {
+            const devIndicator = document.createElement('div');
+            devIndicator.innerHTML = '🛠️ ADMIN DEV MODE';
+            devIndicator.style.cssText = `
+                position: fixed;
+                top: 10px;
+                left: 10px;
+                background: #e74c3c;
+                color: white;
+                padding: 5px 10px;
+                border-radius: 3px;
+                font-size: 12px;
+                font-family: 'Source Code Pro', monospace;
+                z-index: 9999;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+                opacity: 0.9;
+                pointer-events: none;
+            `;
+            document.body.appendChild(devIndicator);
+        }
     </script>
 
     <style>

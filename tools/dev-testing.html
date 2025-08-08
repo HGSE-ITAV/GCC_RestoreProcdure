@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GCC Restore - Development Testing</title>
+    <link rel="stylesheet" href="../src/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .dev-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+        
+        .dev-section {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .dev-section h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .dev-btn {
+            padding: 12px 20px;
+            background: linear-gradient(45deg, var(--primary-color), #3498db);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .dev-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .test-btn {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+        }
+        
+        .danger-btn {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+        
+        .status-display {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            border-radius: 5px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .log-output {
+            background: #000;
+            color: #00ff00;
+            padding: 1rem;
+            border-radius: 5px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            margin: 1rem 0;
+            white-space: pre-wrap;
+        }
+        
+        .info-box {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid #3498db;
+            border-radius: 5px;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #3498db;
+        }
+        
+        .warning-box {
+            background: rgba(243, 156, 18, 0.1);
+            border: 1px solid #f39c12;
+            border-radius: 5px;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #f39c12;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🛠️ GCC Restore - Development Testing</h1>
+        <p class="purpose">Test the Firebase-based frontend/backend architecture</p>
+    </header>
+
+    <div class="dev-container">
+        <!-- System Status -->
+        <div class="dev-section">
+            <h2><i class="fas fa-server"></i> System Status</h2>
+            <div id="system-status" class="status-display">
+                Loading system status...
+            </div>
+            <button class="dev-btn" onclick="refreshStatus()">
+                <i class="fas fa-sync-alt"></i> Refresh Status
+            </button>
+        </div>
+
+        <!-- Quick Navigation -->
+        <div class="dev-section">
+            <h2><i class="fas fa-navigation"></i> Quick Navigation</h2>
+            <div class="button-grid">
+                <a href="../index.html" class="dev-btn">
+                    <i class="fas fa-user"></i> User Frontend
+                </a>
+                <a href="../operator.html" class="dev-btn">
+                    <i class="fas fa-shield-alt"></i> Admin Dashboard
+                </a>
+                <a href="../index.html?token=test_access_token" class="dev-btn test-btn">
+                    <i class="fas fa-qrcode"></i> Test QR Access
+                </a>
+            </div>
+        </div>
+
+        <!-- Data Testing -->
+        <div class="dev-section">
+            <h2><i class="fas fa-database"></i> Data Operations</h2>
+            <div class="button-grid">
+                <button class="dev-btn test-btn" onclick="generateTestUsers()">
+                    <i class="fas fa-users"></i> Generate Test Users
+                </button>
+                <button class="dev-btn test-btn" onclick="testDataService()">
+                    <i class="fas fa-flask"></i> Test Data Service
+                </button>
+                <button class="dev-btn" onclick="viewAllRequests()">
+                    <i class="fas fa-list"></i> View All Requests
+                </button>
+                <button class="dev-btn danger-btn" onclick="clearAllData()">
+                    <i class="fas fa-trash"></i> Clear All Data
+                </button>
+            </div>
+        </div>
+
+        <!-- Firebase Testing -->
+        <div class="dev-section">
+            <h2><i class="fas fa-fire"></i> Firebase Testing</h2>
+            <div class="info-box">
+                <strong>Firebase Status:</strong> <span id="firebase-status">Checking...</span>
+            </div>
+            <div class="button-grid">
+                <button class="dev-btn" onclick="testFirebaseConnection()">
+                    <i class="fas fa-plug"></i> Test Connection
+                </button>
+                <button class="dev-btn" onclick="testRealtimeSync()">
+                    <i class="fas fa-sync"></i> Test Real-time Sync
+                </button>
+                <button class="dev-btn test-btn" onclick="simulateMultipleUsers()">
+                    <i class="fas fa-users-cog"></i> Simulate Multiple Users
+                </button>
+            </div>
+        </div>
+
+        <!-- Authentication Testing -->
+        <div class="dev-section">
+            <h2><i class="fas fa-key"></i> Authentication Testing</h2>
+            <div class="button-grid">
+                <button class="dev-btn" onclick="testUserAuth()">
+                    <i class="fas fa-user-check"></i> Test User Auth
+                </button>
+                <button class="dev-btn" onclick="testAdminAuth()">
+                    <i class="fas fa-user-shield"></i> Test Admin Auth
+                </button>
+                <button class="dev-btn test-btn" onclick="testTokenValidation()">
+                    <i class="fas fa-certificate"></i> Test Token Validation
+                </button>
+            </div>
+        </div>
+
+        <!-- Console Output -->
+        <div class="dev-section">
+            <h2><i class="fas fa-terminal"></i> Console Output</h2>
+            <div id="console-output" class="log-output">
+                Development console initialized...
+            </div>
+            <button class="dev-btn" onclick="clearConsole()">
+                <i class="fas fa-eraser"></i> Clear Console
+            </button>
+        </div>
+
+        <!-- Configuration -->
+        <div class="dev-section">
+            <h2><i class="fas fa-cog"></i> Configuration</h2>
+            <div class="warning-box">
+                <strong>Current Mode:</strong> <span id="current-mode">Detecting...</span><br>
+                <strong>Data Backend:</strong> <span id="data-backend">Loading...</span><br>
+                <strong>Environment:</strong> <span id="environment">Loading...</span>
+            </div>
+            <div class="info-box">
+                <strong>Setup Instructions:</strong> See <code>FIREBASE_SETUP.md</code> for Firebase configuration.
+            </div>
+        </div>
+    </div>
+
+    <!-- Include all necessary scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="../src/js/data-service.js"></script>
+
+    <script>
+        // Development testing interface
+        let consoleOutput = [];
+        
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${message}`;
+            consoleOutput.push(logMessage);
+            
+            const consoleElement = document.getElementById('console-output');
+            consoleElement.textContent = consoleOutput.slice(-50).join('\n');
+            consoleElement.scrollTop = consoleElement.scrollHeight;
+            
+            console.log(message);
+        }
+
+        async function refreshStatus() {
+            log('🔄 Refreshing system status...');
+            
+            try {
+                const dataService = window.dataService;
+                const status = dataService ? dataService.getServiceStatus() : null;
+                
+                const systemStatus = document.getElementById('system-status');
+                systemStatus.innerHTML = `
+                    <strong>Data Service:</strong> ${status ? '✅ Ready' : '❌ Not Ready'}<br>
+                    <strong>Backend:</strong> ${status ? status.backend : 'Unknown'}<br>
+                    <strong>Connected:</strong> ${status ? status.connected : 'Unknown'}<br>
+                    <strong>Storage:</strong> ${status ? status.storageKey || 'Firebase' : 'Unknown'}<br>
+                    <strong>Timestamp:</strong> ${new Date().toLocaleString()}
+                `;
+                
+                // Update other status indicators
+                document.getElementById('firebase-status').textContent = 
+                    status && status.backend === 'Firebase' ? '🔥 Connected' : '💾 localStorage';
+                document.getElementById('current-mode').textContent = 
+                    window.location.hostname === 'localhost' ? 'Development' : 'Production';
+                document.getElementById('data-backend').textContent = 
+                    status ? status.backend : 'Unknown';
+                document.getElementById('environment').textContent = 
+                    window.location.hostname;
+                
+                log('✅ System status updated');
+            } catch (error) {
+                log('❌ Error refreshing status: ' + error.message);
+            }
+        }
+
+        async function generateTestUsers() {
+            log('👥 Generating test users...');
+            
+            try {
+                const testNames = ['Alice Johnson', 'Bob Smith', 'Carol Davis', 'David Wilson'];
+                
+                for (const name of testNames) {
+                    const result = await window.dataService.submitRequest({
+                        userName: name,
+                        token: 'test_token_' + Math.random().toString(36).substr(2, 9)
+                    });
+                    
+                    if (result.success) {
+                        log(`✅ Created request for ${name}: ${result.requestId}`);
+                    } else {
+                        log(`❌ Failed to create request for ${name}: ${result.error}`);
+                    }
+                    
+                    // Small delay between requests
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+                
+                log('🎉 Test users generated successfully');
+            } catch (error) {
+                log('❌ Error generating test users: ' + error.message);
+            }
+        }
+
+        async function testDataService() {
+            log('🧪 Testing data service...');
+            
+            try {
+                // Test submission
+                const testRequest = {
+                    userName: 'Test User ' + Date.now(),
+                    token: 'test_token'
+                };
+                
+                const result = await window.dataService.submitRequest(testRequest);
+                log(`📤 Submit test: ${result.success ? '✅ Success' : '❌ Failed'}`);
+                
+                if (result.success) {
+                    // Test status check
+                    const status = await window.dataService.getRequestStatus(result.requestId);
+                    log(`📊 Status test: ${status.found ? '✅ Found' : '❌ Not found'} - Status: ${status.status}`);
+                    
+                    // Test processing
+                    const processResult = await window.dataService.processRequest(result.requestId, 'approved');
+                    log(`⚙️ Process test: ${processResult.success ? '✅ Success' : '❌ Failed'}`);
+                }
+                
+                log('🎯 Data service test completed');
+            } catch (error) {
+                log('❌ Data service test failed: ' + error.message);
+            }
+        }
+
+        async function viewAllRequests() {
+            log('📋 Loading all requests...');
+            
+            try {
+                const requests = await window.dataService.getPendingRequests();
+                log(`📊 Found ${requests.length} requests:`);
+                
+                requests.forEach((request, index) => {
+                    log(`  ${index + 1}. ${request.userName} - ${request.status} (${request.id})`);
+                });
+                
+                if (requests.length === 0) {
+                    log('  No requests found');
+                }
+            } catch (error) {
+                log('❌ Error loading requests: ' + error.message);
+            }
+        }
+
+        async function clearAllData() {
+            if (!confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+                return;
+            }
+            
+            log('🗑️ Clearing all data...');
+            
+            try {
+                const result = await window.dataService.clearAllRequests();
+                log(`🗑️ Clear data: ${result.success ? '✅ Success' : '❌ Failed'}`);
+            } catch (error) {
+                log('❌ Error clearing data: ' + error.message);
+            }
+        }
+
+        async function testFirebaseConnection() {
+            log('🔥 Testing Firebase connection...');
+            
+            try {
+                if (window.dataService.isFirebaseEnabled) {
+                    const connected = await window.dataService.testConnection();
+                    log(`🔗 Firebase connection: ${connected ? '✅ Connected' : '❌ Disconnected'}`);
+                } else {
+                    log('💾 Firebase not enabled, using localStorage');
+                }
+            } catch (error) {
+                log('❌ Firebase connection test failed: ' + error.message);
+            }
+        }
+
+        async function testRealtimeSync() {
+            log('🔄 Testing real-time synchronization...');
+            
+            try {
+                // Subscribe to changes
+                const unsubscribe = window.dataService.subscribeToRequests((requests) => {
+                    log(`📡 Real-time update: ${requests.length} requests`);
+                });
+                
+                // Generate a test request to trigger updates
+                await window.dataService.generateTestRequest();
+                
+                // Unsubscribe after 5 seconds
+                setTimeout(() => {
+                    unsubscribe();
+                    log('⏹️ Real-time sync test completed');
+                }, 5000);
+                
+            } catch (error) {
+                log('❌ Real-time sync test failed: ' + error.message);
+            }
+        }
+
+        function simulateMultipleUsers() {
+            log('👥 Simulating multiple users...');
+            
+            // Open multiple tabs/windows
+            const userTab = window.open('index.html?token=test_user_1', '_blank');
+            const adminTab = window.open('operator.html', '_blank');
+            
+            log('🌐 Opened user and admin tabs');
+            log('💡 Use the admin tab to approve/deny requests from the user tab');
+        }
+
+        function testUserAuth() {
+            log('🔐 Testing user authentication...');
+            window.open('index.html?token=test_access_valid', '_blank');
+            log('🌐 Opened user tab with test token');
+        }
+
+        function testAdminAuth() {
+            log('🛡️ Testing admin authentication...');
+            window.open('operator.html', '_blank');
+            log('🌐 Opened admin tab (use password: gcc2024)');
+        }
+
+        function testTokenValidation() {
+            log('🎫 Testing token validation...');
+            
+            const validToken = 'index.html?token=gcc_access_2024';
+            const invalidToken = 'index.html?token=invalid_token_123';
+            
+            window.open(validToken, '_blank');
+            setTimeout(() => window.open(invalidToken, '_blank'), 1000);
+            
+            log('🌐 Opened tabs with valid and invalid tokens');
+        }
+
+        function clearConsole() {
+            consoleOutput = [];
+            document.getElementById('console-output').textContent = 'Console cleared...';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🛠️ Development testing interface loaded');
+            
+            // Wait for data service to initialize
+            setTimeout(() => {
+                refreshStatus();
+            }, 1000);
+            
+            // Auto-refresh status every 10 seconds
+            setInterval(refreshStatus, 10000);
+        });
+    </script>
+</body>
+</html>

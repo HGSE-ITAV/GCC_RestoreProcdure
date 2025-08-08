@@ -1,0 +1,352 @@
+/* Additional styles for Admin Dashboard */
+/* These styles extend the main style.css for operator-specific UI elements */
+
+.dashboard-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 2rem;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.dashboard-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.refresh-btn, .test-btn, .clear-btn {
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.refresh-btn {
+    background: linear-gradient(45deg, var(--primary-color), #3498db);
+}
+
+.test-btn {
+    background: linear-gradient(45deg, #9b59b6, #8e44ad);
+}
+
+.clear-btn {
+    background: linear-gradient(45deg, #f39c12, #e67e22);
+}
+
+.request-card {
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid var(--primary-color);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 0 20px rgba(46, 204, 113, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.request-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 25px rgba(46, 204, 113, 0.3);
+}
+
+.request-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.request-header h3 {
+    color: var(--primary-color);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.request-time {
+    color: #f39c12;
+    font-size: 0.9rem;
+    font-family: 'Source Code Pro', monospace;
+}
+
+.request-details {
+    margin-bottom: 1rem;
+    color: var(--text-color);
+    line-height: 1.5;
+}
+
+.request-details p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+.request-details strong {
+    color: var(--primary-color);
+}
+
+.request-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.approve-btn {
+    background: linear-gradient(45deg, #27ae60, #2ecc71);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.deny-btn {
+    background: linear-gradient(45deg, #c0392b, #e74c3c);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.grant-access-btn {
+    background: linear-gradient(45deg, #2980b9, #3498db);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.revoke-btn {
+    background: linear-gradient(45deg, #e67e22, #f39c12);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.reactivate-btn {
+    background: linear-gradient(45deg, #8e44ad, #9b59b6);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-message {
+    background: rgba(46, 204, 113, 0.1);
+    border: 1px solid var(--primary-color);
+    border-radius: 5px;
+    padding: 10px 15px;
+    color: var(--primary-color);
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-right: 1rem;
+}
+
+.status-message.denied {
+    background: rgba(231, 76, 60, 0.1);
+    border-color: #e74c3c;
+    color: #e74c3c;
+}
+
+.status-message.granted {
+    background: rgba(52, 152, 219, 0.1);
+    border-color: #3498db;
+    color: #3498db;
+}
+
+.approve-btn:hover, .deny-btn:hover, .grant-access-btn:hover, 
+.revoke-btn:hover, .refresh-btn:hover, .test-btn:hover, 
+.clear-btn:hover, .reactivate-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.approve-btn:active, .deny-btn:active, .grant-access-btn:active, 
+.revoke-btn:active, .refresh-btn:active, .test-btn:active, 
+.clear-btn:active, .reactivate-btn:active {
+    transform: translateY(0);
+}
+
+/* Status indicators */
+.status-pending { 
+    color: #f39c12; 
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+
+.status-approved { 
+    color: #27ae60; 
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+
+.status-granted { 
+    color: #3498db; 
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+
+.status-denied { 
+    color: #e74c3c; 
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+
+/* Import section styling */
+.import-section {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.import-section h3 {
+    color: var(--primary-color);
+    margin-top: 0;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#share-code-input {
+    flex: 1;
+    padding: 10px;
+    background: rgba(0,0,0,0.8);
+    border: 1px solid var(--primary-color);
+    color: var(--text-color);
+    border-radius: 5px;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.9rem;
+}
+
+#share-code-input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+}
+
+#no-requests {
+    text-align: center;
+    color: #7f8c8d;
+    font-style: italic;
+    padding: 3rem;
+    font-size: 1.1rem;
+}
+
+#no-requests i {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    display: block;
+    color: var(--primary-color);
+}
+
+/* Responsive design for admin dashboard */
+@media (max-width: 768px) {
+    .dashboard-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .dashboard-actions {
+        justify-content: center;
+    }
+    
+    .request-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .request-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .approve-btn, .deny-btn, .grant-access-btn, .revoke-btn, .reactivate-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .status-message {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-container {
+        padding: 1rem;
+        margin: 1rem;
+    }
+    
+    .request-card {
+        padding: 1rem;
+    }
+    
+    .dashboard-actions {
+        flex-direction: column;
+    }
+    
+    .refresh-btn, .test-btn, .clear-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

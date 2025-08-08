@@ -1,17 +1,11 @@
 # Dependencies
 node_modules/
 
-# Test artifacts
-test-results/
-test-results.json
-test-results.xml
-playwright-report/
-github-pages-report/
-github-pages-results.json
-security-results.json
-
-# Playwright
-playwright/.cache/
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
 
 # Environment variables
 .env

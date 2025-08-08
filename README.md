@@ -1,65 +1,144 @@
-# GCC Restore Procedure - Real-Time Access Control System
+# GCC Restore Procedure - Firebase-Powered Frontend/Backend System
 
-A progressive web application for guided conference center system recovery with real-time admin approval workflow.
+A progressive web application for guided conference center system recovery with **real-time admin approval workflow** powered by Firebase Realtime Database.
 
-## 🌐 GitHub Pages Demo
+## �️ **New Architecture (v2.0)**
 
-**Live Demo**: https://hgse-itav.github.io/GCC_RestoreProcdure/
+### **Frontend (User Interface)**
+- **File**: `index.html` + `user-app.js`
+- **Purpose**: User access requests and restore procedure
+- **Features**: QR authentication, real-time status updates, guided restoration steps
 
-⚠️ **Important**: The GitHub Pages version shows the UI components but **WebSocket functionality is not available** since GitHub Pages only serves static files.
+### **Backend (Admin Dashboard)** 
+- **File**: `operator.html` + `admin-app.js`
+- **Purpose**: Administrator approval/denial interface
+- **Features**: Live request monitoring, approval workflow, audit logging
 
-## 🚀 Full Local Testing
+### **Data Layer**
+- **File**: `data-service.js`
+- **Primary**: Firebase Realtime Database (free tier)
+- **Fallback**: localStorage (development/offline)
+- **Features**: Real-time sync, cross-device updates, audit trails
 
-For complete real-time functionality including WebSocket approval system:
+## 🌐 **Live Demo**
 
-### Prerequisites
-- Node.js (v14 or higher)
-- npm
+**User Frontend**: https://hgse-itav.github.io/GCC_RestoreProcdure/
+**Admin Dashboard**: https://hgse-itav.github.io/GCC_RestoreProcdure/operator.html
+**Development Testing**: https://hgse-itav.github.io/GCC_RestoreProcdure/dev-testing.html
 
-### Installation & Setup
+### **Testing the System**
+1. Open **User Frontend** → Enter your name → Submit request
+2. Open **Admin Dashboard** (password: `gcc2024`) → Approve/deny requests
+3. Watch **real-time updates** between both interfaces
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/HGSE-ITAV/GCC_RestoreProcdure.git
-   cd GCC_RestoreProcdure
-   ```
+## 🚀 **Quick Setup**
 
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
+### **Option 1: Use GitHub Pages (Immediate)**
+- Works immediately with localStorage
+- No setup required
+- Perfect for testing and development
 
-3. **Start the WebSocket server**:
-   ```bash
-   node server.js
-   ```
+### **Option 2: Add Firebase (Real-time sync)**
+1. Follow instructions in `FIREBASE_SETUP.md`
+2. Update `firebase-config.js` with your project config
+3. Deploy to GitHub Pages
 
-4. **Open your browser and navigate to**:
-   - **Main App**: http://localhost:8000/
-   - **Admin Dashboard**: http://localhost:8000/admin.html
-   - **QR Generator**: http://localhost:8000/qr-generator.html
+### **Option 3: Local Development**
+```bash
+# Clone and serve locally
+git clone https://github.com/HGSE-ITAV/GCC_RestoreProcdure.git
+cd GCC_RestoreProcdure
+python -m http.server 8000
+# or
+npm run dev
+```
 
-## 🔄 How the Real-Time System Works
+Open: http://localhost:8000/
 
-### Option B: Real-Time Admin Approval Flow
+## 🧪 **Testing & Development**
 
-1. **Admin Setup**: 
-   - Admin opens the dashboard at `http://localhost:8000/admin.html`
-   - Generates QR code using `http://localhost:8000/qr-generator.html`
+### **Built-in Testing Interface**
+Visit: `/tools/dev-testing.html` for comprehensive testing tools:
+- System status monitoring
+- Data service testing  
+- Firebase connection testing
+- Multi-user simulation
+- Real-time sync testing
 
-2. **User Request**:
-   - User scans QR code (pointing to `http://localhost:8000/?request=access`)
-   - App automatically sends access request to admin via WebSocket
+2. **Generate QR Codes**: Visit `/tools/qr-generator.html`
 
-3. **Admin Approval**:
-   - Admin receives real-time notification with user details
-   - Admin approves/denies with one click
-   - System generates secure 6-digit code for approved requests
+### **Manual Testing Flow**
+1. **User Flow**: `index.html` → Enter name → Submit request
+2. **Admin Flow**: `operator.html` → Login (`gcc2024`) → Approve/deny
+3. **Watch real-time updates** between both interfaces
 
-4. **User Access**:
-   - User receives approval notification and code entry prompt
-   - After entering valid code, user gets 30-minute access to the system
-   - Sessions automatically expire and clean up
+### **Testing Passwords**
+- **Admin Dashboard**: `gcc2024`, `operator123`, `admin2024`
+- **QR Tokens**: `gcc_access_2024`, `test_access_token`
+
+## 🔄 **How the Real-Time System Works**
+
+### **User → Admin Flow**
+1. **User Access**: Scans QR code → Enters name → Submits request
+2. **Real-time Sync**: Request appears instantly in admin dashboard
+3. **Admin Action**: Approves/denies → User sees update in real-time
+4. **Procedure Access**: If approved and granted → User proceeds to restoration
+
+### **Architecture Components**
+
+#### **Frontend (`index.html` + `user-app.js`)**
+- QR code authentication system
+- Real-time Firebase communication for access requests
+- Step-by-step restoration procedures
+- Progressive Web App with offline capability
+
+#### **Backend (`operator.html` + `admin-app.js`)**
+- Real-time request monitoring via Firebase
+- Live approval/denial workflow
+- Multi-admin support with audit logging
+- Cross-device synchronization
+
+#### **Data Layer (`data-service.js`)**
+- Firebase Realtime Database integration
+- Automatic localStorage fallback
+- Cross-device real-time synchronization
+- Audit trail and session management
+
+## 🔒 **Security Features**
+
+- Firebase security rules (configurable)
+- Session-based access control
+- QR code token validation
+- Admin authentication system
+- Physical presence requirement via QR scanning
+- Comprehensive audit logging
+
+## 🛠️ **Development**
+
+### **File Structure**
+```
+├── index.html              # User frontend
+├── operator.html           # Admin dashboard  
+├── dev-testing.html        # Development testing interface
+├── user-app.js            # User application logic
+├── admin-app.js           # Admin dashboard logic
+├── data-service.js        # Firebase/localStorage data layer
+├── firebase-config.js     # Firebase configuration
+├── style.css              # Main application styling
+├── admin-styles.css       # Admin dashboard styles
+├── script.js              # Legacy restoration procedure logic
+├── manifest.json          # PWA configuration
+├── sw.js                  # Service worker
+├── FIREBASE_SETUP.md      # Firebase setup instructions
+└── images/               # Restoration procedure images
+```
+
+### **Technologies Used**
+- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
+- **Backend**: Firebase Realtime Database
+- **Hosting**: GitHub Pages (static hosting)
+- **Development**: Python HTTP server
+- **Architecture**: Separated frontend/backend with shared data layer
 
 ## 📱 Components
 

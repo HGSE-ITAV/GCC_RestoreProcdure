@@ -1,22 +1,55 @@
 {
-  "name": "gcc-restore-procedure-tests",
-  "version": "1.0.0",
-  "description": "Automated testing for GCC Restore Procedure application",
+  "name": "gcc-restore-procedure",
+  "version": "2.0.0",
+  "description": "GCC Restore Procedure with Firebase-based Frontend/Backend Architecture",
+  "main": "index.html",
   "scripts": {
-    "test": "playwright test",
-    "test:headed": "playwright test --headed",
-    "test:debug": "playwright test --debug",
-    "test:ui": "playwright test --ui",
-    "test:auth": "playwright test tests/auth.spec.js",
-    "test:operator": "playwright test tests/operator.spec.js",
-    "test:security": "playwright test tests/security.spec.js",
-    "report": "playwright show-report",
-    "install-browsers": "playwright install"
+    "dev": "python -m http.server 8000",
+    "serve": "python -m http.server 8000",
+    "start": "python -m http.server 8000"
   },
-  "devDependencies": {
-    "@playwright/test": "^1.40.0"
+  "devDependencies": {},
+  "dependencies": {
+    "firebase": "^9.23.0"
   },
-  "keywords": ["testing", "playwright", "e2e", "automation"],
+  "keywords": [
+    "frontend",
+    "backend", 
+    "firebase",
+    "realtime-database",
+    "conference-center",
+    "restore-procedure",
+    "admin-dashboard",
+    "github-pages",
+    "progressive-web-app"
+  ],
   "author": "GCC Restore System",
-  "license": "MIT"
+  "license": "MIT",
+  "homepage": "https://hgse-itav.github.io/GCC_RestoreProcdure/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HGSE-ITAV/GCC_RestoreProcdure.git"
+  },
+  "architecture": {
+    "frontend": {
+      "main": "index.html",
+      "app": "user-app.js",
+      "data": "data-service.js"
+    },
+    "backend": {
+      "admin": "operator.html", 
+      "app": "admin-app.js",
+      "data": "data-service.js"
+    },
+    "database": "Firebase Realtime Database",
+    "hosting": "GitHub Pages",
+    "features": [
+      "Real-time user approval system",
+      "Admin dashboard with live updates", 
+      "QR code authentication",
+      "Cross-device synchronization",
+      "Audit logging",
+      "Offline fallback to localStorage"
+    ]
+  }
 }
