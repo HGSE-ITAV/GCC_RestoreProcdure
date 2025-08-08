@@ -1,14 +1,54 @@
-/* Additional styles for Admin Dashboard */
+/* Additional CRT Terminal styles for Admin Dashboard */
 /* These styles extend the main style.css for operator-specific UI elements */
 
+/* Admin Authentication Container */
 .auth-container {
-    max-width: 450px !important;
+    max-width: 500px !important;
+    background: rgba(0, 20, 0, 0.9) !important;
+    border: 3px solid var(--crt-green) !important;
+    box-shadow: 
+        0 0 30px var(--crt-green),
+        0 0 60px rgba(0, 255, 65, 0.4),
+        inset 0 0 30px rgba(0, 255, 65, 0.1) !important;
+    animation: crt-glow 5s ease-in-out infinite alternate !important;
 }
 
+/* Operator Code Input Styling */
+#operator-code {
+    font-size: 1.6rem !important;
+    font-family: 'VT323', monospace !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.4rem !important;
+    text-align: center !important;
+    background: var(--crt-black) !important;
+    color: var(--crt-green) !important;
+    border: 2px solid var(--crt-green) !important;
+    text-shadow: 0 0 8px var(--crt-green) !important;
+    transition: all 0.3s ease !important;
+}
+
+#operator-code:focus {
+    border-color: var(--crt-bright-green) !important;
+    box-shadow: 
+        0 0 20px var(--crt-green),
+        inset 0 0 15px rgba(0, 255, 65, 0.3) !important;
+    text-shadow: 0 0 12px var(--crt-green) !important;
+    animation: crt-glow 2s ease-in-out infinite alternate !important;
+}
+
+/* Dashboard Container */
 .dashboard-container {
     max-width: 1200px;
     margin: 2rem auto;
     padding: 2rem;
+    background: rgba(0, 20, 0, 0.7);
+    border: 2px solid var(--crt-green);
+    border-radius: 10px;
+    box-shadow: 
+        0 0 20px var(--crt-green),
+        0 0 40px rgba(0, 255, 65, 0.2),
+        inset 0 0 20px rgba(0, 255, 65, 0.05);
+    animation: crt-glow 6s ease-in-out infinite alternate;
 }
 
 .dashboard-header {
@@ -16,8 +56,152 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--crt-green);
+}
+
+.dashboard-header h1 {
+    color: var(--crt-bright-green);
+    font-family: 'VT323', monospace;
+    font-size: 2.2rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-shadow: 
+        0 0 10px var(--crt-bright-green),
+        0 0 20px var(--crt-bright-green);
+    animation: crt-glow 4s ease-in-out infinite alternate;
+}
+
+/* Terminal Request List */
+.requests-container {
+    background: rgba(0, 30, 0, 0.8);
+    border: 1px solid var(--crt-green);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    box-shadow: inset 0 0 15px rgba(0, 255, 65, 0.1);
+}
+
+.request-item {
+    background: rgba(0, 40, 0, 0.6);
+    border: 1px solid var(--crt-green);
+    border-radius: 6px;
+    padding: 1rem;
+    margin: 1rem 0;
+    transition: all 0.3s ease;
+    font-family: 'VT323', monospace;
+}
+
+.request-item:hover {
+    background: rgba(0, 60, 0, 0.8);
+    box-shadow: 
+        0 0 15px var(--crt-green),
+        inset 0 0 10px rgba(0, 255, 65, 0.2);
+    transform: scale(1.02);
+}
+
+.request-info {
+    color: var(--crt-green);
+    font-size: 1.1rem;
+    text-shadow: 0 0 5px var(--crt-green);
+}
+
+.request-timestamp {
+    color: var(--crt-bright-green);
+    font-weight: bold;
+    text-shadow: 0 0 8px var(--crt-bright-green);
+}
+
+/* Terminal Buttons */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 1rem;
+}
+
+.approve-btn {
+    background: var(--crt-black);
+    color: var(--crt-green);
+    border: 2px solid var(--crt-green);
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'VT323', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 5px var(--crt-green);
+}
+
+.approve-btn:hover {
+    background: var(--crt-dark-green);
+    box-shadow: 
+        0 0 15px var(--crt-green),
+        inset 0 0 10px rgba(0, 255, 65, 0.3);
+    text-shadow: 0 0 10px var(--crt-green);
+}
+
+.deny-btn {
+    background: var(--crt-black);
+    color: var(--crt-red);
+    border: 2px solid var(--crt-red);
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'VT323', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 5px var(--crt-red);
+}
+
+.deny-btn:hover {
+    background: rgba(64, 0, 0, 0.8);
+    box-shadow: 
+        0 0 15px var(--crt-red),
+        inset 0 0 10px rgba(255, 0, 64, 0.3);
+    text-shadow: 0 0 10px var(--crt-red);
+}
+
+/* Status Indicators */
+.status-indicator {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 3px;
+    font-family: 'VT323', monospace;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: bold;
+}
+
+.status-pending {
+    background: rgba(255, 176, 0, 0.2);
+    color: var(--crt-amber);
+    border: 1px solid var(--crt-amber);
+    text-shadow: 0 0 5px var(--crt-amber);
+}
+
+.status-approved {
+    background: rgba(0, 255, 65, 0.2);
+    color: var(--crt-green);
+    border: 1px solid var(--crt-green);
+    text-shadow: 0 0 5px var(--crt-green);
+}
+
+.status-denied {
+    background: rgba(255, 0, 64, 0.2);
+    color: var(--crt-red);
+    border: 1px solid var(--crt-red);
+    text-shadow: 0 0 5px var(--crt-red);
+}
+
+/* Dashboard Actions */
+.dashboard-controls {
+    display: flex;
     flex-wrap: wrap;
     gap: 1rem;
+    margin-bottom: 2rem;
 }
 
 .dashboard-actions {
@@ -27,14 +211,26 @@
 }
 
 .refresh-btn, .clear-btn {
-    color: white;
-    border: none;
-    padding: 8px 16px;
+    background: var(--crt-black);
+    color: var(--crt-green);
+    border: 2px solid var(--crt-green);
+    padding: 10px 18px;
     border-radius: 5px;
     cursor: pointer;
-    font-family: 'Source Code Pro', monospace;
-    font-size: 0.9rem;
+    font-family: 'VT323', monospace;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     transition: all 0.3s ease;
+    text-shadow: 0 0 5px var(--crt-green);
+}
+
+.refresh-btn:hover, .clear-btn:hover {
+    background: var(--crt-dark-green);
+    box-shadow: 
+        0 0 15px var(--crt-green),
+        inset 0 0 10px rgba(0, 255, 65, 0.3);
+    text-shadow: 0 0 10px var(--crt-green);
 }
 
 .refresh-btn {
