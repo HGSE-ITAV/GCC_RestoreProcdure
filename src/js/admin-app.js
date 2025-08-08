@@ -4,14 +4,9 @@
 class AdminApp {
     constructor() {
         this.isAuthenticated = false;
-        this.isMFAVerified = false;
         this.requestsSubscription = null;
         this.refreshInterval = null;
         this.adminId = null;
-        this.codeTimer = null;
-        
-        // Initialize MFA service
-        this.mfaService = new MFAService();
         
         console.log('🔧 AdminApp initializing...');
         this.initializeApp();
@@ -31,33 +26,10 @@ class AdminApp {
     }
 
     async setupEventListeners() {
-        // Primary authentication
+        // Operator login
         const loginForm = document.getElementById('operator-login');
         if (loginForm) {
             loginForm.addEventListener('submit', (e) => this.handleLogin(e));
-        }
-
-        // MFA form
-        const mfaForm = document.getElementById('mfa-form');
-        if (mfaForm) {
-            mfaForm.addEventListener('submit', (e) => this.handleMFASubmit(e));
-        }
-
-        // MFA method selection
-        document.querySelectorAll('.mfa-method').forEach(method => {
-            method.addEventListener('click', (e) => this.selectMFAMethod(e));
-        });
-
-        // Send code button
-        const sendCodeBtn = document.getElementById('send-code-btn');
-        if (sendCodeBtn) {
-            sendCodeBtn.addEventListener('click', () => this.sendEmailCode());
-        }
-
-        // Back button
-        const backBtn = document.getElementById('back-to-auth');
-        if (backBtn) {
-            backBtn.addEventListener('click', () => this.showLoginScreen());
         }
 
         // Logout button
@@ -90,17 +62,18 @@ class AdminApp {
             const isValid = await this.validateOperatorCode(operatorCode);
             
             if (isValid) {
-                // Initialize MFA for this operator
-                this.mfaService.initializeMFA(operatorCode);
-                this.adminId = this.getAdminIdFromCode(operatorCode);
+                this.currentOperator = this.getAdminIdFromCode(operatorCode);
+                this.isAuthenticated = true;
                 
-                console.log('✅ Primary authentication successful for:', this.adminId);
+                console.log('✅ Authentication successful for:', this.currentOperator);
                 
                 // Clear any error messages
                 errorElement.style.display = 'none';
                 
-                // Proceed to MFA screen
-                this.showMFAScreen();
+                // Proceed directly to dashboard
+                this.showDashboard();
+                await this.loadRequests();
+                this.startRequestsMonitoring();
             } else {
                 throw new Error('Invalid operator code');
             }
@@ -140,191 +113,18 @@ class AdminApp {
         return codeMap[code] || 'unknown_admin';
     }
 
-    handleLogout() {
+    // Handle operator logout
+    async handleLogout() {
         this.isAuthenticated = false;
-        this.isMFAVerified = false;
-        this.adminId = null;
+        this.currentOperator = null;
         this.stopRequestsMonitoring();
-        this.stopCodeTimer();
-        
-        // Reset MFA service
-        this.mfaService.reset();
         
         // Clear forms
         document.getElementById('operator-code').value = '';
         document.getElementById('operator-auth-error').style.display = 'none';
-        if (document.getElementById('mfa-code')) {
-            document.getElementById('mfa-code').value = '';
-            document.getElementById('mfa-error').style.display = 'none';
-        }
         
         this.showLoginScreen();
         console.log('👋 Operator logged out');
-    }
-
-    // ===== MFA METHODS =====
-
-    async handleMFASubmit(e) {
-        e.preventDefault();
-        
-        const mfaCode = document.getElementById('mfa-code').value;
-        const errorElement = document.getElementById('mfa-error');
-        
-        try {
-            const result = await this.mfaService.validateCode(mfaCode);
-            
-            if (result.success) {
-                this.isAuthenticated = true;
-                this.isMFAVerified = true;
-                
-                console.log('✅ MFA authentication successful:', result);
-                
-                // Clear any error messages
-                errorElement.style.display = 'none';
-                
-                // Proceed to dashboard
-                this.showDashboard();
-                await this.loadRequests();
-                this.startRequestsMonitoring();
-            }
-        } catch (error) {
-            console.error('❌ MFA validation failed:', error);
-            errorElement.textContent = error.message;
-            errorElement.style.display = 'block';
-        }
-    }
-
-    selectMFAMethod(e) {
-        // Remove active class from all methods
-        document.querySelectorAll('.mfa-method').forEach(method => {
-            method.classList.remove('active');
-        });
-        
-        // Add active class to selected method
-        const selectedMethod = e.currentTarget;
-        selectedMethod.classList.add('active');
-        
-        const method = selectedMethod.dataset.method;
-        this.mfaService.setMFAMethod(method);
-        
-        // Show/hide send code button for email method
-        const sendCodeBtn = document.getElementById('send-code-btn');
-        if (method === 'email') {
-            sendCodeBtn.style.display = 'block';
-        } else {
-            sendCodeBtn.style.display = 'none';
-        }
-        
-        // Reset timer and code input
-        document.getElementById('mfa-code').value = '';
-        document.getElementById('mfa-error').style.display = 'none';
-        this.stopCodeTimer();
-        
-        // Update instruction text
-        const instructionElement = document.querySelector('.mfa-instruction');
-        if (method === 'totp') {
-            instructionElement.textContent = 'Enter the 6-digit code from your authenticator app';
-        } else {
-            instructionElement.textContent = 'Enter the 6-digit code sent to your email';
-        }
-    }
-
-    async sendEmailCode() {
-        const sendCodeBtn = document.getElementById('send-code-btn');
-        const errorElement = document.getElementById('mfa-error');
-        
-        try {
-            sendCodeBtn.disabled = true;
-            sendCodeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-            
-            const result = await this.mfaService.sendEmailCode();
-            
-            if (result.success) {
-                console.log('📧 Email code sent to:', result.email);
-                this.startCodeTimer(result.expiresIn);
-                
-                // Update UI to show code was sent
-                sendCodeBtn.innerHTML = '<i class="fas fa-check"></i> Code Sent';
-                
-                // Update instruction
-                const instructionElement = document.querySelector('.mfa-instruction');
-                instructionElement.textContent = `Code sent to ${result.email}`;
-                
-                setTimeout(() => {
-                    sendCodeBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Resend Code';
-                    sendCodeBtn.disabled = false;
-                }, 30000); // Allow resend after 30 seconds
-            }
-        } catch (error) {
-            console.error('❌ Failed to send email code:', error);
-            errorElement.textContent = error.message;
-            errorElement.style.display = 'block';
-            
-            sendCodeBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Code';
-            sendCodeBtn.disabled = false;
-        }
-    }
-
-    startCodeTimer(durationMs) {
-        const timerElement = document.getElementById('code-timer');
-        let timeLeft = Math.ceil(durationMs / 1000);
-        
-        this.stopCodeTimer(); // Clear any existing timer
-        
-        this.codeTimer = setInterval(() => {
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            
-            if (timeLeft <= 0) {
-                this.stopCodeTimer();
-                timerElement.textContent = 'Expired';
-            }
-            
-            timeLeft--;
-        }, 1000);
-        
-        // Initial display
-        const minutes = Math.floor(timeLeft / 60);
-        const seconds = timeLeft % 60;
-        timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-    }
-
-    stopCodeTimer() {
-        if (this.codeTimer) {
-            clearInterval(this.codeTimer);
-            this.codeTimer = null;
-            
-            const timerElement = document.getElementById('code-timer');
-            if (timerElement) {
-                timerElement.textContent = '--';
-            }
-        }
-    }
-
-    showMFAScreen() {
-        document.getElementById('operator-auth').style.display = 'none';
-        document.getElementById('operator-mfa').style.display = 'block';
-        document.getElementById('operator-dashboard').style.display = 'none';
-        
-        // Reset MFA form
-        document.getElementById('mfa-code').value = '';
-        document.getElementById('mfa-error').style.display = 'none';
-        
-        // Set default MFA method to TOTP
-        document.querySelectorAll('.mfa-method').forEach(method => {
-            method.classList.remove('active');
-        });
-        document.querySelector('.mfa-method[data-method="totp"]').classList.add('active');
-        this.mfaService.setMFAMethod('totp');
-        
-        // Hide send code button initially
-        document.getElementById('send-code-btn').style.display = 'none';
-        
-        // Focus on MFA code input
-        setTimeout(() => {
-            document.getElementById('mfa-code').focus();
-        }, 100);
     }
 
     async loadRequests() {
@@ -800,12 +600,7 @@ class AdminApp {
 
     showLoginScreen() {
         document.getElementById('operator-auth').style.display = 'block';
-        document.getElementById('operator-mfa').style.display = 'none';
         document.getElementById('operator-dashboard').style.display = 'none';
-        
-        // Reset MFA service and clear forms
-        this.mfaService.reset();
-        this.stopCodeTimer();
         
         // Focus on password input
         setTimeout(() => {

@@ -18,9 +18,6 @@
     <!-- Data Service Layer -->
     <script src="src/js/data-service.js?v=20250808091500"></script>
     
-    <!-- MFA Service -->
-    <script src="src/js/mfa-service.js?v=20250808091500"></script>
-    
     <!-- Admin Application -->
     <script src="src/js/admin-app.js?v=20250808091500"></script>
 </head>
@@ -31,7 +28,7 @@
     </header>
 
     <div id="operator-app">
-        <!-- Primary Auth Screen -->
+        <!-- Auth Screen -->
         <div id="operator-auth" style="display: block;">
             <div class="auth-container">
                 <h2><i class="fas fa-shield-alt"></i> Operator Authentication</h2>
@@ -41,54 +38,10 @@
                         <input type="password" id="operator-code" placeholder="Enter operator access code" required>
                     </div>
                     <button type="submit" class="submit-btn">
-                        <i class="fas fa-arrow-right"></i> Continue
+                        <i class="fas fa-sign-in-alt"></i> Access Dashboard
                     </button>
                 </form>
                 <div id="operator-auth-error" class="error-message" style="display: none;"></div>
-            </div>
-        </div>
-
-        <!-- MFA Screen -->
-        <div id="operator-mfa" style="display: none;">
-            <div class="auth-container">
-                <h2><i class="fas fa-mobile-alt"></i> Multi-Factor Authentication</h2>
-                <p class="mfa-instruction">Enter the 6-digit verification code</p>
-                
-                <div class="mfa-methods">
-                    <div class="mfa-method active" data-method="totp">
-                        <i class="fas fa-qrcode"></i>
-                        <span>Authenticator App</span>
-                    </div>
-                    <div class="mfa-method" data-method="email">
-                        <i class="fas fa-envelope"></i>
-                        <span>Email Code</span>
-                    </div>
-                </div>
-
-                <form id="mfa-form">
-                    <div class="input-group">
-                        <label for="mfa-code">Verification Code:</label>
-                        <input type="text" id="mfa-code" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required>
-                    </div>
-                    <div class="mfa-actions">
-                        <button type="button" id="send-code-btn" class="secondary-btn" style="display: none;">
-                            <i class="fas fa-paper-plane"></i> Send Code
-                        </button>
-                        <button type="submit" class="submit-btn">
-                            <i class="fas fa-sign-in-alt"></i> Access Dashboard
-                        </button>
-                    </div>
-                </form>
-                
-                <div class="mfa-info">
-                    <p><i class="fas fa-info-circle"></i> Code expires in <span id="code-timer">--</span></p>
-                </div>
-                
-                <button type="button" id="back-to-auth" class="back-btn">
-                    <i class="fas fa-arrow-left"></i> Back
-                </button>
-                
-                <div id="mfa-error" class="error-message" style="display: none;"></div>
             </div>
         </div>
 
