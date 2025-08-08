@@ -431,12 +431,14 @@ class UserApp {
                 break;
                 
             case 'approved':
-                this.showAccessGranted();
+                // Keep user in waiting room but update message
+                this.updateWaitingRoomForApproval();
                 this.waitForProcedureAccess();
                 break;
                 
             case 'granted':
-                this.redirectToProcedure();
+                // Go directly to troubleshooting guide
+                this.redirectToTroubleshooting();
                 break;
                 
             case 'denied':
@@ -451,6 +453,45 @@ class UserApp {
     waitForProcedureAccess() {
         // Continue monitoring for 'granted' status
         console.log('⏳ Waiting for procedure access grant...');
+    }
+
+    updateWaitingRoomForApproval() {
+        console.log('✅ Request approved - updating waiting room message');
+        
+        // Update the waiting screen to show approval status
+        const waitingMessage = document.querySelector('.waiting-message');
+        if (waitingMessage) {
+            waitingMessage.innerHTML = 'Your request has been <span style="color: #2ecc71;">approved</span>! Please wait for the operator to grant procedure access.';
+        }
+
+        // Update the status display
+        const waitingStatus = document.querySelector('.waiting-status');
+        if (waitingStatus) {
+            waitingStatus.innerHTML = `
+                <div class="status-info">
+                    <p><i class="fas fa-check-circle" style="color: #2ecc71;"></i> Request approved by operator</p>
+                    <p><i class="fas fa-clock"></i> Waiting for procedure access grant</p>
+                    <p><i class="fas fa-id-badge"></i> Request ID: ${this.currentRequestId}</p>
+                </div>
+                <div class="waiting-instructions">
+                    <p>Your access request has been approved!</p>
+                    <p>Please wait while the operator grants you access to the troubleshooting procedure.</p>
+                </div>
+            `;
+        }
+
+        // Update spinner text
+        const spinnerText = document.querySelector('.spinner-text span');
+        if (spinnerText) {
+            spinnerText.textContent = 'Waiting for Procedure Access...';
+        }
+    }
+
+    redirectToTroubleshooting() {
+        console.log('🚀 Redirecting to troubleshooting guide...');
+        this.stopStatusMonitoring();
+        this.stopWaitingTimer();
+        this.showStepScreen();
     }
 
     redirectToProcedure() {
