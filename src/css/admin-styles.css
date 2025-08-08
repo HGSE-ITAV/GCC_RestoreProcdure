@@ -1,6 +1,168 @@
 /* Additional styles for Admin Dashboard */
 /* These styles extend the main style.css for operator-specific UI elements */
 
+/* ===== MFA STYLES ===== */
+.mfa-instruction {
+    color: #cccccc;
+    margin-bottom: 25px;
+    font-size: 1.1em;
+}
+
+.mfa-methods {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+    justify-content: center;
+}
+
+.mfa-method {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 20px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid #444;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.mfa-method:hover {
+    border-color: #00ff00;
+    background: rgba(0, 20, 0, 0.8);
+}
+
+.mfa-method.active {
+    border-color: #00ff00;
+    background: rgba(0, 40, 0, 0.9);
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+}
+
+.mfa-method i {
+    font-size: 1.5em;
+    color: #00ff00;
+    margin-bottom: 8px;
+}
+
+.mfa-method span {
+    color: #cccccc;
+    font-size: 0.9em;
+    text-align: center;
+}
+
+.mfa-method.active span {
+    color: #00ff00;
+    font-weight: bold;
+}
+
+.mfa-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.mfa-info {
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(0, 20, 0, 0.5);
+    border: 1px solid #444;
+    border-radius: 6px;
+}
+
+.mfa-info p {
+    color: #cccccc;
+    margin: 0;
+    font-size: 0.9em;
+}
+
+.mfa-info i {
+    color: #00ffff;
+    margin-right: 8px;
+}
+
+#code-timer {
+    color: #00ff00;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+}
+
+.back-btn {
+    background: transparent;
+    border: 1px solid #666;
+    color: #cccccc;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 20px;
+    font-family: 'Courier New', monospace;
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    border-color: #00ff00;
+    color: #00ff00;
+}
+
+.secondary-btn {
+    background: rgba(0, 40, 40, 0.8);
+    border: 1px solid #00ffff;
+    color: #00ffff;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.secondary-btn:hover {
+    background: rgba(0, 60, 60, 0.9);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+.auth-container {
+    max-width: 450px !important;
+}
+
+/* ===== MOBILE RESPONSIVE MFA ===== */
+@media (max-width: 600px) {
+    .auth-container {
+        margin: 50px 20px !important;
+        padding: 30px 20px !important;
+        max-width: none !important;
+    }
+    
+    .mfa-methods {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .mfa-method {
+        min-width: auto;
+        flex-direction: row;
+        justify-content: flex-start;
+        text-align: left;
+        padding: 12px 15px;
+    }
+    
+    .mfa-method i {
+        margin-right: 10px;
+        margin-bottom: 0;
+        font-size: 1.2em;
+    }
+    
+    .mfa-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .mfa-actions button {
+        width: 100%;
+    }
+}
+
 .dashboard-container {
     max-width: 1200px;
     margin: 2rem auto;
