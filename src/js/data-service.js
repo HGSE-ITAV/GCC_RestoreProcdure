@@ -15,19 +15,26 @@ class DataService {
         try {
             // Try to initialize Firebase
             if (typeof firebase !== 'undefined' && !this.isFirebaseEnabled) {
+                console.log('🔍 Attempting Firebase initialization...');
+                
                 // Import Firebase configuration
                 const { firebaseConfig } = await import('../config/firebase-config.js');
                 
                 if (!firebase.apps.length) {
                     firebase.initializeApp(firebaseConfig);
+                    console.log('🔥 Firebase app initialized');
                 }
                 
                 this.db = firebase.database();
                 this.isFirebaseEnabled = true;
-                console.log('🔥 Firebase initialized successfully');
+                console.log('🔥 Firebase database connected');
                 
-                // Test Firebase connection
-                await this.testConnection();
+                // Test Firebase connection and permissions
+                const connectionResult = await this.testConnection();
+                if (!connectionResult) {
+                    console.warn('⚠️ Firebase connection/permission test failed, falling back to localStorage');
+                    this.isFirebaseEnabled = false;
+                }
             }
         } catch (error) {
             console.warn('⚠️ Firebase initialization failed, using localStorage:', error.message);
@@ -38,6 +45,8 @@ class DataService {
         if (!this.isFirebaseEnabled) {
             this.initializeLocalStorage();
         }
+        
+        console.log(`🎯 DataService initialized - Using: ${this.isFirebaseEnabled ? 'Firebase' : 'localStorage'}`);
     }
 
     initializeLocalStorage() {
