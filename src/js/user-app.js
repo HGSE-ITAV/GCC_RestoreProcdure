@@ -108,9 +108,23 @@ class UserApp {
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token') || urlParams.get('access_token');
         
+        console.log('🔍 checkURLParameters called');
+        console.log('🔍 URL params found:', Object.fromEntries(urlParams));
+        console.log('🔍 Token found:', token);
+        
         if (token) {
-            console.log('🔑 Access token found in URL');
+            console.log('🔑 Access token found in URL - forcing immediate name input');
+            
+            // FORCE name input immediately - bypass everything else
+            setTimeout(() => {
+                console.log('🚀 FORCE: Calling showNameInput directly');
+                this.showNameInput();
+            }, 500);
+            
+            // Also try the normal flow
             await this.processQRCodeAccess(token);
+        } else {
+            console.log('ℹ️ No token found in URL - showing auth screen');
         }
     }
 
@@ -1127,6 +1141,7 @@ class UserApp {
     }
 
     hideAllScreens() {
+        console.log('🔧 hideAllScreens() called');
         const screens = [
             'auth-screen', 'location-permission-screen', 'name-input-screen', 'waiting-screen', 
             'access-granted-screen', 'access-denied-screen', 'survey-screen', 'step-screen', 'summary-screen'
@@ -1134,8 +1149,20 @@ class UserApp {
         
         screens.forEach(screenId => {
             const screen = document.getElementById(screenId);
-            if (screen) screen.style.display = 'none';
+            if (screen) {
+                screen.style.display = 'none';
+                console.log(`🔧 Hidden screen: ${screenId}`);
+            } else {
+                console.log(`⚠️ Screen not found: ${screenId}`);
+            }
         });
+        
+        // Also remove any existing QR forms
+        const existingForm = document.getElementById('qr-name-form');
+        if (existingForm) {
+            existingForm.remove();
+            console.log('🔧 Removed existing qr-name-form');
+        }
     }
 
     showAuthError(message) {
