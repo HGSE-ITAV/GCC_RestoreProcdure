@@ -159,13 +159,20 @@ class DataService {
     async getPendingRequests() {
         try {
             if (this.isFirebaseEnabled) {
+                console.log('🔍 DEBUG: Fetching requests from Firebase...');
                 const snapshot = await this.db.ref('requests').once('value');
                 const requests = snapshot.val() || {};
+                
+                console.log('📊 DEBUG: Raw Firebase requests:', requests);
+                console.log('📊 DEBUG: Request count:', Object.keys(requests).length);
                 
                 // Filter and format requests for admin dashboard
                 const requestList = Object.values(requests)
                     .filter(request => this.shouldShowInDashboard(request))
                     .sort((a, b) => b.timestamp - a.timestamp);
+                
+                console.log('📊 DEBUG: Filtered dashboard requests:', requestList);
+                console.log('📊 DEBUG: Dashboard request count:', requestList.length);
                 
                 return requestList;
             } else {
@@ -186,17 +193,28 @@ class DataService {
         const now = Date.now();
         const fiveMinutesAgo = now - (5 * 60 * 1000);
         
+        console.log(`🔍 DEBUG: Checking request ${request.id} - Status: ${request.status}, Timestamp: ${request.timestamp}`);
+        
         // Show pending requests
-        if (request.status === 'pending') return true;
+        if (request.status === 'pending') {
+            console.log(`✅ DEBUG: Showing pending request ${request.id}`);
+            return true;
+        }
         
         // Show approved/granted requests
-        if (request.status === 'approved' || request.status === 'granted') return true;
+        if (request.status === 'approved' || request.status === 'granted') {
+            console.log(`✅ DEBUG: Showing approved/granted request ${request.id}`);
+            return true;
+        }
         
         // Show recently denied requests (for 5 minutes)
         if (request.status === 'denied') {
-            return request.processedAt && request.processedAt > fiveMinutesAgo;
+            const show = request.processedAt && request.processedAt > fiveMinutesAgo;
+            console.log(`${show ? '✅' : '❌'} DEBUG: Recently denied request ${request.id} - Show: ${show}`);
+            return show;
         }
         
+        console.log(`❌ DEBUG: Hiding request ${request.id} - Status: ${request.status}`);
         return false;
     }
 
