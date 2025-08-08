@@ -113,11 +113,12 @@ class UserApp {
             const isValidToken = await this.validateAccessToken(token);
             
             if (isValidToken) {
-                console.log('✅ Valid access token - requesting location permission');
+                console.log('✅ Valid access token - proceeding to name input');
                 this.accessToken = token;
                 
-                // Show location permission request screen
-                this.showLocationPermissionScreen();
+                // Skip location permission for now and go directly to name input
+                // TODO: Add location permission back as optional step
+                this.showNameInput();
                 
             } else {
                 throw new Error('Invalid or expired access token');
@@ -540,125 +541,118 @@ class UserApp {
     showNameInput() {
         console.log('🔍 DEBUG: showNameInput() called');
         
-        // Force hide all screens first
+        // Simple, direct approach - create and show form immediately
         this.hideAllScreens();
         
-        // Get the name input screen element
-        const nameInputScreen = document.getElementById('name-input-screen');
-        if (!nameInputScreen) {
-            console.error('❌ ERROR: name-input-screen element not found!');
-            // Create the screen if it doesn't exist
-            this.createNameInputScreen();
+        // Get app container
+        const app = document.getElementById('app');
+        if (!app) {
+            console.error('❌ App container not found');
             return;
         }
         
-        // Force display the screen with multiple CSS properties
-        nameInputScreen.style.display = 'flex';
-        nameInputScreen.style.visibility = 'visible';
-        nameInputScreen.style.opacity = '1';
-        nameInputScreen.style.position = 'fixed';
-        nameInputScreen.style.top = '0';
-        nameInputScreen.style.left = '0';
-        nameInputScreen.style.width = '100vw';
-        nameInputScreen.style.height = '100vh';
-        nameInputScreen.style.zIndex = '9999';
-        nameInputScreen.style.background = 'var(--background, #0D1117)';
-        nameInputScreen.style.justifyContent = 'center';
-        nameInputScreen.style.alignItems = 'center';
-        
-        console.log('🔍 DEBUG: Name input screen display forced');
-        
-        // Get or create the name container
-        let nameContainer = nameInputScreen.querySelector('.name-container');
-        if (!nameContainer) {
-            nameContainer = document.createElement('div');
-            nameContainer.className = 'name-container';
-            nameInputScreen.appendChild(nameContainer);
-        }
-        
-        // Set container styles
-        nameContainer.style.background = 'rgba(0, 0, 0, 0.9)';
-        nameContainer.style.border = '2px solid #2ecc71';
-        nameContainer.style.borderRadius = '10px';
-        nameContainer.style.padding = '3rem';
-        nameContainer.style.maxWidth = '500px';
-        nameContainer.style.width = '100%';
-        nameContainer.style.textAlign = 'center';
-        nameContainer.style.boxShadow = '0 0 30px rgba(46, 204, 113, 0.3)';
-        
-        // Create the complete form HTML
-        nameContainer.innerHTML = `
-            <h2 style="color: #2ecc71; margin-bottom: 1rem; font-size: 1.8rem;">
-                <i class="fas fa-user"></i> Identify Yourself
-            </h2>
-            <p style="color: #33FF33; margin-bottom: 2rem;">Please enter your name to request access to the system.</p>
-            
-            <form id="name-form" style="width: 100%;">
-                <div class="input-group" style="margin: 2rem 0;">
-                    <label for="user-name" style="display: block; color: #33FF33; margin-bottom: 0.5rem; font-weight: bold;">Your Name:</label>
-                    <input type="text" id="user-name" placeholder="Enter your full name" required maxlength="50" 
-                           style="width: 100%; max-width: 400px; padding: 12px 15px; background: rgba(0, 0, 0, 0.8); 
-                                  border: 2px solid #2ecc71; color: #33FF33; border-radius: 5px; font-size: 1rem;
-                                  font-family: 'Source Code Pro', monospace;">
-                </div>
-                <button type="submit" class="submit-btn" 
-                        style="background: linear-gradient(45deg, #2ecc71, #3498db); color: white; border: none; 
-                               padding: 12px 24px; border-radius: 5px; cursor: pointer; font-size: 1rem;
-                               font-family: 'Source Code Pro', monospace; margin-top: 1rem;">
-                    <i class="fas fa-arrow-right"></i> Request Access
-                </button>
-            </form>
+        // Create form directly in app container with absolute positioning
+        const formHTML = `
+            <div id="qr-name-form" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+                                          background: #0D1117; display: flex; justify-content: center; align-items: center; 
+                                          z-index: 10000; padding: 2rem; box-sizing: border-box;">
+                <div style="background: rgba(0, 0, 0, 0.9); border: 2px solid #2ecc71; border-radius: 10px; 
+                           padding: 3rem; max-width: 500px; width: 100%; text-align: center; 
+                           box-shadow: 0 0 30px rgba(46, 204, 113, 0.3);">
+                    <h2 style="color: #2ecc71; margin-bottom: 1rem; font-size: 1.8rem; font-family: 'Source Code Pro', monospace;">
+                        <i class="fas fa-user"></i> Enter Your Name
+                    </h2>
+                    <p style="color: #33FF33; margin-bottom: 2rem; font-family: 'Source Code Pro', monospace;">
+                        Please enter your name to request access to the GCC Restore Procedure.
+                    </p>
+                    
+                    <form id="qr-name-form-element">
+                        <div style="margin: 2rem 0;">
+                            <label for="qr-user-name" style="display: block; color: #33FF33; margin-bottom: 0.5rem; 
+                                                           font-weight: bold; font-family: 'Source Code Pro', monospace;">
+                                Your Name:
+                            </label>
+                            <input type="text" id="qr-user-name" placeholder="Enter your full name" required maxlength="50" 
+                                   style="width: 90%; padding: 12px 15px; background: rgba(0, 0, 0, 0.8); 
+                                          border: 2px solid #2ecc71; color: #33FF33; border-radius: 5px; font-size: 1rem;
+                                          font-family: 'Source Code Pro', monospace; text-align: center;">
+                        </div>
+                        <button type="submit" 
+                                style="background: linear-gradient(45deg, #2ecc71, #3498db); color: white; border: none; 
+                                       padding: 12px 24px; border-radius: 5px; cursor: pointer; font-size: 1rem;
+                                       font-family: 'Source Code Pro', monospace; margin-top: 1rem;">
+                            <i class="fas fa-arrow-right"></i> Submit Request
+                        </button>
+                    </form>
 
-            <div id="name-error" class="error-message" style="display: none; color: #e74c3c; margin-top: 1rem;"></div>
+                    <div id="qr-name-error" style="display: none; color: #e74c3c; margin-top: 1rem; 
+                                                   font-family: 'Source Code Pro', monospace;"></div>
+                </div>
+            </div>
         `;
         
-        console.log('🔍 DEBUG: Form HTML created');
-        
-        // Re-attach event listener to the form
-        const nameForm = document.getElementById('name-form');
-        if (nameForm) {
-            nameForm.removeEventListener('submit', this.handleNameSubmission);
-            nameForm.addEventListener('submit', (e) => this.handleNameSubmission(e));
-            console.log('🔍 DEBUG: Form event listener attached');
+        // Remove any existing form first
+        const existingForm = document.getElementById('qr-name-form');
+        if (existingForm) {
+            existingForm.remove();
         }
         
-        // Clear any existing errors
-        const errorElement = document.getElementById('name-error');
-        if (errorElement) {
-            errorElement.style.display = 'none';
-            errorElement.textContent = '';
+        // Add the form to the page
+        app.insertAdjacentHTML('beforeend', formHTML);
+        
+        // Attach event listener
+        const form = document.getElementById('qr-name-form-element');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const nameInput = document.getElementById('qr-user-name');
+                const userName = nameInput.value.trim();
+                
+                console.log('📤 QR Form submitted:', userName);
+                
+                if (!userName || userName.length < 2) {
+                    const errorEl = document.getElementById('qr-name-error');
+                    errorEl.style.display = 'block';
+                    errorEl.textContent = 'Please enter a valid name (at least 2 characters)';
+                    return;
+                }
+                
+                // Process the submission
+                this.handleQRNameSubmission(userName);
+            });
         }
         
-        // Focus on name input after a short delay
+        // Focus on input
         setTimeout(() => {
-            const nameInput = document.getElementById('user-name');
+            const nameInput = document.getElementById('qr-user-name');
             if (nameInput) {
                 nameInput.focus();
-                console.log('🔍 DEBUG: Focus set on name input field');
-            } else {
-                console.error('❌ ERROR: user-name input field not found after rebuild!');
             }
-        }, 200);
+        }, 100);
         
-        // Final verification
-        setTimeout(() => {
-            const isVisible = nameInputScreen.style.display === 'flex';
-            const formExists = document.getElementById('name-form') !== null;
-            const inputExists = document.getElementById('user-name') !== null;
-            
-            console.log('🔍 DEBUG: Final verification:');
-            console.log(`  - Screen visible: ${isVisible}`);
-            console.log(`  - Form exists: ${formExists}`);
-            console.log(`  - Input exists: ${inputExists}`);
-            
-            if (!isVisible || !formExists || !inputExists) {
-                console.error('❌ ERROR: Name input screen not properly displayed!');
-            } else {
-                console.log('✅ SUCCESS: Name input form is ready!');
-            }
-        }, 500);
+        console.log('✅ QR Name input form displayed');
     }
     
+    handleQRNameSubmission(userName) {
+        console.log('📤 Processing QR name submission for:', userName);
+        
+        // Store the user's name
+        this.currentUser = {
+            name: userName,
+            timestamp: new Date().toISOString(),
+            accessToken: this.currentAccessToken
+        };
+        
+        // Hide the form
+        const form = document.getElementById('qr-name-form');
+        if (form) {
+            form.remove();
+        }
+        
+        // Proceed with location collection and submission
+        this.handleNameSubmission({ preventDefault: () => {} });
+    }
+
     createNameInputScreen() {
         console.log('🔧 Creating name input screen from scratch');
         
