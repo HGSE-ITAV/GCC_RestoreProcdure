@@ -1,18 +1,23 @@
 const CACHE_NAME = 'recovery-checklist-cache-v17540548';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/qr.png',
+  '/GCC_RestoreProcdure/',
+  '/GCC_RestoreProcdure/index.html',
+  '/GCC_RestoreProcdure/operator.html',
+  '/GCC_RestoreProcdure/assets/icons/icon-192.png',
+  '/GCC_RestoreProcdure/assets/icons/icon-512.png',
+  '/GCC_RestoreProcdure/assets/images/qr.png',
+  '/GCC_RestoreProcdure/src/css/style.css',
+  '/GCC_RestoreProcdure/src/js/data-service.js',
+  '/GCC_RestoreProcdure/src/js/user-app.js',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css'
 ];
 
 // Critical files that should always check network first
 const networkFirstFiles = [
-  '/script.js',
-  '/style.css',
-  '/index.html'
+  '/GCC_RestoreProcdure/src/js/user-app.js',
+  '/GCC_RestoreProcdure/src/js/data-service.js',
+  '/GCC_RestoreProcdure/src/css/style.css',
+  '/GCC_RestoreProcdure/index.html'
 ];
 
 self.addEventListener('install', event => {
