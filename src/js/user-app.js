@@ -102,11 +102,31 @@ class UserApp {
             cancelBtn.addEventListener('click', () => this.cancelRequest());
         }
 
-        // Issue form submission
-        const issueForm = document.getElementById('issue-form');
-        if (issueForm) {
-            issueForm.addEventListener('submit', (e) => this.handleIssueSubmission(e));
+        // Survey form validation
+        const disclaimerCheckbox = document.getElementById('disclaimer-check');
+        if (disclaimerCheckbox) {
+            disclaimerCheckbox.addEventListener('change', () => {
+                const startRecoveryBtn = document.getElementById('start-recovery-btn');
+                const selectedIssue = document.querySelector('input[name="issue"]:checked');
+                if (startRecoveryBtn) {
+                    startRecoveryBtn.disabled = !(disclaimerCheckbox.checked && selectedIssue);
+                }
+            });
         }
+        
+        // Radio button change listener for Start Recovery button state
+        const issueRadios = document.querySelectorAll('input[name="issue"]');
+        issueRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                const disclaimerCheckbox = document.getElementById('disclaimer-check');
+                const startRecoveryBtn = document.getElementById('start-recovery-btn');
+                if (startRecoveryBtn && disclaimerCheckbox) {
+                    startRecoveryBtn.disabled = !(disclaimerCheckbox.checked && radio.checked);
+                }
+            });
+        });
+        
+        // Note: Issue form submission is handled by script.js
 
         // Navigation buttons
         this.setupNavigationButtons();
@@ -1197,29 +1217,6 @@ class UserApp {
         }
         
         console.log('🎯 DEBUG: showSurveyScreen() completed');
-    }
-
-    handleIssueSubmission(e) {
-        e.preventDefault();
-        
-        const selectedIssue = document.querySelector('input[name="issue"]:checked');
-        const disclaimerCheck = document.getElementById('disclaimer-check');
-        
-        if (!selectedIssue) {
-            alert('Please select an issue type');
-            return;
-        }
-        
-        if (!disclaimerCheck.checked) {
-            alert('Please acknowledge the disclaimer');
-            return;
-        }
-        
-        console.log('🎯 Issue selected:', selectedIssue.value);
-        
-        // Store the selected issue and proceed to step screen
-        this.selectedIssue = selectedIssue.value;
-        this.showStepScreen();
     }
 
     showStepScreen() {
