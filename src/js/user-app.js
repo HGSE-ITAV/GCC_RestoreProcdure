@@ -1106,9 +1106,12 @@ class UserApp {
     }
 
     showSurveyScreen() {
+        console.log('🎯 DEBUG: showSurveyScreen() called');
         this.hideAllScreens();
         const surveyScreen = document.getElementById('survey-screen');
+        console.log('🎯 DEBUG: Survey screen element:', surveyScreen);
         surveyScreen.style.display = 'block';
+        console.log('🎯 DEBUG: Survey screen display set to block');
         
         // Rebuild survey form if needed
         const toggleGroup = document.querySelector('.toggle-group');
@@ -1135,6 +1138,7 @@ class UserApp {
                 <label for="disclaimer-check">I understand this procedure impacts the entire conference center and will take approximately 20 minutes.</label>
             `;
         }
+        console.log('🎯 DEBUG: showSurveyScreen() completed');
     }
 
     handleIssueSubmission(e) {
@@ -1186,6 +1190,13 @@ class UserApp {
                 console.log(`⚠️ Screen not found: ${screenId}`);
             }
         });
+        
+        // Also hide token processing overlay
+        const tokenProcessing = document.getElementById('token-processing');
+        if (tokenProcessing) {
+            tokenProcessing.style.display = 'none';
+            console.log('🔧 Hidden token-processing overlay');
+        }
         
         // Also remove any existing QR forms
         const existingForm = document.getElementById('qr-name-form');
