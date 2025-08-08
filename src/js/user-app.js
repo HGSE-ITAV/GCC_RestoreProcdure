@@ -65,12 +65,16 @@ class UserApp {
         
         try {
             // Validate token (in a real implementation, this would be server-side)
+            console.log('🔍 DEBUG: About to validate token:', token);
             const isValidToken = await this.validateAccessToken(token);
+            console.log('🔍 DEBUG: Token validation result:', isValidToken);
             
             if (isValidToken) {
                 console.log('✅ Valid access token');
                 this.accessToken = token;
+                console.log('🔍 DEBUG: About to call showNameInput()');
                 this.showNameInput();
+                console.log('🔍 DEBUG: showNameInput() completed');
             } else {
                 throw new Error('Invalid or expired access token');
             }
@@ -120,18 +124,23 @@ class UserApp {
         const userNameInput = document.getElementById('user-name');
         const userName = userNameInput.value.trim();
         
+        console.log('🔍 DEBUG: Name submission triggered for:', userName);
+        
         if (!userName) {
+            console.log('❌ DEBUG: No username provided');
             this.showNameError('Please enter your name');
             return;
         }
 
         if (userName.length < 2) {
+            console.log('❌ DEBUG: Username too short');
             this.showNameError('Name must be at least 2 characters');
             return;
         }
 
         try {
-            console.log('📤 Submitting access request for:', userName);
+            console.log('📤 DEBUG: Submitting access request for:', userName);
+            console.log('🔑 DEBUG: Using token:', this.accessToken);
             
             const requestData = {
                 userName: userName,
@@ -139,11 +148,14 @@ class UserApp {
                 source: 'user_interface'
             };
 
+            console.log('📊 DEBUG: Request data:', requestData);
             const result = await window.dataService.submitRequest(requestData);
+            console.log('✅ DEBUG: Submit result:', result);
             
             if (result.success) {
                 this.currentUser = userName;
                 this.currentRequestId = result.requestId;
+                console.log('🎯 DEBUG: Request submitted successfully, ID:', result.requestId);
                 this.showWaitingScreen();
                 this.startStatusMonitoring();
             } else {
@@ -292,12 +304,16 @@ class UserApp {
     }
 
     showNameInput() {
+        console.log('🔍 DEBUG: showNameInput() called');
         this.hideAllScreens();
         document.getElementById('name-input-screen').style.display = 'block';
+        
+        console.log('🔍 DEBUG: Name input screen should be visible');
         
         // Rebuild name form if it's empty
         const nameForm = document.getElementById('name-form');
         if (!nameForm.innerHTML.trim()) {
+            console.log('🔍 DEBUG: Rebuilding name form HTML');
             nameForm.innerHTML = `
                 <div class="input-group">
                     <label for="user-name">Your Name:</label>
