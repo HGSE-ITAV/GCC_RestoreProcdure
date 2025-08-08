@@ -277,25 +277,34 @@
             log('👥 Generating test users...');
             
             try {
-                const testNames = ['Alice Johnson', 'Bob Smith', 'Carol Davis', 'David Wilson'];
+                const testNames = ['DEBUG Alice Johnson', 'DEBUG Bob Smith', 'DEBUG Carol Davis', 'DEBUG David Wilson'];
                 
                 for (const name of testNames) {
+                    log(`🔄 Creating request for ${name}...`);
+                    
                     const result = await window.dataService.submitRequest({
                         userName: name,
-                        token: 'test_token_' + Math.random().toString(36).substr(2, 9)
+                        token: 'debug_test_token_' + Math.random().toString(36).substr(2, 9),
+                        debugMode: true,
+                        doNotAutoProcess: true
                     });
                     
                     if (result.success) {
                         log(`✅ Created request for ${name}: ${result.requestId}`);
+                        
+                        // Check the request status immediately
+                        const status = await window.dataService.getRequestStatus(result.requestId);
+                        log(`📊 Request ${result.requestId} status: ${status.status} (found: ${status.found})`);
                     } else {
                         log(`❌ Failed to create request for ${name}: ${result.error}`);
                     }
                     
                     // Small delay between requests
-                    await new Promise(resolve => setTimeout(resolve, 200));
+                    await new Promise(resolve => setTimeout(resolve, 500));
                 }
                 
                 log('🎉 Test users generated successfully');
+                log('📋 Check operator dashboard - should see DEBUG users in pending status');
             } catch (error) {
                 log('❌ Error generating test users: ' + error.message);
             }
