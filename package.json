@@ -1,0 +1,55 @@
+{
+  "name": "gcc-restore-procedure",
+  "version": "2.0.0",
+  "description": "GCC Restore Procedure with Firebase-based Frontend/Backend Architecture",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python -m http.server 8000",
+    "serve": "python -m http.server 8000",
+    "start": "python -m http.server 8000"
+  },
+  "devDependencies": {},
+  "dependencies": {
+    "firebase": "^9.23.0"
+  },
+  "keywords": [
+    "frontend",
+    "backend", 
+    "firebase",
+    "realtime-database",
+    "conference-center",
+    "restore-procedure",
+    "admin-dashboard",
+    "github-pages",
+    "progressive-web-app"
+  ],
+  "author": "GCC Restore System",
+  "license": "MIT",
+  "homepage": "https://hgse-itav.github.io/GCC_RestoreProcdure/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HGSE-ITAV/GCC_RestoreProcdure.git"
+  },
+  "architecture": {
+    "frontend": {
+      "main": "index.html",
+      "app": "user-app.js",
+      "data": "data-service.js"
+    },
+    "backend": {
+      "admin": "operator.html", 
+      "app": "admin-app.js",
+      "data": "data-service.js"
+    },
+    "database": "Firebase Realtime Database",
+    "hosting": "GitHub Pages",
+    "features": [
+      "Real-time user approval system",
+      "Admin dashboard with live updates", 
+      "QR code authentication",
+      "Cross-device synchronization",
+      "Audit logging",
+      "Offline fallback to localStorage"
+    ]
+  }
+}

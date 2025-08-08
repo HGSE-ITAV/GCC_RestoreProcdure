@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remote Debugging - GCC Restore Procedure</title>
+    <style>
+        body { font-family: 'Courier New', monospace; padding: 20px; background: #1a1a1a; color: #00ff00; }
+        .debug-section { border: 1px solid #333; margin: 10px 0; padding: 15px; background: #222; }
+        .error { color: #ff4444; }
+        .success { color: #44ff44; }
+        .info { color: #4444ff; }
+        button { background: #333; color: #fff; padding: 10px; border: 1px solid #555; margin: 5px; cursor: pointer; }
+        button:hover { background: #555; }
+        #output { background: #111; padding: 15px; max-height: 400px; overflow-y: auto; border: 1px solid #333; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Remote Environment Diagnostic</h1>
+    
+    <div class="debug-section">
+        <h2>Environment Detection</h2>
+        <p>Hostname: <span id="hostname"></span></p>
+        <p>Protocol: <span id="protocol"></span></p>
+        <p>Development Mode: <span id="devMode"></span></p>
+        <p>EmailJS Available: <span id="emailjs"></span></p>
+    </div>
+
+    <div class="debug-section">
+        <h2>Storage Tests</h2>
+        <button onclick="testLocalStorage()">Test localStorage</button>
+        <button onclick="testSessionStorage()">Test sessionStorage</button>
+        <button onclick="clearStorage()">Clear All Storage</button>
+    </div>
+
+    <div class="debug-section">
+        <h2>Backend Tests</h2>
+        <button onclick="testBackend()">Test Simple Backend</button>
+        <button onclick="testRequest()">Test Request Creation</button>
+        <button onclick="testRequestProcessing()">Test Request Processing</button>
+    </div>
+
+    <div class="debug-section">
+        <h2>Email System Tests</h2>
+        <button onclick="testEmailFunction()">Test Email Function</button>
+        <button onclick="testEmailJS()">Test EmailJS Connection</button>
+    </div>
+
+    <div class="debug-section">
+        <h2>Service Worker</h2>
+        <button onclick="checkServiceWorker()">Check Service Worker</button>
+        <button onclick="clearCache()">Clear Cache</button>
+    </div>
+
+    <div class="debug-section">
+        <h2>Debug Output</h2>
+        <div id="output"></div>
+        <button onclick="clearOutput()">Clear Output</button>
+    </div>
+
+    <script src="simple-backend.js?v=20250106"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `[${timestamp}] ${message}`;
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight;
+            console.log(message);
+        }
+
+        function clearOutput() {
+            output.innerHTML = '';
+        }
+
+        // Initialize environment detection
+        document.getElementById('hostname').textContent = window.location.hostname;
+        document.getElementById('protocol').textContent = window.location.protocol;
+        
+        const isDevelopmentMode = window.location.hostname === 'localhost' || 
+                                window.location.hostname === '127.0.0.1' || 
+                                window.location.protocol === 'file:';
+        document.getElementById('devMode').textContent = isDevelopmentMode ? 'YES' : 'NO';
+        document.getElementById('devMode').className = isDevelopmentMode ? 'success' : 'error';
+        
+        document.getElementById('emailjs').textContent = typeof emailjs !== 'undefined' ? 'YES' : 'NO';
+        document.getElementById('emailjs').className = typeof emailjs !== 'undefined' ? 'success' : 'error';
+
+        // Storage tests
+        function testLocalStorage() {
+            try {
+                const testKey = 'debug_test_' + Date.now();
+                localStorage.setItem(testKey, 'test_value');
+                const value = localStorage.getItem(testKey);
+                localStorage.removeItem(testKey);
+                log('localStorage: WORKING ✅', 'success');
+            } catch (error) {
+                log(`localStorage: FAILED ❌ - ${error.message}`, 'error');
+            }
+        }
+
+        function testSessionStorage() {
+            try {
+                const testKey = 'debug_test_' + Date.now();
+                sessionStorage.setItem(testKey, 'test_value');
+                const value = sessionStorage.getItem(testKey);
+                sessionStorage.removeItem(testKey);
+                log('sessionStorage: WORKING ✅', 'success');
+            } catch (error) {
+                log(`sessionStorage: FAILED ❌ - ${error.message}`, 'error');
+            }
+        }
+
+        function clearStorage() {
+            try {
+                localStorage.clear();
+                sessionStorage.clear();
+                log('Storage cleared ✅', 'success');
+            } catch (error) {
+                log(`Clear storage failed ❌ - ${error.message}`, 'error');
+            }
+        }
+
+        // Backend tests
+        function testBackend() {
+            try {
+                if (typeof window.githubBackend !== 'undefined') {
+                    log('Simple Backend: LOADED ✅', 'success');
+                    const data = window.githubBackend.getCurrentData();
+                    log(`Backend data: ${JSON.stringify(data, null, 2)}`, 'info');
+                } else {
+                    log('Simple Backend: NOT LOADED ❌', 'error');
+                }
+            } catch (error) {
+                log(`Backend test failed ❌ - ${error.message}`, 'error');
+            }
+        }
+
+        function testRequest() {
+            try {
+                const testRequest = {
+                    id: 'debug_test_' + Date.now(),
+                    userName: 'Debug Test User',
+                    timestamp: Date.now(),
+                    userAgent: navigator.userAgent,
+                    browserInfo: navigator.platform,
+                    status: 'pending'
+                };
+                
+                const result = window.githubBackend.submitRequest(testRequest);
+                log(`Request creation: ${result.success ? 'SUCCESS ✅' : 'FAILED ❌'}`, result.success ? 'success' : 'error');
+                if (!result.success) {
+                    log(`Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                log(`Request creation failed ❌ - ${error.message}`, 'error');
+            }
+        }
+
+        async function testRequestProcessing() {
+            try {
+                // Create a test request first
+                const testRequest = {
+                    id: 'debug_process_' + Date.now(),
+                    userName: 'Process Test User',
+                    timestamp: Date.now(),
+                    userAgent: navigator.userAgent,
+                    browserInfo: navigator.platform,
+                    status: 'pending'
+                };
+                
+                const submitResult = window.githubBackend.submitRequest(testRequest);
+                if (!submitResult.success) {
+                    throw new Error('Failed to create test request');
+                }
+                
+                // Try to process it
+                const processResult = await window.githubBackend.processRequest(testRequest.id, 'approved');
+                log(`Request processing: ${processResult.success ? 'SUCCESS ✅' : 'FAILED ❌'}`, processResult.success ? 'success' : 'error');
+                if (!processResult.success) {
+                    log(`Process error: ${processResult.error}`, 'error');
+                }
+            } catch (error) {
+                log(`Request processing failed ❌ - ${error.message}`, 'error');
+            }
+        }
+
+        // Email tests
+        function testEmailFunction() {
+            try {
+                if (isDevelopmentMode) {
+                    log('Development mode: Email function will be skipped ⏭️', 'info');
+                } else {
+                    log('Production mode: Email function will attempt to send 📧', 'info');
+                }
+                
+                // Simulate the email function call
+                if (typeof sendQRScanAlert !== 'undefined') {
+                    log('Email function: NOT AVAILABLE (defined in main script) ❌', 'error');
+                } else {
+                    log('Email function: Not accessible from debug script ℹ️', 'info');
+                }
+            } catch (error) {
+                log(`Email function test failed ❌ - ${error.message}`, 'error');
+            }
+        }
+
+        function testEmailJS() {
+            try {
+                if (typeof emailjs === 'undefined') {
+                    log('EmailJS: NOT LOADED ❌', 'error');
+                    return;
+                }
+                
+                log('EmailJS: LOADED ✅', 'success');
+                log(`EmailJS version: ${emailjs.version || 'unknown'}`, 'info');
+                
+                if (isDevelopmentMode) {
+                    log('Development mode: EmailJS calls will be skipped ⏭️', 'info');
+                } else {
+                    log('Production mode: EmailJS calls will be attempted 📧', 'info');
+                    log('Warning: Real emails may be sent! ⚠️', 'error');
+                }
+            } catch (error) {
+                log(`EmailJS test failed ❌ - ${error.message}`, 'error');
+            }
+        }
+
+        // Service Worker tests
+        function checkServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    log(`Service Worker registrations: ${registrations.length}`, 'info');
+                    registrations.forEach((reg, index) => {
+                        log(`SW ${index + 1}: ${reg.scope} - State: ${reg.active?.state || 'inactive'}`, 'info');
+                    });
+                });
+            } else {
+                log('Service Worker: NOT SUPPORTED ❌', 'error');
+            }
+        }
+
+        function clearCache() {
+            if ('caches' in window) {
+                caches.keys().then(cacheNames => {
+                    log(`Found ${cacheNames.length} caches`, 'info');
+                    return Promise.all(
+                        cacheNames.map(cacheName => {
+                            log(`Deleting cache: ${cacheName}`, 'info');
+                            return caches.delete(cacheName);
+                        })
+                    );
+                }).then(() => {
+                    log('All caches cleared ✅', 'success');
+                    log('Reload the page to see fresh content', 'info');
+                }).catch(error => {
+                    log(`Cache clear failed ❌ - ${error.message}`, 'error');
+                });
+            } else {
+                log('Cache API: NOT SUPPORTED ❌', 'error');
+            }
+        }
+
+        // Auto-run basic tests
+        window.addEventListener('load', () => {
+            log('🔧 Remote Diagnostic Tool Loaded', 'success');
+            log(`Environment: ${isDevelopmentMode ? 'Development' : 'Production'}`, isDevelopmentMode ? 'success' : 'info');
+            testLocalStorage();
+            testSessionStorage();
+            testBackend();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,505 @@
+// Frontend User Application - Handles user authentication and access requests
+// Integrates with DataService for Firebase/localStorage operations
+
+class UserApp {
+    constructor() {
+        this.currentUser = null;
+        this.currentRequestId = null;
+        this.statusSubscription = null;
+        this.waitingTimer = null;
+        this.waitingStartTime = null;
+        
+        console.log('👤 UserApp initializing...');
+        this.initializeApp();
+    }
+
+    async initializeApp() {
+        // Wait for DataService to be ready
+        if (!window.dataService) {
+            setTimeout(() => this.initializeApp(), 100);
+            return;
+        }
+
+        await this.setupEventListeners();
+        await this.checkURLParameters();
+        this.showAuthScreen();
+        
+        console.log('✅ UserApp initialized');
+    }
+
+    async setupEventListeners() {
+        // Name form submission
+        const nameForm = document.getElementById('name-form');
+        if (nameForm) {
+            nameForm.addEventListener('submit', (e) => this.handleNameSubmission(e));
+        }
+
+        // Cancel request button
+        const cancelBtn = document.getElementById('cancel-request-btn');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => this.cancelRequest());
+        }
+
+        // Issue form submission
+        const issueForm = document.getElementById('issue-form');
+        if (issueForm) {
+            issueForm.addEventListener('submit', (e) => this.handleIssueSubmission(e));
+        }
+
+        // Navigation buttons
+        this.setupNavigationButtons();
+    }
+
+    async checkURLParameters() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token') || urlParams.get('access_token');
+        
+        if (token) {
+            console.log('🔑 Access token found in URL');
+            await this.processQRCodeAccess(token);
+        }
+    }
+
+    async processQRCodeAccess(token) {
+        this.showTokenProcessing();
+        
+        try {
+            // Validate token (in a real implementation, this would be server-side)
+            const isValidToken = await this.validateAccessToken(token);
+            
+            if (isValidToken) {
+                console.log('✅ Valid access token');
+                this.accessToken = token;
+                this.showNameInput();
+            } else {
+                throw new Error('Invalid or expired access token');
+            }
+        } catch (error) {
+            console.error('❌ Token validation failed:', error);
+            this.showAuthError('Invalid QR code or expired token. Please scan a valid QR code.');
+        }
+    }
+
+    async validateAccessToken(token) {
+        // Simple token validation - in production this would be more sophisticated
+        const validTokens = [
+            'gcc_access_2024',
+            'conference_token_valid',
+            'qr_code_access_granted'
+        ];
+        
+        // Simulate API call delay
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        return validTokens.includes(token) || token.startsWith('gcc_') || token.startsWith('test_');
+    }
+
+    async handleNameSubmission(e) {
+        e.preventDefault();
+        
+        const userNameInput = document.getElementById('user-name');
+        const userName = userNameInput.value.trim();
+        
+        if (!userName) {
+            this.showNameError('Please enter your name');
+            return;
+        }
+
+        if (userName.length < 2) {
+            this.showNameError('Name must be at least 2 characters');
+            return;
+        }
+
+        try {
+            console.log('📤 Submitting access request for:', userName);
+            
+            const requestData = {
+                userName: userName,
+                token: this.accessToken || 'direct_access',
+                source: 'user_interface'
+            };
+
+            const result = await window.dataService.submitRequest(requestData);
+            
+            if (result.success) {
+                this.currentUser = userName;
+                this.currentRequestId = result.requestId;
+                this.showWaitingScreen();
+                this.startStatusMonitoring();
+            } else {
+                throw new Error(result.error || 'Failed to submit request');
+            }
+        } catch (error) {
+            console.error('❌ Error submitting request:', error);
+            this.showNameError(`Error submitting request: ${error.message}`);
+        }
+    }
+
+    startStatusMonitoring() {
+        if (!this.currentRequestId) return;
+        
+        console.log('👀 Starting status monitoring for:', this.currentRequestId);
+        
+        this.statusSubscription = window.dataService.subscribeToRequestStatus(
+            this.currentRequestId,
+            (result) => this.handleStatusUpdate(result)
+        );
+        
+        this.startWaitingTimer();
+    }
+
+    handleStatusUpdate(result) {
+        if (!result.found) {
+            console.warn('⚠️ Request not found:', this.currentRequestId);
+            return;
+        }
+
+        const status = result.status;
+        console.log('📊 Status update:', status);
+        
+        switch (status) {
+            case 'pending':
+                // Still waiting, no action needed
+                break;
+                
+            case 'approved':
+                this.showAccessGranted();
+                this.waitForProcedureAccess();
+                break;
+                
+            case 'granted':
+                this.redirectToProcedure();
+                break;
+                
+            case 'denied':
+                this.showAccessDenied();
+                break;
+                
+            default:
+                console.warn('⚠️ Unknown status:', status);
+        }
+    }
+
+    waitForProcedureAccess() {
+        // Continue monitoring for 'granted' status
+        console.log('⏳ Waiting for procedure access grant...');
+    }
+
+    redirectToProcedure() {
+        console.log('🚀 Redirecting to procedure...');
+        this.stopStatusMonitoring();
+        this.showSurveyScreen();
+    }
+
+    showAccessDenied() {
+        this.stopStatusMonitoring();
+        this.stopWaitingTimer();
+        
+        // Create access denied screen
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <div class="access-denied-container">
+                <h2><i class="fas fa-times-circle"></i> Access Denied</h2>
+                <p>Your access request has been denied by the operator.</p>
+                <p>If you believe this is an error, please contact the administrator.</p>
+                <button onclick="location.reload()" class="submit-btn">
+                    <i class="fas fa-redo"></i> Try Again
+                </button>
+            </div>
+        `;
+    }
+
+    cancelRequest() {
+        if (confirm('Are you sure you want to cancel your access request?')) {
+            this.stopStatusMonitoring();
+            this.stopWaitingTimer();
+            this.showNameInput();
+        }
+    }
+
+    stopStatusMonitoring() {
+        if (this.statusSubscription) {
+            this.statusSubscription();
+            this.statusSubscription = null;
+            console.log('⏹️ Status monitoring stopped');
+        }
+    }
+
+    startWaitingTimer() {
+        this.waitingStartTime = Date.now();
+        this.updateWaitingTimer();
+        
+        this.waitingTimer = setInterval(() => {
+            this.updateWaitingTimer();
+        }, 1000);
+    }
+
+    updateWaitingTimer() {
+        const timerElement = document.getElementById('waiting-timer');
+        if (!timerElement || !this.waitingStartTime) return;
+        
+        const elapsed = Date.now() - this.waitingStartTime;
+        const minutes = Math.floor(elapsed / 60000);
+        const seconds = Math.floor((elapsed % 60000) / 1000);
+        
+        timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    stopWaitingTimer() {
+        if (this.waitingTimer) {
+            clearInterval(this.waitingTimer);
+            this.waitingTimer = null;
+        }
+    }
+
+    // === UI STATE MANAGEMENT ===
+
+    showAuthScreen() {
+        this.hideAllScreens();
+        document.getElementById('auth-screen').style.display = 'block';
+    }
+
+    showTokenProcessing() {
+        this.hideAllScreens();
+        document.getElementById('auth-screen').style.display = 'block';
+        document.getElementById('token-processing').style.display = 'block';
+        document.getElementById('token-processing').innerHTML = `
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Validating access token...</p>
+            </div>
+        `;
+    }
+
+    showNameInput() {
+        this.hideAllScreens();
+        document.getElementById('name-input-screen').style.display = 'block';
+        
+        // Rebuild name form if it's empty
+        const nameForm = document.getElementById('name-form');
+        if (!nameForm.innerHTML.trim()) {
+            nameForm.innerHTML = `
+                <div class="input-group">
+                    <label for="user-name">Your Name:</label>
+                    <input type="text" id="user-name" placeholder="Enter your full name" required maxlength="50">
+                </div>
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-arrow-right"></i> Request Access
+                </button>
+            `;
+        }
+        
+        // Focus on name input
+        setTimeout(() => {
+            const nameInput = document.getElementById('user-name');
+            if (nameInput) nameInput.focus();
+        }, 100);
+    }
+
+    showWaitingScreen() {
+        this.hideAllScreens();
+        const waitingScreen = document.getElementById('waiting-screen');
+        waitingScreen.style.display = 'block';
+        
+        // Update user name
+        const userNameElement = document.getElementById('waiting-user-name');
+        if (userNameElement) {
+            userNameElement.textContent = `Hello, ${this.currentUser}`;
+        }
+        
+        // Rebuild waiting screen elements if needed
+        const waitingAnimation = document.querySelector('.waiting-animation');
+        if (!waitingAnimation.innerHTML.trim()) {
+            waitingAnimation.innerHTML = `
+                <div class="terminal-cursor"></div>
+                <div class="loading-dots">
+                    <span>.</span><span>.</span><span>.</span>
+                </div>
+            `;
+        }
+        
+        const waitingStatus = document.querySelector('.waiting-status');
+        if (!waitingStatus.innerHTML.trim()) {
+            waitingStatus.innerHTML = `
+                <p><i class="fas fa-hourglass-half"></i> Status: Pending approval</p>
+                <p class="time-waiting">Waiting time: <span id="waiting-timer">0:00</span></p>
+            `;
+        }
+        
+        const cancelBtn = document.getElementById('cancel-request-btn');
+        if (!cancelBtn.innerHTML.trim()) {
+            cancelBtn.innerHTML = `
+                <i class="fas fa-times"></i> Cancel Request
+            `;
+        }
+    }
+
+    showAccessGranted() {
+        this.hideAllScreens();
+        const accessScreen = document.getElementById('access-granted-screen');
+        accessScreen.style.display = 'block';
+        
+        // Update user name
+        const userNameElement = document.getElementById('access-user-name');
+        if (userNameElement) {
+            userNameElement.textContent = `Hello, ${this.currentUser}`;
+        }
+        
+        // Update approval timestamp
+        const timestampElement = document.getElementById('approval-timestamp');
+        if (timestampElement) {
+            timestampElement.textContent = new Date().toLocaleString();
+        }
+        
+        // Rebuild access screen elements if needed
+        const accessStatus = document.querySelector('.access-status');
+        if (!accessStatus.innerHTML.trim()) {
+            accessStatus.innerHTML = `
+                <div class="success-animation">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <p><i class="fas fa-shield-check"></i> Status: Access Approved</p>
+                <p class="approval-time">Approved at: <span id="approval-timestamp">${new Date().toLocaleString()}</span></p>
+            `;
+        }
+        
+        const accessInstructions = document.querySelector('.access-instructions');
+        if (!accessInstructions.innerHTML.trim()) {
+            accessInstructions.innerHTML = `
+                <p><i class="fas fa-info-circle"></i> Please wait for the operator to grant you access to the restoration procedure.</p>
+                <p>You will automatically be redirected when access is granted.</p>
+            `;
+        }
+        
+        const accessWaiting = document.querySelector('.access-waiting');
+        if (!accessWaiting.innerHTML.trim()) {
+            accessWaiting.innerHTML = `
+                <div class="loading-dots">
+                    <span>.</span><span>.</span><span>.</span>
+                </div>
+                <p>Waiting for procedure access...</p>
+            `;
+        }
+    }
+
+    showSurveyScreen() {
+        this.hideAllScreens();
+        const surveyScreen = document.getElementById('survey-screen');
+        surveyScreen.style.display = 'block';
+        
+        // Rebuild survey form if needed
+        const toggleGroup = document.querySelector('.toggle-group');
+        if (!toggleGroup.innerHTML.trim()) {
+            toggleGroup.innerHTML = `
+                <input type="radio" id="issue-video" name="issue" value="video" required>
+                <label for="issue-video">Video Issues (no video, distorted video)</label>
+
+                <input type="radio" id="issue-audio" name="issue" value="audio">
+                <label for="issue-audio">Program Audio Issues (no audio, garbled audio)</label>
+
+                <input type="radio" id="issue-touch" name="issue" value="touch">
+                <label for="issue-touch">Touch Panel/Control Issues (sluggish controls, no control, flashing controls, projectors won't turn on)</label>
+
+                <input type="radio" id="issue-mic" name="issue" value="mic">
+                <label for="issue-mic">Microphone Issues (wireless microphones have a flashing light and won't connect, no audio from podium mic, garbled/distorted audio)</label>
+            `;
+        }
+        
+        const disclaimer = document.querySelector('.form-group.disclaimer');
+        if (!disclaimer.innerHTML.trim()) {
+            disclaimer.innerHTML = `
+                <input type="checkbox" id="disclaimer-check" required>
+                <label for="disclaimer-check">I understand this procedure impacts the entire conference center and will take approximately 20 minutes.</label>
+            `;
+        }
+    }
+
+    handleIssueSubmission(e) {
+        e.preventDefault();
+        
+        const selectedIssue = document.querySelector('input[name="issue"]:checked');
+        const disclaimerCheck = document.getElementById('disclaimer-check');
+        
+        if (!selectedIssue) {
+            alert('Please select an issue type');
+            return;
+        }
+        
+        if (!disclaimerCheck.checked) {
+            alert('Please acknowledge the disclaimer');
+            return;
+        }
+        
+        console.log('🎯 Issue selected:', selectedIssue.value);
+        
+        // Store the selected issue and proceed to step screen
+        this.selectedIssue = selectedIssue.value;
+        this.showStepScreen();
+    }
+
+    showStepScreen() {
+        this.hideAllScreens();
+        document.getElementById('step-screen').style.display = 'block';
+        
+        // Initialize the step procedure (this would load from your existing script.js logic)
+        if (window.initializeStepProcedure) {
+            window.initializeStepProcedure(this.selectedIssue);
+        }
+    }
+
+    hideAllScreens() {
+        const screens = [
+            'auth-screen', 'name-input-screen', 'waiting-screen', 
+            'access-granted-screen', 'survey-screen', 'step-screen', 'summary-screen'
+        ];
+        
+        screens.forEach(screenId => {
+            const screen = document.getElementById(screenId);
+            if (screen) screen.style.display = 'none';
+        });
+    }
+
+    showAuthError(message) {
+        const errorElement = document.getElementById('auth-error');
+        if (errorElement) {
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+        
+        this.showAuthScreen();
+    }
+
+    showNameError(message) {
+        const errorElement = document.getElementById('name-error');
+        if (errorElement) {
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+    }
+
+    setupNavigationButtons() {
+        // This would integrate with your existing navigation logic
+        // Left as placeholder for now
+    }
+
+    // === UTILITY METHODS ===
+
+    getAppStatus() {
+        return {
+            currentUser: this.currentUser,
+            currentRequestId: this.currentRequestId,
+            hasStatusSubscription: !!this.statusSubscription,
+            dataService: window.dataService ? window.dataService.getServiceStatus() : null
+        };
+    }
+}
+
+// Initialize the app when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    window.userApp = new UserApp();
+});
+
+// Export for testing/debugging
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = UserApp;
+}
