@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GCC Workflow Demo - Complete Approval Process</title>
+    <link rel="stylesheet" href="src/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .demo-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+        }
+        
+        .workflow-step {
+            background: rgba(46, 204, 113, 0.1);
+            border: 1px solid var(--primary-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .workflow-step h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+        
+        .demo-link {
+            display: inline-block;
+            background: linear-gradient(45deg, var(--primary-color), #3498db);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+            font-family: 'Source Code Pro', monospace;
+            transition: all 0.3s ease;
+        }
+        
+        .demo-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+        }
+        
+        .operator-link {
+            background: linear-gradient(45deg, #e67e22, #f39c12);
+        }
+        
+        .qr-demo {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid #3498db;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .workflow-diagram {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .flow-step {
+            background: rgba(46, 204, 113, 0.2);
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            flex: 1;
+            min-width: 150px;
+            position: relative;
+        }
+        
+        .flow-step::after {
+            content: '→';
+            position: absolute;
+            right: -25px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .flow-step:last-child::after {
+            display: none;
+        }
+        
+        .instructions {
+            background: rgba(243, 156, 18, 0.1);
+            border: 1px solid #f39c12;
+            border-radius: 8px;
+            padding: 1.5rem;
+            color: #f39c12;
+            margin-bottom: 2rem;
+        }
+        
+        .status-indicators {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .status-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #34495e;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .status-card.user {
+            border-color: #2ecc71;
+            color: #2ecc71;
+        }
+        
+        .status-card.operator {
+            border-color: #f39c12;
+            color: #f39c12;
+        }
+        
+        @media (max-width: 768px) {
+            .workflow-diagram {
+                flex-direction: column;
+            }
+            
+            .flow-step::after {
+                content: '↓';
+                right: 50%;
+                bottom: -25px;
+                top: auto;
+                transform: translateX(50%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-cogs"></i> GCC Workflow Demo</h1>
+        <p class="purpose">Complete User-Operator Approval Workflow Demonstration</p>
+    </header>
+
+    <div class="demo-container">
+        <div class="instructions">
+            <h2><i class="fas fa-info-circle"></i> How to Test the Complete Workflow</h2>
+            <p>This demo shows the complete user approval process from QR scan to operator approval. Follow these steps to see the full workflow in action:</p>
+        </div>
+
+        <div class="workflow-diagram">
+            <div class="flow-step">
+                <i class="fas fa-qrcode"></i>
+                <h4>1. QR Scan</h4>
+                <p>User scans QR code</p>
+            </div>
+            <div class="flow-step">
+                <i class="fas fa-map-marker-alt"></i>
+                <h4>2. Location</h4>
+                <p>Permission request</p>
+            </div>
+            <div class="flow-step">
+                <i class="fas fa-user"></i>
+                <h4>3. Identity</h4>
+                <p>Name input form</p>
+            </div>
+            <div class="flow-step">
+                <i class="fas fa-clock"></i>
+                <h4>4. Wait</h4>
+                <p>Approval pending</p>
+            </div>
+            <div class="flow-step">
+                <i class="fas fa-shield-check"></i>
+                <h4>5. Approved</h4>
+                <p>Access granted</p>
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <h3><i class="fas fa-mobile-alt"></i> Step 1: User Experience (Frontend)</h3>
+            <p>Simulate a user scanning a QR code and going through the approval process.</p>
+            
+            <div class="qr-demo">
+                <h4>🔗 Test QR Code Links</h4>
+                <p>These links simulate scanning different QR codes:</p>
+                <a href="index.html?token=workflow_demo_2025&test=true" class="demo-link" target="_blank">
+                    <i class="fas fa-qrcode"></i> Demo QR Code #1
+                </a>
+                <a href="index.html?token=conference_access_live&test=true" class="demo-link" target="_blank">
+                    <i class="fas fa-qrcode"></i> Demo QR Code #2
+                </a>
+                <a href="index.html?token=gcc_restore_access_2025&test=true" class="demo-link" target="_blank">
+                    <i class="fas fa-qrcode"></i> Demo QR Code #3
+                </a>
+            </div>
+
+            <p><strong>What happens:</strong></p>
+            <ul>
+                <li>✅ Token validation</li>
+                <li>📍 Location permission request</li>
+                <li>👤 User name input form</li>
+                <li>📤 Request submission with full details</li>
+                <li>⏳ Real-time waiting screen with animations</li>
+                <li>🎉 Success screen when approved</li>
+            </ul>
+        </div>
+
+        <div class="workflow-step">
+            <h3><i class="fas fa-desktop"></i> Step 2: Operator Dashboard (Backend)</h3>
+            <p>Operators use this dashboard to approve or deny user requests in real-time.</p>
+            
+            <a href="operator.html" class="demo-link operator-link" target="_blank">
+                <i class="fas fa-shield-alt"></i> Open Operator Dashboard
+            </a>
+            
+            <div class="qr-demo">
+                <h4>🔐 Operator Login Codes</h4>
+                <p>Use any of these codes to access the operator dashboard:</p>
+                <code>gcc2024</code> • <code>operator123</code> • <code>admin2024</code> • <code>restore_admin</code>
+            </div>
+
+            <p><strong>Operator features:</strong></p>
+            <ul>
+                <li>🔔 Real-time notifications for new requests</li>
+                <li>📊 Detailed request information (IP, location, device)</li>
+                <li>✅ Approve/Deny actions with instant user feedback</li>
+                <li>🔄 Two-stage approval (approve → grant access)</li>
+                <li>📈 Request count badges and status tracking</li>
+                <li>🎵 Audio notifications for new requests</li>
+            </ul>
+        </div>
+
+        <div class="workflow-step">
+            <h3><i class="fas fa-route"></i> Step 3: Complete Workflow Test</h3>
+            <p>To see the full end-to-end process:</p>
+            
+            <ol>
+                <li><strong>Open the Operator Dashboard</strong> in one tab/window</li>
+                <li><strong>Login</strong> with operator code (e.g., <code>gcc2024</code>)</li>
+                <li><strong>Click a Demo QR Link</strong> in another tab to simulate user scan</li>
+                <li><strong>Watch real-time updates</strong> as the user progresses</li>
+                <li><strong>Approve the request</strong> from the operator dashboard</li>
+                <li><strong>Grant procedure access</strong> to complete the workflow</li>
+                <li><strong>See the user</strong> automatically progress to the restoration procedure</li>
+            </ol>
+        </div>
+
+        <div class="status-indicators">
+            <div class="status-card user">
+                <h4><i class="fas fa-user"></i> User Side</h4>
+                <p>• QR code scanning<br>
+                • Location permission<br>
+                • Name input<br>
+                • Real-time status updates<br>
+                • Success animations</p>
+            </div>
+            <div class="status-card operator">
+                <h4><i class="fas fa-shield-alt"></i> Operator Side</h4>
+                <p>• Live request monitoring<br>
+                • Detailed user information<br>
+                • Instant approve/deny<br>
+                • Audio notifications<br>
+                • Audit logging</p>
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <h3><i class="fas fa-database"></i> Technical Details</h3>
+            <p><strong>Data Collection:</strong></p>
+            <ul>
+                <li>🌐 IP address and geolocation</li>
+                <li>📱 Device and browser information</li>
+                <li>📡 Network connection details</li>
+                <li>🕐 Timestamps and audit trail</li>
+                <li>🔑 Token validation and security</li>
+            </ul>
+            
+            <p><strong>Real-time Communication:</strong></p>
+            <ul>
+                <li>🔥 Firebase for production (live updates)</li>
+                <li>💾 localStorage for development/testing</li>
+                <li>🔄 Automatic status synchronization</li>
+                <li>⚡ Instant operator notifications</li>
+            </ul>
+        </div>
+
+        <div class="workflow-step">
+            <h3><i class="fas fa-rocket"></i> Getting Started</h3>
+            <p>Ready to test? Follow this simple process:</p>
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-top: 1.5rem;">
+                <a href="operator.html" class="demo-link operator-link" target="_blank">
+                    <i class="fas fa-shield-alt"></i> 1. Open Operator Dashboard
+                </a>
+                <a href="index.html?token=workflow_demo_2025&test=true" class="demo-link" target="_blank">
+                    <i class="fas fa-qrcode"></i> 2. Test User Flow
+                </a>
+            </div>
+            
+            <p style="text-align: center; margin-top: 1rem; color: #f39c12;">
+                <i class="fas fa-lightbulb"></i> 
+                <strong>Tip:</strong> Open both links to see real-time communication between user and operator!
+            </p>
+        </div>
+    </div>
+
+    <footer>
+        <p><i class="fas fa-code"></i> Complete implementation of user-operator approval workflow with real-time updates, location tracking, and comprehensive audit logging.</p>
+    </footer>
+</body>
+</html>

@@ -155,14 +155,218 @@ class AdminApp {
         if (requests.length === 0) {
             requestsList.innerHTML = '';
             noRequestsElement.style.display = 'block';
+            this.updateRequestCountBadge(0);
             return;
         }
 
         noRequestsElement.style.display = 'none';
+        this.updateRequestCountBadge(requests.length);
+        
+        // Check for new requests and show notifications
+        this.checkForNewRequests(requests);
         
         requestsList.innerHTML = requests.map(request => {
             return this.createRequestCard(request);
         }).join('');
+    }
+
+    checkForNewRequests(currentRequests) {
+        if (!this.lastKnownRequests) {
+            this.lastKnownRequests = currentRequests;
+            return;
+        }
+        
+        // Find truly new requests (not just updates)
+        const newRequests = currentRequests.filter(current => 
+            !this.lastKnownRequests.some(last => last.id === current.id)
+        );
+        
+        // Show notification for new requests
+        newRequests.forEach(request => {
+            this.showNewRequestNotification(request);
+            this.playNotificationSound();
+        });
+        
+        this.lastKnownRequests = currentRequests;
+    }
+
+    showNewRequestNotification(request) {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = 'new-request-notification';
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas fa-bell"></i>
+                <strong>New Access Request</strong>
+                <p>${request.userName} is requesting access</p>
+                <div class="notification-actions">
+                    <button onclick="adminApp.approveRequest('${request.id}')" class="mini-approve-btn">
+                        <i class="fas fa-check"></i> Approve
+                    </button>
+                    <button onclick="adminApp.denyRequest('${request.id}')" class="mini-deny-btn">
+                        <i class="fas fa-times"></i> Deny
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Add styles if not already added
+        if (!document.getElementById('notification-styles')) {
+            const styles = document.createElement('style');
+            styles.id = 'notification-styles';
+            styles.textContent = `
+                .new-request-notification {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(45deg, #2ecc71, #27ae60);
+                    color: white;
+                    padding: 1rem;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                    z-index: 10000;
+                    max-width: 320px;
+                    animation: slideInRight 0.5s ease-out;
+                    font-family: 'Source Code Pro', monospace;
+                }
+                
+                .notification-content strong {
+                    display: block;
+                    margin-bottom: 0.5rem;
+                    font-size: 1.1rem;
+                }
+                
+                .notification-actions {
+                    margin-top: 1rem;
+                    display: flex;
+                    gap: 0.5rem;
+                }
+                
+                .mini-approve-btn, .mini-deny-btn {
+                    padding: 4px 12px;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 0.8rem;
+                    font-family: 'Source Code Pro', monospace;
+                    transition: all 0.2s ease;
+                }
+                
+                .mini-approve-btn {
+                    background: rgba(255,255,255,0.2);
+                    color: white;
+                }
+                
+                .mini-deny-btn {
+                    background: rgba(231,76,60,0.8);
+                    color: white;
+                }
+                
+                .mini-approve-btn:hover {
+                    background: rgba(255,255,255,0.3);
+                }
+                
+                .mini-deny-btn:hover {
+                    background: rgba(231,76,60,1);
+                }
+                
+                .request-count-badge {
+                    position: absolute;
+                    top: -8px;
+                    right: -8px;
+                    background: #e74c3c;
+                    color: white;
+                    border-radius: 50%;
+                    width: 24px;
+                    height: 24px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 0.8rem;
+                    font-weight: bold;
+                    animation: pulse 2s infinite;
+                }
+                
+                @keyframes slideInRight {
+                    from {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+                
+                @keyframes slideOutRight {
+                    from {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                    to {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(styles);
+        }
+        
+        // Add to page
+        document.body.appendChild(notification);
+        
+        // Auto-remove after 10 seconds
+        setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.5s ease-out';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 500);
+        }, 10000);
+    }
+
+    updateRequestCountBadge(count) {
+        const header = document.querySelector('.dashboard-header h2');
+        if (!header) return;
+        
+        // Remove existing badge
+        const existingBadge = header.querySelector('.request-count-badge');
+        if (existingBadge) {
+            existingBadge.remove();
+        }
+        
+        // Add new badge if there are pending requests
+        if (count > 0) {
+            const badge = document.createElement('span');
+            badge.className = 'request-count-badge';
+            badge.textContent = count;
+            header.style.position = 'relative';
+            header.appendChild(badge);
+        }
+    }
+
+    playNotificationSound() {
+        // Create a simple notification sound using Web Audio API
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        } catch (error) {
+            console.log('Audio notification not available');
+        }
     }
 
     createRequestCard(request) {

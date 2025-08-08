@@ -65,19 +65,16 @@ class UserApp {
         
         try {
             // Validate token (in a real implementation, this would be server-side)
-            console.log('🔍 DEBUG: About to validate token:', token);
+            console.log('🔍 Validating access token:', token);
             const isValidToken = await this.validateAccessToken(token);
-            console.log('🔍 DEBUG: Token validation result:', isValidToken);
             
             if (isValidToken) {
-                console.log('✅ Valid access token');
+                console.log('✅ Valid access token - requesting location permission');
                 this.accessToken = token;
-                console.log('🔍 DEBUG: About to call showNameInput()');
                 
-                // Force show name input immediately - no delays
-                this.forceShowNameForm();
+                // Show location permission request screen
+                this.showLocationPermissionScreen();
                 
-                console.log('🔍 DEBUG: showNameInput() completed');
             } else {
                 throw new Error('Invalid or expired access token');
             }
@@ -87,148 +84,147 @@ class UserApp {
         }
     }
     
-    forceShowNameForm() {
-        console.log('🚀 FORCE SHOWING NAME FORM');
+    showLocationPermissionScreen() {
+        this.hideAllScreens();
         
-        // Remove all existing content
-        const app = document.getElementById('app');
-        if (!app) {
-            console.error('❌ App container not found');
-            return;
+        // Get or create location permission screen
+        let permissionScreen = document.getElementById('location-permission-screen');
+        if (!permissionScreen) {
+            permissionScreen = document.createElement('div');
+            permissionScreen.id = 'location-permission-screen';
+            document.getElementById('app').appendChild(permissionScreen);
         }
         
-        // Create the form directly in the app container
-        app.innerHTML = `
-            <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
-                        background: #0D1117; display: flex; justify-content: center; align-items: center; 
-                        z-index: 9999; padding: 2rem;">
-                <div style="background: rgba(0, 0, 0, 0.9); border: 2px solid #2ecc71; border-radius: 10px; 
-                           padding: 3rem; max-width: 500px; width: 100%; text-align: center; 
-                           box-shadow: 0 0 30px rgba(46, 204, 113, 0.3);">
-                    <h2 style="color: #2ecc71; margin-bottom: 1rem; font-size: 1.8rem; font-family: 'Source Code Pro', monospace;">
-                        <i class="fas fa-user"></i> Identify Yourself
-                    </h2>
-                    <p style="color: #33FF33; margin-bottom: 2rem; font-family: 'Source Code Pro', monospace;">
-                        Please enter your name to request access to the system.
-                    </p>
-                    
-                    <form id="force-name-form">
-                        <div style="margin: 2rem 0;">
-                            <label for="force-user-name" style="display: block; color: #33FF33; margin-bottom: 0.5rem; 
-                                                                 font-weight: bold; font-family: 'Source Code Pro', monospace;">
-                                Your Name:
-                            </label>
-                            <input type="text" id="force-user-name" placeholder="Enter your full name" required maxlength="50" 
-                                   style="width: 80%; padding: 12px 15px; background: rgba(0, 0, 0, 0.8); 
-                                          border: 2px solid #2ecc71; color: #33FF33; border-radius: 5px; font-size: 1rem;
-                                          font-family: 'Source Code Pro', monospace; text-align: center;">
-                        </div>
-                        <button type="submit" 
-                                style="background: linear-gradient(45deg, #2ecc71, #3498db); color: white; border: none; 
-                                       padding: 12px 24px; border-radius: 5px; cursor: pointer; font-size: 1rem;
-                                       font-family: 'Source Code Pro', monospace; margin-top: 1rem;">
-                            <i class="fas fa-arrow-right"></i> Request Access
-                        </button>
-                    </form>
-
-                    <div id="force-name-error" style="display: none; color: #e74c3c; margin-top: 1rem; 
-                                                    font-family: 'Source Code Pro', monospace;"></div>
+        permissionScreen.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #0D1117;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 2rem;
+        `;
+        
+        permissionScreen.innerHTML = `
+            <div style="background: rgba(0, 0, 0, 0.9); border: 2px solid #f39c12; border-radius: 10px; 
+                       padding: 3rem; max-width: 500px; width: 100%; text-align: center; 
+                       box-shadow: 0 0 30px rgba(243, 156, 18, 0.3);">
+                <h2 style="color: #f39c12; margin-bottom: 1rem; font-size: 1.8rem; font-family: 'Source Code Pro', monospace;">
+                    <i class="fas fa-map-marker-alt"></i> Location Access Required
+                </h2>
+                <p style="color: #33FF33; margin-bottom: 1.5rem; font-family: 'Source Code Pro', monospace; line-height: 1.6;">
+                    This application requires access to your current location for security and auditing purposes.
+                </p>
+                <p style="color: #33FF33; margin-bottom: 2rem; font-family: 'Source Code Pro', monospace; font-size: 0.9rem;">
+                    Your location will be used to verify you are physically present at the conference center.
+                </p>
+                
+                <div style="margin: 2rem 0;">
+                    <button id="grant-location-btn" type="button" 
+                            style="background: linear-gradient(45deg, #27ae60, #2ecc71); color: white; border: none; 
+                                   padding: 12px 24px; border-radius: 5px; cursor: pointer; font-size: 1rem;
+                                   font-family: 'Source Code Pro', monospace; margin-right: 1rem;">
+                        <i class="fas fa-check"></i> Grant Access
+                    </button>
+                    <button id="deny-location-btn" type="button" 
+                            style="background: linear-gradient(45deg, #c0392b, #e74c3c); color: white; border: none; 
+                                   padding: 12px 24px; border-radius: 5px; cursor: pointer; font-size: 1rem;
+                                   font-family: 'Source Code Pro', monospace;">
+                        <i class="fas fa-times"></i> Deny
+                    </button>
                 </div>
+
+                <div id="location-error" style="display: none; color: #e74c3c; margin-top: 1rem; 
+                                                font-family: 'Source Code Pro', monospace;"></div>
             </div>
         `;
         
-        console.log('✅ FORM HTML INJECTED DIRECTLY');
+        // Attach event listeners
+        const grantBtn = document.getElementById('grant-location-btn');
+        const denyBtn = document.getElementById('deny-location-btn');
         
-        // Attach event listener
-        const forceForm = document.getElementById('force-name-form');
-        if (forceForm) {
-            forceForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const nameInput = document.getElementById('force-user-name');
-                const userName = nameInput.value.trim();
-                
-                console.log('📤 FORCE FORM SUBMITTED:', userName);
-                
-                if (!userName || userName.length < 2) {
-                    const errorEl = document.getElementById('force-name-error');
-                    errorEl.style.display = 'block';
-                    errorEl.textContent = 'Please enter a valid name (at least 2 characters)';
-                    return;
-                }
-                
-                // Process the submission
-                this.handleForceNameSubmission(userName);
-            });
-            
-            console.log('✅ FORCE FORM EVENT LISTENER ATTACHED');
-        }
+        grantBtn.addEventListener('click', () => this.handleLocationPermission(true));
+        denyBtn.addEventListener('click', () => this.handleLocationPermission(false));
         
-        // Focus on input
-        setTimeout(() => {
-            const nameInput = document.getElementById('force-user-name');
-            if (nameInput) {
-                nameInput.focus();
-                console.log('✅ FORCE FORM INPUT FOCUSED');
-            }
-        }, 100);
+        console.log('� Location permission screen displayed');
     }
-    
-    async handleForceNameSubmission(userName) {
-        console.log('🚀 PROCESSING FORCE NAME SUBMISSION:', userName);
-        
-        try {
-            const requestData = {
-                userName: userName,
-                token: this.accessToken || 'force_token',
-                source: 'force_form',
-                qrToken: this.accessToken || null
-            };
 
-            console.log('📊 DEBUG: Force request data:', requestData);
-            const result = await window.dataService.submitRequest(requestData);
-            console.log('✅ DEBUG: Force submit result:', result);
+    async handleLocationPermission(granted) {
+        const errorEl = document.getElementById('location-error');
+        const grantBtn = document.getElementById('grant-location-btn');
+        const denyBtn = document.getElementById('deny-location-btn');
+        
+        if (granted) {
+            // Show loading state
+            grantBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Requesting Location...';
+            grantBtn.disabled = true;
+            denyBtn.disabled = true;
             
-            if (result.success) {
-                this.currentUser = userName;
-                this.currentRequestId = result.requestId;
-                console.log('🎯 DEBUG: Force request submitted successfully, ID:', result.requestId);
+            try {
+                // Test location access
+                console.log('📍 Testing location access...');
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 300000
+                    });
+                });
                 
-                // Show success message
-                const app = document.getElementById('app');
-                app.innerHTML = `
-                    <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
-                                background: #0D1117; display: flex; justify-content: center; align-items: center; 
-                                z-index: 9999; padding: 2rem;">
-                        <div style="background: rgba(0, 0, 0, 0.9); border: 2px solid #2ecc71; border-radius: 10px; 
-                                   padding: 3rem; max-width: 500px; width: 100%; text-align: center; 
-                                   box-shadow: 0 0 30px rgba(46, 204, 113, 0.3);">
-                            <h2 style="color: #2ecc71; margin-bottom: 1rem; font-size: 1.8rem; font-family: 'Source Code Pro', monospace;">
-                                <i class="fas fa-check-circle"></i> Request Submitted!
-                            </h2>
-                            <p style="color: #33FF33; margin-bottom: 1rem; font-family: 'Source Code Pro', monospace;">
-                                Hello, ${userName}
-                            </p>
-                            <p style="color: #33FF33; margin-bottom: 2rem; font-family: 'Source Code Pro', monospace;">
-                                Your access request has been submitted successfully.<br>
-                                Request ID: ${result.requestId}
-                            </p>
-                            <div style="color: #f39c12; font-family: 'Source Code Pro', monospace;">
-                                <i class="fas fa-clock"></i> Waiting for operator approval...
-                            </div>
-                        </div>
-                    </div>
-                `;
+                console.log('✅ Location access granted');
+                this.locationGranted = true;
+                this.showNameInput();
                 
-            } else {
-                throw new Error(result.error || 'Failed to submit request');
-            }
-        } catch (error) {
-            console.error('❌ Error in force submission:', error);
-            const errorEl = document.getElementById('force-name-error');
-            if (errorEl) {
+            } catch (error) {
+                console.warn('⚠️ Location access failed:', error);
                 errorEl.style.display = 'block';
-                errorEl.textContent = `Error: ${error.message}`;
+                errorEl.textContent = 'Location access denied. You can still proceed but some features may be limited.';
+                
+                // Reset buttons
+                grantBtn.innerHTML = '<i class="fas fa-check"></i> Grant Access';
+                grantBtn.disabled = false;
+                denyBtn.disabled = false;
+                
+                // Allow user to continue anyway after 3 seconds
+                setTimeout(() => {
+                    const proceedBtn = document.createElement('button');
+                    proceedBtn.innerHTML = '<i class="fas fa-arrow-right"></i> Continue Without Location';
+                    proceedBtn.style.cssText = `
+                        background: linear-gradient(45deg, #f39c12, #e67e22); 
+                        color: white; border: none; padding: 12px 24px; border-radius: 5px; 
+                        cursor: pointer; font-size: 1rem; font-family: 'Source Code Pro', monospace;
+                        margin-top: 1rem; width: 100%;
+                    `;
+                    proceedBtn.addEventListener('click', () => {
+                        this.locationGranted = false;
+                        this.showNameInput();
+                    });
+                    errorEl.appendChild(proceedBtn);
+                }, 3000);
             }
+        } else {
+            // User denied location access
+            console.log('❌ User denied location access');
+            this.locationGranted = false;
+            
+            errorEl.style.display = 'block';
+            errorEl.innerHTML = `
+                <p>Location access denied. You can still proceed but location will not be tracked.</p>
+                <button id="continue-without-location" type="button"
+                        style="background: linear-gradient(45deg, #f39c12, #e67e22); color: white; border: none; 
+                               padding: 12px 24px; border-radius: 5px; cursor: pointer; font-size: 1rem;
+                               font-family: 'Source Code Pro', monospace; margin-top: 1rem;">
+                    <i class="fas fa-arrow-right"></i> Continue Without Location
+                </button>
+            `;
+            
+            document.getElementById('continue-without-location').addEventListener('click', () => {
+                this.showNameInput();
+            });
         }
     }
 
@@ -650,30 +646,150 @@ class UserApp {
             userNameElement.textContent = `Hello, ${this.currentUser}`;
         }
         
-        // Rebuild waiting screen elements if needed
+        // Enhanced waiting animation with better visual feedback
         const waitingAnimation = document.querySelector('.waiting-animation');
-        if (!waitingAnimation.innerHTML.trim()) {
+        if (waitingAnimation) {
             waitingAnimation.innerHTML = `
-                <div class="terminal-cursor"></div>
-                <div class="loading-dots">
-                    <span>.</span><span>.</span><span>.</span>
+                <div class="approval-spinner">
+                    <div class="spinner-circle"></div>
+                    <div class="spinner-text">
+                        <i class="fas fa-hourglass-half"></i>
+                        <span>Processing Request...</span>
+                    </div>
+                </div>
+                <div class="status-indicators">
+                    <div class="status-step completed">
+                        <i class="fas fa-check"></i> Request Submitted
+                    </div>
+                    <div class="status-step pending">
+                        <i class="fas fa-clock"></i> Awaiting Operator Review
+                    </div>
+                    <div class="status-step waiting">
+                        <i class="fas fa-key"></i> Access Decision Pending
+                    </div>
                 </div>
             `;
         }
         
         const waitingStatus = document.querySelector('.waiting-status');
-        if (!waitingStatus.innerHTML.trim()) {
+        if (waitingStatus) {
             waitingStatus.innerHTML = `
-                <p><i class="fas fa-hourglass-half"></i> Status: Pending approval</p>
-                <p class="time-waiting">Waiting time: <span id="waiting-timer">0:00</span></p>
+                <div class="status-info">
+                    <p><i class="fas fa-info-circle"></i> Your request has been sent to the operator</p>
+                    <p><i class="fas fa-clock"></i> Waiting time: <span id="waiting-timer">0:00</span></p>
+                    <p><i class="fas fa-id-badge"></i> Request ID: ${this.currentRequestId}</p>
+                </div>
+                <div class="waiting-instructions">
+                    <p>Please wait while the operator reviews your access request.</p>
+                    <p>You will be automatically notified when a decision is made.</p>
+                </div>
             `;
         }
         
         const cancelBtn = document.getElementById('cancel-request-btn');
-        if (!cancelBtn.innerHTML.trim()) {
+        if (cancelBtn && !cancelBtn.innerHTML.trim()) {
             cancelBtn.innerHTML = `
                 <i class="fas fa-times"></i> Cancel Request
             `;
+        }
+        
+        // Add dynamic styles for the enhanced animation
+        if (!document.getElementById('waiting-animation-styles')) {
+            const styles = document.createElement('style');
+            styles.id = 'waiting-animation-styles';
+            styles.textContent = `
+                .approval-spinner {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    margin: 2rem 0;
+                }
+                
+                .spinner-circle {
+                    width: 60px;
+                    height: 60px;
+                    border: 4px solid rgba(46, 204, 113, 0.3);
+                    border-top: 4px solid #2ecc71;
+                    border-radius: 50%;
+                    animation: spin 2s linear infinite;
+                    margin-bottom: 1rem;
+                }
+                
+                .spinner-text {
+                    color: #2ecc71;
+                    font-family: 'Source Code Pro', monospace;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                }
+                
+                .status-indicators {
+                    margin: 2rem 0;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1rem;
+                    max-width: 400px;
+                    margin-left: auto;
+                    margin-right: auto;
+                }
+                
+                .status-step {
+                    padding: 0.8rem 1.2rem;
+                    border-radius: 8px;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.8rem;
+                    font-family: 'Source Code Pro', monospace;
+                    transition: all 0.3s ease;
+                }
+                
+                .status-step.completed {
+                    background: rgba(46, 204, 113, 0.2);
+                    border: 1px solid #2ecc71;
+                    color: #2ecc71;
+                }
+                
+                .status-step.pending {
+                    background: rgba(243, 156, 18, 0.2);
+                    border: 1px solid #f39c12;
+                    color: #f39c12;
+                    animation: pulse 2s infinite;
+                }
+                
+                .status-step.waiting {
+                    background: rgba(52, 73, 94, 0.3);
+                    border: 1px solid #34495e;
+                    color: #7f8c8d;
+                }
+                
+                .status-info {
+                    background: rgba(46, 204, 113, 0.1);
+                    border: 1px solid #2ecc71;
+                    border-radius: 8px;
+                    padding: 1rem;
+                    margin-bottom: 1rem;
+                }
+                
+                .waiting-instructions {
+                    background: rgba(52, 152, 219, 0.1);
+                    border: 1px solid #3498db;
+                    border-radius: 8px;
+                    padding: 1rem;
+                    color: #3498db;
+                    font-style: italic;
+                }
+                
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                
+                @keyframes pulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.5; }
+                }
+            `;
+            document.head.appendChild(styles);
         }
     }
 
@@ -694,34 +810,171 @@ class UserApp {
             timestampElement.textContent = new Date().toLocaleString();
         }
         
-        // Rebuild access screen elements if needed
+        // Enhanced success screen with celebration animation
         const accessStatus = document.querySelector('.access-status');
-        if (!accessStatus.innerHTML.trim()) {
+        if (accessStatus) {
             accessStatus.innerHTML = `
-                <div class="success-animation">
-                    <i class="fas fa-check-circle"></i>
+                <div class="success-celebration">
+                    <div class="checkmark-container">
+                        <div class="checkmark-circle">
+                            <div class="checkmark"></div>
+                        </div>
+                    </div>
+                    <div class="success-message">
+                        <h3>🎉 Access Approved!</h3>
+                        <p>Your request has been approved by the operator</p>
+                    </div>
                 </div>
-                <p><i class="fas fa-shield-check"></i> Status: Access Approved</p>
-                <p class="approval-time">Approved at: <span id="approval-timestamp">${new Date().toLocaleString()}</span></p>
+                <div class="approval-details">
+                    <p><i class="fas fa-shield-check"></i> Status: <span class="status-approved">APPROVED</span></p>
+                    <p><i class="fas fa-clock"></i> Approved at: <span id="approval-timestamp">${new Date().toLocaleString()}</span></p>
+                    <p><i class="fas fa-id-badge"></i> Request ID: ${this.currentRequestId}</p>
+                </div>
             `;
         }
         
         const accessInstructions = document.querySelector('.access-instructions');
-        if (!accessInstructions.innerHTML.trim()) {
+        if (accessInstructions) {
             accessInstructions.innerHTML = `
-                <p><i class="fas fa-info-circle"></i> Please wait for the operator to grant you access to the restoration procedure.</p>
-                <p>You will automatically be redirected when access is granted.</p>
+                <div class="next-steps">
+                    <h4><i class="fas fa-info-circle"></i> Next Steps</h4>
+                    <p>Please wait for the operator to grant you access to the restoration procedure.</p>
+                    <p>You will automatically proceed when full access is granted.</p>
+                </div>
             `;
         }
         
         const accessWaiting = document.querySelector('.access-waiting');
-        if (!accessWaiting.innerHTML.trim()) {
+        if (accessWaiting) {
             accessWaiting.innerHTML = `
-                <div class="loading-dots">
-                    <span>.</span><span>.</span><span>.</span>
+                <div class="procedure-waiting">
+                    <div class="waiting-spinner">
+                        <div class="spinner-dots">
+                            <span>●</span><span>●</span><span>●</span>
+                        </div>
+                    </div>
+                    <p>Waiting for procedure access...</p>
                 </div>
-                <p>Waiting for procedure access...</p>
             `;
+        }
+        
+        // Add success animation styles
+        if (!document.getElementById('success-animation-styles')) {
+            const styles = document.createElement('style');
+            styles.id = 'success-animation-styles';
+            styles.textContent = `
+                .success-celebration {
+                    text-align: center;
+                    margin: 2rem 0;
+                }
+                
+                .checkmark-container {
+                    display: flex;
+                    justify-content: center;
+                    margin-bottom: 1rem;
+                }
+                
+                .checkmark-circle {
+                    width: 80px;
+                    height: 80px;
+                    border-radius: 50%;
+                    background: #2ecc71;
+                    position: relative;
+                    animation: checkmark-bounce 0.6s ease-in-out;
+                }
+                
+                .checkmark {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    width: 20px;
+                    height: 35px;
+                    border: solid white;
+                    border-width: 0 4px 4px 0;
+                    transform: translate(-50%, -60%) rotate(45deg);
+                    animation: checkmark-draw 0.4s ease-in-out 0.2s both;
+                    opacity: 0;
+                }
+                
+                .success-message h3 {
+                    color: #2ecc71;
+                    margin: 0.5rem 0;
+                    font-size: 1.5rem;
+                }
+                
+                .approval-details {
+                    background: rgba(46, 204, 113, 0.1);
+                    border: 1px solid #2ecc71;
+                    border-radius: 8px;
+                    padding: 1.5rem;
+                    margin: 1rem 0;
+                }
+                
+                .status-approved {
+                    color: #2ecc71;
+                    font-weight: bold;
+                    font-family: 'Source Code Pro', monospace;
+                }
+                
+                .next-steps {
+                    background: rgba(52, 152, 219, 0.1);
+                    border: 1px solid #3498db;
+                    border-radius: 8px;
+                    padding: 1.5rem;
+                    color: #3498db;
+                }
+                
+                .next-steps h4 {
+                    color: #3498db;
+                    margin-top: 0;
+                }
+                
+                .procedure-waiting {
+                    text-align: center;
+                    padding: 1rem;
+                    background: rgba(243, 156, 18, 0.1);
+                    border: 1px solid #f39c12;
+                    border-radius: 8px;
+                    color: #f39c12;
+                }
+                
+                .waiting-spinner {
+                    margin-bottom: 1rem;
+                }
+                
+                .spinner-dots span {
+                    display: inline-block;
+                    animation: dot-pulse 1.5s infinite;
+                    margin: 0 2px;
+                    font-size: 1.5rem;
+                }
+                
+                .spinner-dots span:nth-child(2) {
+                    animation-delay: 0.3s;
+                }
+                
+                .spinner-dots span:nth-child(3) {
+                    animation-delay: 0.6s;
+                }
+                
+                @keyframes checkmark-bounce {
+                    0% { transform: scale(0); }
+                    50% { transform: scale(1.2); }
+                    100% { transform: scale(1); }
+                }
+                
+                @keyframes checkmark-draw {
+                    0% { opacity: 0; }
+                    100% { opacity: 1; }
+                }
+                
+                @keyframes dot-pulse {
+                    0%, 100% { opacity: 0.3; }
+                    50% { opacity: 1; }
+                }
+            `;
+            document.head.appendChild(styles);
         }
     }
 
@@ -792,7 +1045,7 @@ class UserApp {
 
     hideAllScreens() {
         const screens = [
-            'auth-screen', 'name-input-screen', 'waiting-screen', 
+            'auth-screen', 'location-permission-screen', 'name-input-screen', 'waiting-screen', 
             'access-granted-screen', 'survey-screen', 'step-screen', 'summary-screen'
         ];
         
