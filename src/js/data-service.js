@@ -107,20 +107,23 @@ class DataService {
 
             console.log('📊 Complete request data:', request);
 
+            // Sanitize request data to remove undefined values for Firebase
+            const sanitizedRequest = this.removeUndefinedValues(request);
+
             if (this.isFirebaseEnabled) {
-                await this.db.ref(`requests/${request.id}`).set(request);
+                await this.db.ref(`requests/${sanitizedRequest.id}`).set(sanitizedRequest);
                 await this.db.ref('metadata/lastUpdated').set(Date.now());
                 await this.db.ref('metadata/totalRequests').transaction((count) => (count || 0) + 1);
             } else {
                 const data = this.getLocalData();
-                data.requests[request.id] = request;
+                data.requests[sanitizedRequest.id] = sanitizedRequest;
                 data.metadata.lastUpdated = Date.now();
                 data.metadata.totalRequests = Object.keys(data.requests).length;
                 localStorage.setItem(this.storageKey, JSON.stringify(data));
             }
 
-            console.log('✅ Request submitted:', request.id);
-            return { success: true, requestId: request.id, request };
+            console.log('✅ Request submitted:', sanitizedRequest.id);
+            return { success: true, requestId: sanitizedRequest.id, request: sanitizedRequest };
         } catch (error) {
             console.error('❌ Error submitting request:', error);
             return { success: false, error: error.message };
@@ -418,11 +421,11 @@ class DataService {
                         return {
                             ip: ip,
                             location: {
-                                country: data.country || data.country_name,
-                                region: data.region || data.regionName,
-                                city: data.city,
-                                timezone: data.timezone,
-                                isp: data.isp || data.org
+                                country: data.country || data.country_name || null,
+                                region: data.region || data.regionName || null,
+                                city: data.city || null,
+                                timezone: data.timezone || null,
+                                isp: data.isp || data.org || null
                             }
                         };
                     }
@@ -544,6 +547,30 @@ class DataService {
             connected: this.isFirebaseEnabled ? 'Yes' : 'Local',
             storageKey: this.storageKey
         };
+    }
+    
+    // Remove undefined values recursively from an object for Firebase compatibility
+    removeUndefinedValues(obj) {
+        if (obj === null || obj === undefined) {
+            return null;
+        }
+        
+        if (Array.isArray(obj)) {
+            return obj.map(item => this.removeUndefinedValues(item)).filter(item => item !== undefined);
+        }
+        
+        if (typeof obj === 'object' && obj.constructor === Object) {
+            const cleaned = {};
+            for (const [key, value] of Object.entries(obj)) {
+                const cleanedValue = this.removeUndefinedValues(value);
+                if (cleanedValue !== undefined) {
+                    cleaned[key] = cleanedValue;
+                }
+            }
+            return cleaned;
+        }
+        
+        return obj;
     }
 }
 
