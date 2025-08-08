@@ -194,10 +194,13 @@ class DataService {
 
     async subscribeToRequestStatus(requestId, callback) {
         if (this.isFirebaseEnabled) {
+            console.log('🔔 DEBUG: Setting up Firebase subscription for request:', requestId);
             // TEMPORARY: Subscribe to metadata/requests path
             const requestRef = this.db.ref(`metadata/requests/${requestId}`);
             const unsubscribe = requestRef.on('value', (snapshot) => {
                 const request = snapshot.val();
+                console.log('🔔 DEBUG: Firebase subscription triggered for:', requestId);
+                console.log('🔔 DEBUG: Request data received:', request);
                 callback({
                     status: request ? request.status : null,
                     found: !!request,
@@ -207,9 +210,11 @@ class DataService {
             
             return () => requestRef.off('value', unsubscribe);
         } else {
+            console.log('🔔 DEBUG: Setting up localStorage polling for request:', requestId);
             // For localStorage, we'll poll for changes
             const pollInterval = setInterval(async () => {
                 const result = await this.getRequestStatus(requestId);
+                console.log('🔔 DEBUG: localStorage poll result for:', requestId, result);
                 callback(result);
             }, 2000); // Poll every 2 seconds
             
@@ -284,6 +289,8 @@ class DataService {
 
     async processRequest(requestId, status, adminInfo = {}) {
         try {
+            console.log('🔄 DEBUG: processRequest called:', { requestId, status, adminInfo });
+            
             const updateData = {
                 status: status,
                 processedAt: Date.now(),
@@ -291,19 +298,27 @@ class DataService {
                 ...adminInfo
             };
 
+            console.log('🔄 DEBUG: Update data prepared:', updateData);
+
             if (this.isFirebaseEnabled) {
+                console.log('🔄 DEBUG: Updating Firebase at path:', `metadata/requests/${requestId}`);
                 // TEMPORARY: Update request in metadata/requests path
                 await this.db.ref(`metadata/requests/${requestId}`).update(updateData);
                 await this.db.ref('metadata/lastUpdated').set(Date.now());
+                console.log('✅ DEBUG: Firebase update completed for:', requestId);
                 
                 // Log admin action for audit
                 await this.logAdminAction(requestId, status, adminInfo);
             } else {
+                console.log('🔄 DEBUG: Updating localStorage for:', requestId);
                 const data = this.getLocalData();
                 if (data.requests[requestId]) {
                     Object.assign(data.requests[requestId], updateData);
                     data.metadata.lastUpdated = Date.now();
                     localStorage.setItem(this.storageKey, JSON.stringify(data));
+                    console.log('✅ DEBUG: localStorage update completed for:', requestId);
+                } else {
+                    console.warn('⚠️ DEBUG: Request not found in localStorage:', requestId);
                 }
             }
 

@@ -417,6 +417,8 @@ class UserApp {
     }
 
     handleStatusUpdate(result) {
+        console.log('🔍 DEBUG: handleStatusUpdate called with:', result);
+        
         if (!result.found) {
             console.warn('⚠️ Request not found:', this.currentRequestId);
             return;
@@ -424,24 +426,30 @@ class UserApp {
 
         const status = result.status;
         console.log('📊 Status update:', status);
+        console.log('🔍 DEBUG: Current request ID:', this.currentRequestId);
+        console.log('🔍 DEBUG: Full result object:', result);
         
         switch (status) {
             case 'pending':
+                console.log('🔄 DEBUG: Status is pending - no action needed');
                 // Still waiting, no action needed
                 break;
                 
             case 'approved':
+                console.log('✅ DEBUG: Status is approved - updating waiting room');
                 // Keep user in waiting room but update message
                 this.updateWaitingRoomForApproval();
                 this.waitForProcedureAccess();
                 break;
                 
             case 'granted':
+                console.log('🚀 DEBUG: Status is granted - redirecting to troubleshooting');
                 // Go directly to troubleshooting guide
                 this.redirectToTroubleshooting();
                 break;
                 
             case 'denied':
+                console.log('❌ DEBUG: Status is denied - showing access denied');
                 this.showAccessDenied();
                 break;
                 
