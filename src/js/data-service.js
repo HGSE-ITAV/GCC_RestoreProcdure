@@ -74,16 +74,29 @@ class DataService {
 
     async submitRequest(requestData) {
         try {
+            console.log('📍 Gathering location and IP information...');
+            
+            // Collect enhanced user information
+            const enhancedInfo = await this.collectEnhancedUserInfo();
+            
             const request = {
                 id: this.generateRequestId(),
                 userName: requestData.userName,
                 timestamp: Date.now(),
+                dateTime: new Date().toLocaleString(),
                 userAgent: navigator.userAgent,
                 browserInfo: this.getBrowserInfo(),
                 status: 'pending',
                 token: requestData.token || null,
+                ipAddress: enhancedInfo.ipAddress || 'Unknown',
+                geolocation: enhancedInfo.geolocation || null,
+                locationDetails: enhancedInfo.locationDetails || null,
+                networkInfo: enhancedInfo.networkInfo || null,
+                source: requestData.source || 'qr_code',
                 ...requestData
             };
+
+            console.log('📊 Complete request data:', request);
 
             if (this.isFirebaseEnabled) {
                 await this.db.ref(`requests/${request.id}`).set(request);
@@ -328,6 +341,140 @@ class DataService {
     }
 
     // === UTILITY METHODS ===
+
+    async collectEnhancedUserInfo() {
+        const info = {
+            ipAddress: null,
+            geolocation: null,
+            locationDetails: null,
+            networkInfo: null
+        };
+
+        try {
+            // Get public IP address
+            console.log('🌐 Fetching public IP address...');
+            const ipPromise = this.getPublicIP();
+            
+            // Get geolocation (with user permission)
+            console.log('📍 Requesting geolocation...');
+            const locationPromise = this.getGeolocation();
+            
+            // Get network connection info
+            const networkInfo = this.getNetworkInfo();
+            
+            // Wait for all async operations
+            const [ipData, geoData] = await Promise.allSettled([ipPromise, locationPromise]);
+            
+            if (ipData.status === 'fulfilled') {
+                info.ipAddress = ipData.value.ip;
+                info.locationDetails = ipData.value.location;
+                console.log('✅ IP address obtained:', ipData.value.ip);
+            } else {
+                console.warn('⚠️ Failed to get IP address:', ipData.reason);
+            }
+            
+            if (geoData.status === 'fulfilled') {
+                info.geolocation = geoData.value;
+                console.log('✅ Geolocation obtained:', geoData.value);
+            } else {
+                console.warn('⚠️ Failed to get geolocation:', geoData.reason);
+            }
+            
+            info.networkInfo = networkInfo;
+            
+        } catch (error) {
+            console.error('❌ Error collecting enhanced user info:', error);
+        }
+
+        return info;
+    }
+
+    async getPublicIP() {
+        try {
+            // Try multiple IP services for reliability
+            const ipServices = [
+                'https://api.ipify.org?format=json',
+                'https://ipapi.co/json/',
+                'https://ip-api.com/json/'
+            ];
+            
+            for (const service of ipServices) {
+                try {
+                    const response = await fetch(service, { timeout: 5000 });
+                    const data = await response.json();
+                    
+                    // Different services return IP in different fields
+                    const ip = data.ip || data.query;
+                    if (ip) {
+                        return {
+                            ip: ip,
+                            location: {
+                                country: data.country || data.country_name,
+                                region: data.region || data.regionName,
+                                city: data.city,
+                                timezone: data.timezone,
+                                isp: data.isp || data.org
+                            }
+                        };
+                    }
+                } catch (serviceError) {
+                    console.warn(`⚠️ IP service ${service} failed:`, serviceError.message);
+                    continue;
+                }
+            }
+            
+            throw new Error('All IP services failed');
+        } catch (error) {
+            console.error('❌ Error getting public IP:', error);
+            throw error;
+        }
+    }
+
+    async getGeolocation() {
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject(new Error('Geolocation not supported'));
+                return;
+            }
+
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 300000 // 5 minutes
+            };
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    resolve({
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy,
+                        timestamp: position.timestamp
+                    });
+                },
+                (error) => {
+                    console.warn('⚠️ Geolocation error:', error.message);
+                    reject(error);
+                },
+                options
+            );
+        });
+    }
+
+    getNetworkInfo() {
+        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        
+        if (connection) {
+            return {
+                effectiveType: connection.effectiveType,
+                downlink: connection.downlink,
+                rtt: connection.rtt,
+                saveData: connection.saveData
+            };
+        }
+        
+        return null;
+    }
 
     generateRequestId() {
         const timestamp = Date.now().toString(36);

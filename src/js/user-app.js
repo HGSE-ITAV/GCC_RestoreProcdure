@@ -138,6 +138,9 @@ class UserApp {
             return;
         }
 
+        // Show loading state while collecting location data
+        this.showRequestProcessing();
+
         try {
             console.log('📤 DEBUG: Submitting access request for:', userName);
             console.log('🔑 DEBUG: Using token:', this.accessToken);
@@ -145,7 +148,8 @@ class UserApp {
             const requestData = {
                 userName: userName,
                 token: this.accessToken || 'direct_access',
-                source: 'user_interface'
+                source: this.accessToken ? 'qr_code' : 'user_interface',
+                qrToken: this.accessToken || null
             };
 
             console.log('📊 DEBUG: Request data:', requestData);
@@ -156,6 +160,7 @@ class UserApp {
                 this.currentUser = userName;
                 this.currentRequestId = result.requestId;
                 console.log('🎯 DEBUG: Request submitted successfully, ID:', result.requestId);
+                console.log('📋 DEBUG: Full request details:', result.request);
                 this.showWaitingScreen();
                 this.startStatusMonitoring();
             } else {
@@ -301,6 +306,23 @@ class UserApp {
                 <p>Validating access token...</p>
             </div>
         `;
+    }
+
+    showRequestProcessing() {
+        // Disable the submit button and show processing state
+        const submitBtn = document.querySelector('#name-form button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `
+                <i class="fas fa-spinner fa-spin"></i> Processing Request...
+            `;
+        }
+        
+        // Clear any existing error
+        const errorElement = document.getElementById('name-error');
+        if (errorElement) {
+            errorElement.style.display = 'none';
+        }
     }
 
     showNameInput() {

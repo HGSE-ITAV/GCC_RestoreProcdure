@@ -169,25 +169,89 @@ class AdminApp {
         let actionButtons = this.getActionButtons(request);
         let statusClass = `status-${request.status}`;
         
+        // Format geolocation if available
+        let locationInfo = '';
+        if (request.geolocation) {
+            locationInfo = `
+                <p><strong>📍 Location:</strong> ${request.geolocation.latitude.toFixed(4)}, ${request.geolocation.longitude.toFixed(4)} (±${request.geolocation.accuracy}m)</p>
+            `;
+        }
+        
+        // Format IP location if available
+        let ipLocationInfo = '';
+        if (request.locationDetails) {
+            const loc = request.locationDetails;
+            ipLocationInfo = `
+                <p><strong>🌐 IP Location:</strong> ${loc.city || 'Unknown'}, ${loc.region || 'Unknown'}, ${loc.country || 'Unknown'}</p>
+                ${loc.isp ? `<p><strong>🏢 ISP:</strong> ${loc.isp}</p>` : ''}
+                ${loc.timezone ? `<p><strong>🕐 Timezone:</strong> ${loc.timezone}</p>` : ''}
+            `;
+        }
+
+        // Format network info if available
+        let networkInfo = '';
+        if (request.networkInfo) {
+            const net = request.networkInfo;
+            networkInfo = `
+                <p><strong>📶 Connection:</strong> ${net.effectiveType || 'Unknown'}</p>
+            `;
+        }
+        
         return `
             <div class="request-card" data-id="${request.id}">
                 <div class="request-header">
                     <h3><i class="fas fa-user"></i> ${request.userName}</h3>
-                    <span class="request-time">${new Date(request.timestamp).toLocaleString()}</span>
+                    <span class="request-time">${request.dateTime || new Date(request.timestamp).toLocaleString()}</span>
                 </div>
                 <div class="request-details">
-                    <p><strong>Status:</strong> <span class="${statusClass}">${request.status.toUpperCase()}</span></p>
-                    <p><strong>Request ID:</strong> ${request.id}</p>
-                    <p><strong>Browser:</strong> ${request.browserInfo?.platform || 'Unknown'}</p>
-                    <p><strong>Token:</strong> ${request.token || 'None'}</p>
-                    ${request.processedAt ? `<p><strong>Processed:</strong> ${new Date(request.processedAt).toLocaleString()}</p>` : ''}
-                    ${request.processedBy ? `<p><strong>Processed By:</strong> ${request.processedBy}</p>` : ''}
+                    <div class="detail-section">
+                        <h4><i class="fas fa-info-circle"></i> Request Info</h4>
+                        <p><strong>Status:</strong> <span class="${statusClass}">${request.status.toUpperCase()}</span></p>
+                        <p><strong>Request ID:</strong> ${request.id}</p>
+                        <p><strong>Source:</strong> ${request.source || 'Unknown'} ${request.qrToken ? '(QR Code)' : ''}</p>
+                        <p><strong>Token:</strong> ${request.token || 'None'}</p>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h4><i class="fas fa-globe"></i> Network & Location</h4>
+                        <p><strong>🌐 IP Address:</strong> ${request.ipAddress || 'Unknown'}</p>
+                        ${ipLocationInfo}
+                        ${locationInfo}
+                        ${networkInfo}
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h4><i class="fas fa-desktop"></i> Device Info</h4>
+                        <p><strong>Platform:</strong> ${request.browserInfo?.platform || 'Unknown'}</p>
+                        <p><strong>Browser:</strong> ${this.getBrowserName(request.userAgent)}</p>
+                        <p><strong>Language:</strong> ${request.browserInfo?.language || 'Unknown'}</p>
+                    </div>
+                    
+                    ${request.processedAt ? `
+                    <div class="detail-section">
+                        <h4><i class="fas fa-history"></i> Processing Info</h4>
+                        <p><strong>Processed:</strong> ${new Date(request.processedAt).toLocaleString()}</p>
+                        <p><strong>Processed By:</strong> ${request.processedBy}</p>
+                    </div>
+                    ` : ''}
                 </div>
                 <div class="request-actions">
                     ${actionButtons}
                 </div>
             </div>
         `;
+    }
+
+    getBrowserName(userAgent) {
+        if (!userAgent) return 'Unknown';
+        
+        if (userAgent.includes('Chrome')) return 'Chrome';
+        if (userAgent.includes('Firefox')) return 'Firefox';
+        if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) return 'Safari';
+        if (userAgent.includes('Edge')) return 'Edge';
+        if (userAgent.includes('Opera')) return 'Opera';
+        
+        return 'Other';
     }
 
     getActionButtons(request) {

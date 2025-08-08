@@ -98,6 +98,44 @@
     color: var(--primary-color);
 }
 
+/* Enhanced request details sections */
+.detail-section {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(46, 204, 113, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.detail-section:last-child {
+    margin-bottom: 0;
+}
+
+.detail-section h4 {
+    color: var(--primary-color);
+    margin: 0 0 0.75rem 0;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid rgba(46, 204, 113, 0.2);
+    padding-bottom: 0.5rem;
+}
+
+.detail-section p {
+    margin: 0.4rem 0;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.detail-section p strong {
+    min-width: 120px;
+    color: #f39c12;
+    flex-shrink: 0;
+}
+
 .request-actions {
     display: flex;
     gap: 1rem;
