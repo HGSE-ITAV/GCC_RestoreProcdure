@@ -14,17 +14,27 @@ class UserApp {
     }
 
     async initializeApp() {
+        console.log('🎯 UserApp.initializeApp() called');
+        console.log('🔍 Current URL:', window.location.href);
+        console.log('🔍 URL search params:', window.location.search);
+        
         // Validate document structure to prevent Quirks Mode
         this.validateDocumentStructure();
         
         // Wait for DataService to be ready
         if (!window.dataService) {
+            console.log('⏳ Waiting for DataService...');
             setTimeout(() => this.initializeApp(), 100);
             return;
         }
 
+        console.log('🔧 Setting up event listeners...');
         await this.setupEventListeners();
+        
+        console.log('🔧 Checking URL parameters...');
         await this.checkURLParameters();
+        
+        console.log('🔧 Showing auth screen...');
         this.showAuthScreen();
         
         console.log('✅ UserApp initialized');
@@ -105,6 +115,7 @@ class UserApp {
     }
 
     async processQRCodeAccess(token) {
+        console.log('🚀 processQRCodeAccess called with token:', token);
         this.showTokenProcessing();
         
         try {
@@ -117,8 +128,9 @@ class UserApp {
                 this.accessToken = token;
                 
                 // Skip location permission for now and go directly to name input
-                // TODO: Add location permission back as optional step
+                console.log('🎯 About to call showNameInput()');
                 this.showNameInput();
+                console.log('🎯 showNameInput() call completed');
                 
             } else {
                 throw new Error('Invalid or expired access token');
@@ -540,6 +552,8 @@ class UserApp {
 
     showNameInput() {
         console.log('🔍 DEBUG: showNameInput() called');
+        console.log('🔍 DEBUG: Current window location:', window.location.href);
+        console.log('🔍 DEBUG: Document ready state:', document.readyState);
         
         // Simple, direct approach - create and show form immediately
         this.hideAllScreens();
@@ -548,8 +562,10 @@ class UserApp {
         const app = document.getElementById('app');
         if (!app) {
             console.error('❌ App container not found');
+            console.log('🔍 DEBUG: Available elements:', document.body.innerHTML.substring(0, 500));
             return;
         }
+        console.log('✅ App container found:', app);
         
         // Create form directly in app container with absolute positioning
         const formHTML = `
@@ -594,15 +610,27 @@ class UserApp {
         // Remove any existing form first
         const existingForm = document.getElementById('qr-name-form');
         if (existingForm) {
+            console.log('🔧 Removing existing form');
             existingForm.remove();
         }
         
         // Add the form to the page
+        console.log('🔧 Adding form to page');
         app.insertAdjacentHTML('beforeend', formHTML);
+        
+        // Verify form was added
+        const addedForm = document.getElementById('qr-name-form');
+        if (addedForm) {
+            console.log('✅ Form successfully added to DOM');
+            console.log('🔍 Form styles:', addedForm.style.cssText);
+        } else {
+            console.error('❌ Form not found after adding to DOM');
+        }
         
         // Attach event listener
         const form = document.getElementById('qr-name-form-element');
         if (form) {
+            console.log('✅ Form element found, attaching event listener');
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const nameInput = document.getElementById('qr-user-name');
@@ -620,6 +648,8 @@ class UserApp {
                 // Process the submission
                 this.handleQRNameSubmission(userName);
             });
+        } else {
+            console.error('❌ Form element not found after adding to DOM');
         }
         
         // Focus on input
@@ -627,10 +657,13 @@ class UserApp {
             const nameInput = document.getElementById('qr-user-name');
             if (nameInput) {
                 nameInput.focus();
+                console.log('✅ Focus set on input field');
+            } else {
+                console.error('❌ Input field not found');
             }
         }, 100);
         
-        console.log('✅ QR Name input form displayed');
+        console.log('✅ QR Name input form setup completed');
     }
     
     handleQRNameSubmission(userName) {
@@ -1142,7 +1175,16 @@ class UserApp {
 
 // Initialize the app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    window.userApp = new UserApp();
+    console.log('🚀 DOM loaded, initializing UserApp...');
+    console.log('🔍 Current URL:', window.location.href);
+    console.log('🔍 URL params:', window.location.search);
+    
+    try {
+        window.userApp = new UserApp();
+        console.log('✅ UserApp initialized successfully');
+    } catch (error) {
+        console.error('❌ Failed to initialize UserApp:', error);
+    }
 });
 
 // Export for testing/debugging

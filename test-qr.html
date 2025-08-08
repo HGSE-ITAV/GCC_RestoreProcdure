@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Test - GCC Restore Procedure</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0D1117;
+            font-family: 'Source Code Pro', monospace;
+            color: #33FF33;
+        }
+        
+        #qr-name-form {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #0D1117;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+        
+        .form-container {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #2ecc71;
+            border-radius: 10px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(46, 204, 113, 0.3);
+        }
+        
+        h2 {
+            color: #2ecc71;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+        
+        p {
+            color: #33FF33;
+            margin-bottom: 2rem;
+        }
+        
+        input {
+            width: 90%;
+            padding: 12px 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #2ecc71;
+            color: #33FF33;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-family: 'Source Code Pro', monospace;
+            text-align: center;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #2ecc71, #3498db);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-family: 'Source Code Pro', monospace;
+            margin-top: 1rem;
+        }
+        
+        #status {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(46, 204, 113, 0.1);
+            border-radius: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="qr-name-form">
+        <div class="form-container">
+            <h2>🎯 QR Test - Enter Your Name</h2>
+            <p>This is a test page for the QR workflow. Please enter your name:</p>
+            
+            <form id="test-form">
+                <div style="margin: 2rem 0;">
+                    <label for="user-name" style="display: block; color: #33FF33; margin-bottom: 0.5rem; font-weight: bold;">
+                        Your Name:
+                    </label>
+                    <input type="text" id="user-name" placeholder="Enter your full name" required maxlength="50">
+                </div>
+                <button type="submit">Submit Test Request</button>
+            </form>
+
+            <div id="status"></div>
+            
+            <div style="margin-top: 2rem; font-size: 0.9rem; opacity: 0.7;">
+                <p>Token from URL: <span id="token-display"></span></p>
+                <p>Page loaded at: <span id="load-time"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🎯 Test page loaded');
+            
+            // Display current token and load time
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token') || 'No token found';
+            
+            document.getElementById('token-display').textContent = token;
+            document.getElementById('load-time').textContent = new Date().toLocaleTimeString();
+            
+            // Handle form submission
+            document.getElementById('test-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const userName = document.getElementById('user-name').value.trim();
+                const statusDiv = document.getElementById('status');
+                
+                if (!userName || userName.length < 2) {
+                    statusDiv.style.display = 'block';
+                    statusDiv.style.background = 'rgba(231, 76, 60, 0.2)';
+                    statusDiv.innerHTML = '❌ Please enter a valid name (at least 2 characters)';
+                    return;
+                }
+                
+                statusDiv.style.display = 'block';
+                statusDiv.style.background = 'rgba(46, 204, 113, 0.2)';
+                statusDiv.innerHTML = `
+                    <h3>✅ Test Successful!</h3>
+                    <p><strong>Name:</strong> ${userName}</p>
+                    <p><strong>Token:</strong> ${token}</p>
+                    <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
+                    <p><strong>IP Address:</strong> (Would collect in real app)</p>
+                    <p><strong>Geolocation:</strong> (Would collect in real app)</p>
+                `;
+                
+                console.log('✅ Test form submitted:', { userName, token, timestamp: new Date().toISOString() });
+            });
+            
+            // Focus on input
+            setTimeout(() => {
+                document.getElementById('user-name').focus();
+            }, 100);
+        });
+    </script>
+</body>
+</html>
