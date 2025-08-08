@@ -34,8 +34,16 @@ class UserApp {
         console.log('🔧 Checking URL parameters...');
         await this.checkURLParameters();
         
-        console.log('🔧 Showing auth screen...');
-        this.showAuthScreen();
+        // Only show auth screen if we don't have a token or if checkURLParameters didn't handle it
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasToken = urlParams.get('token') || urlParams.get('access_token');
+        
+        if (!hasToken) {
+            console.log('🔧 No token found - showing auth screen...');
+            this.showAuthScreen();
+        } else {
+            console.log('🔧 Token found - checkURLParameters should handle the flow...');
+        }
         
         console.log('✅ UserApp initialized');
     }
@@ -136,22 +144,59 @@ class UserApp {
         this.showTokenProcessing();
         
         try {
-            // Validate token (in a real implementation, this would be server-side)
+            // First, validate token format
             console.log('🔍 Validating access token:', token);
             const isValidToken = await this.validateAccessToken(token);
             
-            if (isValidToken) {
-                console.log('✅ Valid access token - proceeding to name input');
-                this.accessToken = token;
-                
-                // Skip location permission for now and go directly to name input
-                console.log('🎯 About to call showNameInput()');
-                this.showNameInput();
-                console.log('🎯 showNameInput() call completed');
-                
-            } else {
+            if (!isValidToken) {
                 throw new Error('Invalid or expired access token');
             }
+            
+            console.log('✅ Valid access token - checking for existing request');
+            this.accessToken = token;
+            
+            // Check if there's already an existing request for this token
+            const existingRequest = await window.dataService.getRequestByToken(token);
+            
+            if (existingRequest.found) {
+                console.log('🔍 Found existing request:', existingRequest.request);
+                const request = existingRequest.request;
+                this.currentRequestId = request.id;
+                
+                // Navigate based on current status
+                switch (request.status) {
+                    case 'pending':
+                        console.log('📋 Request is pending - showing waiting room');
+                        this.showWaitingRoom();
+                        this.startStatusMonitoring();
+                        break;
+                        
+                    case 'approved':
+                        console.log('✅ Request is approved - showing waiting room with approval message');
+                        this.updateWaitingRoomForApproval();
+                        this.waitForProcedureAccess();
+                        break;
+                        
+                    case 'granted':
+                        console.log('🚀 Request is granted - going directly to survey screen');
+                        this.redirectToTroubleshooting();
+                        break;
+                        
+                    case 'denied':
+                        console.log('❌ Request was denied - showing access denied');
+                        this.showAccessDenied();
+                        break;
+                        
+                    default:
+                        console.warn('⚠️ Unknown request status:', request.status);
+                        this.showNameInput(); // Fall back to name input
+                }
+            } else {
+                console.log('ℹ️ No existing request - proceeding to name input');
+                // No existing request, proceed with normal flow
+                this.showNameInput();
+            }
+            
         } catch (error) {
             console.error('❌ Token validation failed:', error);
             this.showAuthError('Invalid QR code or expired token. Please scan a valid QR code.');
@@ -500,9 +545,12 @@ class UserApp {
 
     redirectToTroubleshooting() {
         console.log('🚀 Redirecting to survey screen...');
+        console.log('🚀 DEBUG: About to stop monitoring and timers');
         this.stopStatusMonitoring();
         this.stopWaitingTimer();
+        console.log('🚀 DEBUG: About to call showSurveyScreen');
         this.showSurveyScreen();
+        console.log('🚀 DEBUG: showSurveyScreen call completed');
     }
 
     redirectToProcedure() {
@@ -1106,13 +1154,24 @@ class UserApp {
     }
 
     showSurveyScreen() {
+        console.log('🎯 DEBUG: showSurveyScreen() called');
         this.hideAllScreens();
+        
         const surveyScreen = document.getElementById('survey-screen');
-        surveyScreen.style.display = 'block';
+        console.log('🎯 DEBUG: Survey screen element:', surveyScreen);
+        
+        if (surveyScreen) {
+            surveyScreen.style.display = 'block';
+            console.log('🎯 DEBUG: Survey screen display set to block');
+        } else {
+            console.error('❌ Survey screen element not found!');
+            return;
+        }
         
         // Rebuild survey form if needed
         const toggleGroup = document.querySelector('.toggle-group');
-        if (!toggleGroup.innerHTML.trim()) {
+        if (toggleGroup && !toggleGroup.innerHTML.trim()) {
+            console.log('🎯 DEBUG: Rebuilding toggle group');
             toggleGroup.innerHTML = `
                 <input type="radio" id="issue-video" name="issue" value="video" required>
                 <label for="issue-video">Video Issues (no video, distorted video)</label>
@@ -1129,12 +1188,15 @@ class UserApp {
         }
         
         const disclaimer = document.querySelector('.form-group.disclaimer');
-        if (!disclaimer.innerHTML.trim()) {
+        if (disclaimer && !disclaimer.innerHTML.trim()) {
+            console.log('🎯 DEBUG: Rebuilding disclaimer');
             disclaimer.innerHTML = `
                 <input type="checkbox" id="disclaimer-check" required>
                 <label for="disclaimer-check">I understand this procedure impacts the entire conference center and will take approximately 20 minutes.</label>
             `;
         }
+        
+        console.log('🎯 DEBUG: showSurveyScreen() completed');
     }
 
     handleIssueSubmission(e) {

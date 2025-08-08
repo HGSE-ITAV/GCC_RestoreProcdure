@@ -262,6 +262,47 @@ class DataService {
         }
     }
 
+    async getRequestByToken(token) {
+        try {
+            console.log('🔍 Looking for existing request with token:', token);
+            
+            if (this.isFirebaseEnabled) {
+                // Get all requests from Firebase
+                const snapshot = await this.db.ref('metadata/requests').once('value');
+                const requests = snapshot.val() || {};
+                
+                // Find request with matching token
+                const requestEntries = Object.entries(requests);
+                for (const [id, request] of requestEntries) {
+                    if (request.token === token) {
+                        console.log('✅ Found existing request for token:', { id, status: request.status, timestamp: request.timestamp });
+                        return { found: true, request: { ...request, id } };
+                    }
+                }
+                
+                console.log('ℹ️ No existing request found for token');
+                return { found: false };
+            } else {
+                // Local storage implementation
+                const data = this.getLocalData();
+                const requestEntries = Object.entries(data.requests);
+                
+                for (const [id, request] of requestEntries) {
+                    if (request.token === token) {
+                        console.log('✅ Found existing request for token:', { id, status: request.status, timestamp: request.timestamp });
+                        return { found: true, request: { ...request, id } };
+                    }
+                }
+                
+                console.log('ℹ️ No existing request found for token');
+                return { found: false };
+            }
+        } catch (error) {
+            console.error('❌ Error finding request by token:', error);
+            return { found: false, error: error.message };
+        }
+    }
+
     shouldShowInDashboard(request) {
         const now = Date.now();
         const fiveMinutesAgo = now - (5 * 60 * 1000);
