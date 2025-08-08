@@ -367,11 +367,17 @@ class DataService {
         const randomName = testNames[Math.floor(Math.random() * testNames.length)];
         
         const testRequest = {
-            userName: randomName,
-            token: 'test_token_' + Math.random().toString(36).substr(2, 9)
+            userName: `DEBUG: ${randomName}`,
+            token: 'debug_test_token_' + Math.random().toString(36).substr(2, 9),
+            debugMode: true,
+            timestamp: Date.now()
         };
 
-        return await this.submitRequest(testRequest);
+        console.log('🧪 DEBUG: Creating test request:', testRequest);
+        const result = await this.submitRequest(testRequest);
+        console.log('🧪 DEBUG: Test request result:', result);
+        
+        return result;
     }
 
     // === STATUS METHODS ===
