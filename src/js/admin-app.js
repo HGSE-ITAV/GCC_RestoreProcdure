@@ -44,29 +44,9 @@ class AdminApp {
             refreshBtn.addEventListener('click', () => this.loadRequests());
         }
 
-        const testModeBtn = document.getElementById('test-mode-btn');
-        if (testModeBtn) {
-            testModeBtn.addEventListener('click', () => this.generateTestRequest());
-        }
-
         const clearAllBtn = document.getElementById('clear-all-btn');
         if (clearAllBtn) {
             clearAllBtn.addEventListener('click', () => this.clearAllRequests());
-        }
-
-        const importBtn = document.getElementById('import-btn');
-        if (importBtn) {
-            importBtn.addEventListener('click', () => this.importShareCode());
-        }
-
-        // Share code input enter key
-        const shareCodeInput = document.getElementById('share-code-input');
-        if (shareCodeInput) {
-            shareCodeInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.importShareCode();
-                }
-            });
         }
     }
 
@@ -586,23 +566,6 @@ class AdminApp {
         }
     }
 
-    async generateTestRequest() {
-        try {
-            console.log('🧪 Generating test request...');
-            const result = await window.dataService.generateTestRequest();
-            
-            if (result.success) {
-                console.log('✅ Test request generated:', result.requestId);
-                // Requests will be automatically updated via subscription
-            } else {
-                throw new Error(result.error || 'Failed to generate test request');
-            }
-        } catch (error) {
-            console.error('❌ Error generating test request:', error);
-            alert(`Failed to generate test request: ${error.message}`);
-        }
-    }
-
     async clearAllRequests() {
         if (confirm('Are you sure you want to clear all requests? This will remove both pending and processed requests.')) {
             try {
@@ -619,26 +582,6 @@ class AdminApp {
                 console.error('❌ Error clearing requests:', error);
                 alert(`Failed to clear requests: ${error.message}`);
             }
-        }
-    }
-
-    importShareCode() {
-        const shareCodeInput = document.getElementById('share-code-input');
-        const shareCode = shareCodeInput.value.trim();
-        
-        if (!shareCode) {
-            alert('Please enter a share code');
-            return;
-        }
-        
-        try {
-            // This would need to be implemented in DataService
-            console.log('📥 Importing share code:', shareCode);
-            alert('Share code import feature coming soon!');
-            shareCodeInput.value = '';
-        } catch (error) {
-            console.error('❌ Error importing share code:', error);
-            alert(`Import failed: ${error.message}`);
         }
     }
 
