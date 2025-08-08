@@ -58,21 +58,29 @@ class DataService {
     async testConnection() {
         if (this.isFirebaseEnabled) {
             try {
+                // Test basic connection
                 const testRef = this.db.ref('.info/connected');
                 const snapshot = await testRef.once('value');
                 const isConnected = snapshot.val();
                 
-                if (isConnected) {
-                    console.log('🔥 Firebase connection test: Connected');
-                } else {
-                    console.log('🔥 Firebase connection test: Disconnected (using offline mode)');
-                    // Don't disable Firebase completely, just note offline mode
+                // Test write permissions with a small test
+                try {
+                    const testWriteRef = this.db.ref('test_connection');
+                    await testWriteRef.set({ timestamp: Date.now(), test: true });
+                    await testWriteRef.remove(); // Clean up
+                    console.log('🔥 Firebase: Connected with write permissions');
+                    return true;
+                } catch (permissionError) {
+                    console.warn('⚠️ Firebase: Connected but no write permissions - will use localStorage fallback');
+                    console.warn('Permission error:', permissionError.message);
+                    this.isFirebaseEnabled = false; // Disable Firebase to force localStorage
+                    return false;
                 }
                 
-                return isConnected;
             } catch (error) {
-                console.log('🔥 Firebase connection test: Offline (GitHub Pages mode)');
-                // GitHub Pages doesn't support realtime Firebase, but we can still use it for data storage
+                console.log('🔥 Firebase connection test: Offline or permission denied');
+                console.warn('Connection error:', error.message);
+                this.isFirebaseEnabled = false; // Disable Firebase to force localStorage
                 return false;
             }
         }
@@ -111,19 +119,35 @@ class DataService {
             const sanitizedRequest = this.removeUndefinedValues(request);
 
             if (this.isFirebaseEnabled) {
-                await this.db.ref(`requests/${sanitizedRequest.id}`).set(sanitizedRequest);
-                await this.db.ref('metadata/lastUpdated').set(Date.now());
-                await this.db.ref('metadata/totalRequests').transaction((count) => (count || 0) + 1);
+                try {
+                    await this.db.ref(`requests/${sanitizedRequest.id}`).set(sanitizedRequest);
+                    await this.db.ref('metadata/lastUpdated').set(Date.now());
+                    await this.db.ref('metadata/totalRequests').transaction((count) => (count || 0) + 1);
+                    console.log('✅ Request submitted to Firebase:', sanitizedRequest.id);
+                    return { success: true, requestId: sanitizedRequest.id, request: sanitizedRequest };
+                } catch (firebaseError) {
+                    console.warn('⚠️ Firebase submission failed, falling back to localStorage:', firebaseError.message);
+                    
+                    // Fall back to localStorage if Firebase fails
+                    this.isFirebaseEnabled = false;
+                    const data = this.getLocalData();
+                    data.requests[sanitizedRequest.id] = sanitizedRequest;
+                    data.metadata.lastUpdated = Date.now();
+                    data.metadata.totalRequests = Object.keys(data.requests).length;
+                    localStorage.setItem(this.storageKey, JSON.stringify(data));
+                    
+                    console.log('✅ Request submitted to localStorage (fallback):', sanitizedRequest.id);
+                    return { success: true, requestId: sanitizedRequest.id, request: sanitizedRequest, mode: 'localStorage_fallback' };
+                }
             } else {
                 const data = this.getLocalData();
                 data.requests[sanitizedRequest.id] = sanitizedRequest;
                 data.metadata.lastUpdated = Date.now();
                 data.metadata.totalRequests = Object.keys(data.requests).length;
                 localStorage.setItem(this.storageKey, JSON.stringify(data));
+                console.log('✅ Request submitted to localStorage:', sanitizedRequest.id);
+                return { success: true, requestId: sanitizedRequest.id, request: sanitizedRequest, mode: 'localStorage' };
             }
-
-            console.log('✅ Request submitted:', sanitizedRequest.id);
-            return { success: true, requestId: sanitizedRequest.id, request: sanitizedRequest };
         } catch (error) {
             console.error('❌ Error submitting request:', error);
             return { success: false, error: error.message };

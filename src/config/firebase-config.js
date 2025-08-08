@@ -15,9 +15,16 @@ const firebaseConfig = {
 // Initialize Firebase (will be done in each file that needs it)
 // This file just exports the configuration
 
-// For now, we'll use a development mode that falls back to localStorage
+// Development mode detection - will use localStorage as fallback for local testing
 const isDevelopment = window.location.hostname === 'localhost' || 
                      window.location.hostname === '127.0.0.1' ||
                      window.location.protocol === 'file:';
 
-export { firebaseConfig, isDevelopment };
+// For GitHub Pages, we'll try Firebase but gracefully fall back to localStorage if permissions fail
+const isGitHubPages = window.location.hostname.includes('github.io');
+
+console.log('🔧 Firebase config loaded for:', window.location.hostname);
+console.log('🔧 Development mode:', isDevelopment);
+console.log('🔧 GitHub Pages:', isGitHubPages);
+
+export { firebaseConfig, isDevelopment, isGitHubPages };
