@@ -1216,6 +1216,9 @@ class UserApp {
             `;
         }
         
+        // Set up button state management
+        this.setupSurveyButtonState();
+        
         console.log('🎯 DEBUG: showSurveyScreen() completed');
     }
 
@@ -1245,6 +1248,13 @@ class UserApp {
                 console.log(`⚠️ Screen not found: ${screenId}`);
             }
         });
+        
+        // Also hide token processing overlay
+        const tokenProcessing = document.getElementById('token-processing');
+        if (tokenProcessing) {
+            tokenProcessing.style.display = 'none';
+            console.log('🔧 Hidden token-processing overlay');
+        }
         
         // Also remove any existing QR forms
         const existingForm = document.getElementById('qr-name-form');
@@ -1286,6 +1296,46 @@ class UserApp {
             hasStatusSubscription: !!this.statusSubscription,
             dataService: window.dataService ? window.dataService.getServiceStatus() : null
         };
+    }
+
+    setupSurveyButtonState() {
+        console.log('🎯 Setting up survey button state management');
+        
+        const updateButtonState = () => {
+            const selectedIssue = document.querySelector('input[name="issue"]:checked');
+            const disclaimerCheck = document.getElementById('disclaimer-check');
+            const startButton = document.getElementById('start-recovery-btn');
+            
+            if (startButton) {
+                const isIssueSelected = !!selectedIssue;
+                const isDisclaimerChecked = disclaimerCheck && disclaimerCheck.checked;
+                const shouldEnable = isIssueSelected && isDisclaimerChecked;
+                
+                startButton.disabled = !shouldEnable;
+                console.log('🎯 Button state:', { 
+                    isIssueSelected, 
+                    isDisclaimerChecked, 
+                    shouldEnable 
+                });
+            }
+        };
+        
+        // Add event listeners to all issue radio buttons
+        const issueRadios = document.querySelectorAll('input[name="issue"]');
+        issueRadios.forEach(radio => {
+            radio.addEventListener('change', updateButtonState);
+        });
+        
+        // Add event listener to disclaimer checkbox
+        const disclaimerCheck = document.getElementById('disclaimer-check');
+        if (disclaimerCheck) {
+            disclaimerCheck.addEventListener('change', updateButtonState);
+        }
+        
+        // Initial state check
+        updateButtonState();
+        
+        console.log('✅ Survey button state management setup complete');
     }
 }
 
