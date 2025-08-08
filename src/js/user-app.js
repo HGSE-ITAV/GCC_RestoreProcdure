@@ -413,6 +413,9 @@ class UserApp {
             (result) => this.handleStatusUpdate(result)
         );
         
+        console.log('🔔 DEBUG: statusSubscription type:', typeof this.statusSubscription);
+        console.log('🔔 DEBUG: statusSubscription value:', this.statusSubscription);
+        
         this.startWaitingTimer();
     }
 
@@ -547,10 +550,16 @@ class UserApp {
     }
 
     stopStatusMonitoring() {
-        if (this.statusSubscription) {
+        console.log('🔔 DEBUG: stopStatusMonitoring called');
+        console.log('🔔 DEBUG: statusSubscription type:', typeof this.statusSubscription);
+        console.log('🔔 DEBUG: statusSubscription value:', this.statusSubscription);
+        
+        if (this.statusSubscription && typeof this.statusSubscription === 'function') {
             this.statusSubscription();
             this.statusSubscription = null;
             console.log('⏹️ Status monitoring stopped');
+        } else {
+            console.warn('⚠️ statusSubscription is not a function:', this.statusSubscription);
         }
     }
 

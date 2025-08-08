@@ -192,7 +192,7 @@ class DataService {
         }
     }
 
-    async subscribeToRequestStatus(requestId, callback) {
+    subscribeToRequestStatus(requestId, callback) {
         if (this.isFirebaseEnabled) {
             console.log('🔔 DEBUG: Setting up Firebase subscription for request:', requestId);
             // TEMPORARY: Subscribe to metadata/requests path
@@ -208,7 +208,9 @@ class DataService {
                 });
             });
             
-            return () => requestRef.off('value', unsubscribe);
+            const unsubscribeFunction = () => requestRef.off('value', unsubscribe);
+            console.log('🔔 DEBUG: Returning unsubscribe function:', typeof unsubscribeFunction);
+            return unsubscribeFunction;
         } else {
             console.log('🔔 DEBUG: Setting up localStorage polling for request:', requestId);
             // For localStorage, we'll poll for changes
@@ -218,7 +220,9 @@ class DataService {
                 callback(result);
             }, 2000); // Poll every 2 seconds
             
-            return () => clearInterval(pollInterval);
+            const clearFunction = () => clearInterval(pollInterval);
+            console.log('🔔 DEBUG: Returning clear function:', typeof clearFunction);
+            return clearFunction;
         }
     }
 
