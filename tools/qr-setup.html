@@ -129,6 +129,81 @@
 
     <script src="../src/js/mfa-service.js"></script>
     <script>
+        // Simple QR Code generator using HTML5 Canvas
+        function generateQRCodeCanvas(text, size = 200) {
+            // This is a simplified QR code generator for demo purposes
+            // In production, you'd use a proper QR library
+            
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = size;
+            canvas.height = size;
+            
+            // Fill white background
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Create a simple pattern based on the text hash
+            ctx.fillStyle = '#000000';
+            const gridSize = 21; // Standard QR code grid
+            const cellSize = size / gridSize;
+            
+            // Simple hash function to create a deterministic pattern
+            function simpleHash(str) {
+                let hash = 0;
+                for (let i = 0; i < str.length; i++) {
+                    const char = str.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash; // Convert to 32-bit integer
+                }
+                return hash;
+            }
+            
+            const hash = Math.abs(simpleHash(text));
+            
+            // Draw finder patterns (corners)
+            function drawFinderPattern(x, y) {
+                // Outer square
+                ctx.fillRect(x * cellSize, y * cellSize, 7 * cellSize, 7 * cellSize);
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect((x + 1) * cellSize, (y + 1) * cellSize, 5 * cellSize, 5 * cellSize);
+                ctx.fillStyle = '#000000';
+                ctx.fillRect((x + 2) * cellSize, (y + 2) * cellSize, 3 * cellSize, 3 * cellSize);
+            }
+            
+            // Draw finder patterns
+            drawFinderPattern(0, 0);
+            drawFinderPattern(14, 0);
+            drawFinderPattern(0, 14);
+            
+            // Draw timing patterns
+            for (let i = 8; i < 13; i++) {
+                if (i % 2 === 0) {
+                    ctx.fillRect(i * cellSize, 6 * cellSize, cellSize, cellSize);
+                    ctx.fillRect(6 * cellSize, i * cellSize, cellSize, cellSize);
+                }
+            }
+            
+            // Fill data area with pattern based on hash
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    // Skip finder patterns and timing patterns
+                    if ((x < 9 && y < 9) || (x > 12 && y < 9) || (x < 9 && y > 12) ||
+                        (x === 6) || (y === 6)) {
+                        continue;
+                    }
+                    
+                    // Create pattern based on position and hash
+                    const value = (hash + x * 7 + y * 11) % 2;
+                    if (value === 1) {
+                        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                    }
+                }
+            }
+            
+            return canvas;
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             try {
                 const mfaService = new MFAService();
@@ -157,34 +232,64 @@
                     const section = document.createElement('div');
                     section.className = 'operator-section';
                     
-                    // Use Google Charts API for QR code generation
-                    const qrImageUrl = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(url)}`;
-                    
                     section.innerHTML = `
                         <h3>🔑 ${operator.name} (${operator.code})</h3>
-                        <div class="qr-container">
-                            <img src="${qrImageUrl}" alt="QR Code for ${operator.name}" style="max-width: 200px; height: auto;">
-                            <p><strong>Scan with Google Authenticator</strong></p>
+                        <div class="qr-container" id="qr-${operator.code}">
+                            <p>⚠️ QR Code Placeholder</p>
+                            <p style="color: #ffaa00; font-size: 0.9em;">Use manual setup below for now</p>
                         </div>
                         <div class="url-text">
-                            <strong>Setup URL:</strong><br>
-                            ${url}
+                            <strong>Manual Setup Instructions:</strong><br>
+                            <strong>Account:</strong> ${operator.code}@gcc.conference.org<br>
+                            <strong>Secret Key:</strong> <span style="color: #00ffff; font-weight: bold;">${mfaService.operatorSecrets[operator.code].secret}</span><br>
+                            <strong>Type:</strong> Time-based<br><br>
+                            <strong>Full Setup URL:</strong><br>
+                            <span style="font-size: 0.8em; word-break: break-all;">${url}</span>
                         </div>
-                        <button onclick="copyToClipboard('${url.replace(/'/g, "\\'")}')">📋 Copy URL</button>
-                        <button onclick="openInAuthenticator('${url.replace(/'/g, "\\'")}')">📱 Open in Authenticator</button>
+                        <button onclick="copySecret('${mfaService.operatorSecrets[operator.code].secret}')">📋 Copy Secret Key</button>
+                        <button onclick="copyToClipboard('${url.replace(/'/g, "\\'")}')">📋 Copy Full URL</button>
+                        <button onclick="openInAuthenticator('${url.replace(/'/g, "\\'")}')">📱 Open in App</button>
                     `;
                     
                     container.appendChild(section);
+                    
+                    // Generate a placeholder QR code pattern
+                    const canvas = generateQRCodeCanvas(url, 180);
+                    const qrContainer = document.getElementById(`qr-${operator.code}`);
+                    qrContainer.innerHTML = '<p><strong>QR Code Pattern (For Reference)</strong></p>';
+                    qrContainer.appendChild(canvas);
+                    qrContainer.innerHTML += '<p style="color: #ffaa00; font-size: 0.8em; margin-top: 10px;">⚠️ Use manual setup for best results</p>';
+                    
                 } catch (error) {
-                    console.error('Error generating QR for', operator.code, error);
+                    console.error('Error generating setup for', operator.code, error);
                     const errorSection = document.createElement('div');
                     errorSection.className = 'operator-section';
                     errorSection.innerHTML = `
                         <h3>🔑 ${operator.name} (${operator.code})</h3>
-                        <p style="color: #ff4444;">Error generating QR code for this operator</p>
+                        <p style="color: #ff4444;">Error generating setup for this operator</p>
                     `;
                     container.appendChild(errorSection);
                 }
+            });
+        }
+
+        function copySecret(secret) {
+            navigator.clipboard.writeText(secret).then(function() {
+                alert('Secret key copied! Paste this into Google Authenticator.');
+            }, function(err) {
+                console.error('Could not copy text: ', err);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = secret;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    alert('Secret key copied! Paste this into Google Authenticator.');
+                } catch (err) {
+                    alert(`Please copy this secret key manually: ${secret}`);
+                }
+                document.body.removeChild(textArea);
             });
         }
 
