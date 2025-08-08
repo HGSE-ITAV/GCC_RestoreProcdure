@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator for MFA - GCC Restore</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #00ff00;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(0, 20, 0, 0.8);
+            border: 1px solid #00ff00;
+            padding: 30px;
+            border-radius: 10px;
+        }
+        h1 {
+            text-align: center;
+            color: #00ffff;
+        }
+        .operator-section {
+            background: rgba(0, 40, 0, 0.5);
+            border: 1px solid #444;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .operator-section h3 {
+            color: #00ff00;
+            margin-top: 0;
+        }
+        .qr-container {
+            text-align: center;
+            margin: 20px 0;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        .url-text {
+            word-break: break-all;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            color: #cccccc;
+            margin: 10px 0;
+        }
+        .instructions {
+            background: rgba(0, 60, 60, 0.3);
+            border: 1px solid #00ffff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .instructions h4 {
+            color: #00ffff;
+            margin-top: 0;
+        }
+        button {
+            background: rgba(0, 40, 0, 0.8);
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: rgba(0, 60, 0, 0.9);
+        }
+        .step {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid #00ff00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Google Authenticator Setup</h1>
+        
+        <div class="instructions">
+            <h4>🚀 Quick Setup Instructions:</h4>
+            <div class="step">
+                <strong>1.</strong> Install Google Authenticator on your phone
+            </div>
+            <div class="step">
+                <strong>2.</strong> Open the app and tap "+" to add an account
+            </div>
+            <div class="step">
+                <strong>3.</strong> Choose "Scan a QR Code" and scan the QR code below
+            </div>
+            <div class="step">
+                <strong>4.</strong> The app will generate 6-digit codes that change every 30 seconds
+            </div>
+            <div class="step">
+                <strong>5.</strong> Use these codes for MFA authentication on the operator dashboard
+            </div>
+        </div>
+
+        <div id="operators-container">
+            <!-- QR codes will be generated here -->
+        </div>
+
+        <div class="instructions">
+            <h4>🔧 Manual Setup (if QR code doesn't work):</h4>
+            <div class="step">
+                <strong>1.</strong> In Google Authenticator, tap "+" → "Enter a setup key"
+            </div>
+            <div class="step">
+                <strong>2.</strong> Account: <code>gcc2024@gcc.conference.org</code> (or your operator)
+            </div>
+            <div class="step">
+                <strong>3.</strong> Key: Use the secret from the URL above (e.g., <code>JBSWY3DPEHPK3PXP</code>)
+            </div>
+            <div class="step">
+                <strong>4.</strong> Type of key: Time based
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="../src/js/mfa-service.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const mfaService = new MFAService();
+                generateQRCodes(mfaService);
+            } catch (error) {
+                console.error('Failed to initialize MFA service:', error);
+                document.getElementById('operators-container').innerHTML = 
+                    '<p style="color: #ff4444;">Failed to load MFA service</p>';
+            }
+        });
+
+        function generateQRCodes(mfaService) {
+            const container = document.getElementById('operators-container');
+            const operators = [
+                { code: 'gcc2024', name: 'GCC Admin' },
+                { code: 'operator123', name: 'Main Operator' },
+                { code: 'admin2024', name: 'System Admin' },
+                { code: 'restore_admin', name: 'Restore Operator' },
+                { code: 'conference_admin', name: 'Conference Admin' },
+                { code: 'itav_operator', name: 'ITAV Operator' }
+            ];
+
+            operators.forEach(operator => {
+                try {
+                    const url = mfaService.getTOTPSetupURL(operator.code);
+                    const section = document.createElement('div');
+                    section.className = 'operator-section';
+                    
+                    section.innerHTML = `
+                        <h3>🔑 ${operator.name} (${operator.code})</h3>
+                        <div class="qr-container" id="qr-${operator.code}">
+                            <p>Generating QR Code...</p>
+                        </div>
+                        <div class="url-text">
+                            <strong>Setup URL:</strong><br>
+                            ${url}
+                        </div>
+                        <button onclick="copyToClipboard('${url}')">📋 Copy URL</button>
+                    `;
+                    
+                    container.appendChild(section);
+                    
+                    // Generate QR code
+                    QRCode.toCanvas(document.createElement('canvas'), url, {
+                        width: 200,
+                        margin: 2,
+                        color: {
+                            dark: '#000000',
+                            light: '#FFFFFF'
+                        }
+                    }, function(error, canvas) {
+                        if (error) {
+                            console.error('QR Code error:', error);
+                            document.getElementById(`qr-${operator.code}`).innerHTML = 
+                                '<p style="color: red;">QR Code generation failed</p>';
+                        } else {
+                            const qrContainer = document.getElementById(`qr-${operator.code}`);
+                            qrContainer.innerHTML = '';
+                            qrContainer.appendChild(canvas);
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error generating QR for', operator.code, error);
+                }
+            });
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                alert('URL copied to clipboard!');
+            }, function(err) {
+                console.error('Could not copy text: ', err);
+                alert('Failed to copy URL');
+            });
+        }
+    </script>
+</body>
+</html>
