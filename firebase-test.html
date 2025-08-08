@@ -93,18 +93,29 @@
         
         window.testWrite = async function() {
             try {
-                log('🔍 Testing write permissions...');
-                const testRef = db.ref('test_write_' + Date.now());
-                await testRef.set({
+                log('🔍 Testing write permissions to application paths...');
+                
+                // Test metadata path (should work)
+                const metadataTestRef = db.ref('metadata/test_write_' + Date.now());
+                await metadataTestRef.set({
                     timestamp: Date.now(),
-                    test: 'write permission test',
+                    test: 'metadata write test'
+                });
+                log('✅ Metadata write test successful');
+                await metadataTestRef.remove();
+                log('🧹 Metadata test data cleaned up');
+                
+                // Test requests path (should work)
+                const requestTestRef = db.ref('requests/test_write_' + Date.now());
+                await requestTestRef.set({
+                    timestamp: Date.now(),
+                    test: 'request write test',
                     user: 'test_user'
                 });
-                log('✅ Write test successful');
+                log('✅ Request write test successful');
+                await requestTestRef.remove();
+                log('🧹 Request test data cleaned up');
                 
-                // Clean up
-                await testRef.remove();
-                log('🧹 Test data cleaned up');
             } catch (error) {
                 log('❌ Write test failed: ' + error.message);
             }

@@ -72,15 +72,16 @@ class DataService {
                 const snapshot = await testRef.once('value');
                 const isConnected = snapshot.val();
                 
-                // Test write permissions with a small test
+                // Test write permissions to actual application paths that should be allowed
                 try {
-                    const testWriteRef = this.db.ref('test_connection');
-                    await testWriteRef.set({ timestamp: Date.now(), test: true });
+                    // Test writing to metadata path (which should be allowed)
+                    const testWriteRef = this.db.ref('metadata/connectionTest');
+                    await testWriteRef.set(Date.now());
                     await testWriteRef.remove(); // Clean up
-                    console.log('🔥 Firebase: Connected with write permissions');
+                    console.log('🔥 Firebase: Connected with proper write permissions');
                     return true;
                 } catch (permissionError) {
-                    console.warn('⚠️ Firebase: Connected but no write permissions - will use localStorage fallback');
+                    console.warn('⚠️ Firebase: Connected but no write permissions to metadata - will use localStorage fallback');
                     console.warn('Permission error:', permissionError.message);
                     this.isFirebaseEnabled = false; // Disable Firebase to force localStorage
                     return false;
