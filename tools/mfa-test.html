@@ -94,9 +94,33 @@
 
     <script src="src/js/mfa-service.js"></script>
     <script>
-        const mfaService = new MFAService();
+        let mfaService;
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                mfaService = new MFAService();
+                console.log('✅ MFA Service initialized');
+                
+                // Initialize displays
+                refreshTOTPCodes();
+                generateSetupURLs();
+                
+                // Auto-refresh TOTP codes every 30 seconds
+                setInterval(refreshTOTPCodes, 30000);
+            } catch (error) {
+                console.error('❌ Failed to initialize MFA Service:', error);
+                document.getElementById('totp-codes').innerHTML = 
+                    '<p style="color: #ff4444;">Failed to initialize MFA Service</p>';
+            }
+        });
         
         function refreshTOTPCodes() {
+            if (!mfaService) {
+                console.error('MFA Service not initialized');
+                return;
+            }
+            
             const codesDiv = document.getElementById('totp-codes');
             codesDiv.innerHTML = '';
             
@@ -113,11 +137,20 @@
                     codesDiv.appendChild(codeDiv);
                 } catch (error) {
                     console.error('Error generating TOTP for', operator, error);
+                    const errorDiv = document.createElement('div');
+                    errorDiv.innerHTML = `<strong>${operator}:</strong> <span style="color: #ff4444;">Error</span>`;
+                    codesDiv.appendChild(errorDiv);
                 }
             });
         }
         
         async function simulateEmailCode() {
+            if (!mfaService) {
+                document.getElementById('email-result').innerHTML = 
+                    '<p style="color: #ff4444;">❌ MFA Service not initialized</p>';
+                return;
+            }
+            
             const operator = document.getElementById('operator-select').value;
             const resultDiv = document.getElementById('email-result');
             
@@ -137,6 +170,12 @@
         }
         
         async function validateTestCode() {
+            if (!mfaService) {
+                document.getElementById('validation-result').innerHTML = 
+                    '<p style="color: #ff4444;">❌ MFA Service not initialized</p>';
+                return;
+            }
+            
             const code = document.getElementById('test-code').value;
             const resultDiv = document.getElementById('validation-result');
             
@@ -158,6 +197,12 @@
         }
         
         function generateSetupURLs() {
+            if (!mfaService) {
+                document.getElementById('setup-urls').innerHTML = 
+                    '<p style="color: #ff4444;">❌ MFA Service not initialized</p>';
+                return;
+            }
+            
             const urlsDiv = document.getElementById('setup-urls');
             const operators = ['gcc2024', 'operator123', 'admin2024', 'restore_admin', 'conference_admin', 'itav_operator'];
             
@@ -173,6 +218,12 @@
                     urlsDiv.appendChild(urlDiv);
                 } catch (error) {
                     console.error('Error generating setup URL for', operator, error);
+                    const errorDiv = document.createElement('div');
+                    errorDiv.innerHTML = `
+                        <p><strong>${operator}:</strong> <span style="color: #ff4444;">Error generating URL</span></p>
+                        <hr style="border-color: #333;">
+                    `;
+                    urlsDiv.appendChild(errorDiv);
                 }
             });
         }
