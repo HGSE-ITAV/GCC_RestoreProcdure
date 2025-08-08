@@ -50,6 +50,12 @@ body {
     overflow-x: hidden;
     position: relative;
     
+    /* Mobile optimizations */
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    touch-action: manipulation;
+    
     /* CRT Text Effects */
     text-shadow: 
         0 0 5px var(--crt-green),
@@ -1454,88 +1460,415 @@ footer {
    RESPONSIVE DESIGN - MOBILE OPTIMIZATION
    ======================================== */
 
-@media (max-width: 768px) {
+/* Base mobile optimizations */
+@media (max-width: 768px) and (orientation: portrait) {
     body {
         font-size: 16px;
-        padding: 1rem;
+        padding: 0.5rem;
+        line-height: 1.5;
+        min-height: 100vh;
+        overflow-x: hidden;
     }
     
-    .waiting-container {
-        padding: 2rem 1.5rem;
-        margin: 1rem;
-        max-width: calc(100vw - 2rem);
+    /* Header optimization for mobile */
+    header {
+        padding: 1rem 0.5rem;
+        margin-bottom: 1rem;
     }
     
-    .waiting-container h2 {
+    header h1 {
         font-size: 1.8rem;
-        margin-bottom: 1.5rem;
-        flex-direction: column;
-        gap: 0.5rem;
+        margin: 0;
+        word-break: break-word;
     }
     
-    #waiting-user-name {
-        font-size: 1.3rem;
-        margin-bottom: 1.5rem;
-        padding: 0.8rem;
+    .purpose {
+        font-size: 0.9rem;
+        margin: 0.5rem 0;
+        padding: 0 0.5rem;
     }
     
-    .waiting-message {
-        font-size: 1.1rem;
-        line-height: 1.6;
-        padding: 1.2rem;
-        margin-bottom: 2rem;
+    /* App container mobile optimization */
+    #app {
+        width: 100%;
+        max-width: 100vw;
+        padding: 0;
+        margin: 0;
     }
     
-    .waiting-status {
-        padding: 1.5rem;
-        margin: 2rem 0;
-    }
-    
-    .status-info {
-        padding: 1.5rem;
-    }
-    
-    .cancel-btn {
-        padding: 0.8rem 1.5rem;
-        font-size: 1.1rem;
-        margin-top: 2rem;
-        gap: 0.8rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .waiting-container {
+    /* Auth screen mobile */
+    .auth-container {
         padding: 1.5rem 1rem;
-        border-radius: 10px;
+        margin: 0.5rem;
+        max-width: calc(100vw - 1rem);
+        min-height: auto;
+    }
+    
+    .access-instructions {
+        font-size: 0.95rem;
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+    
+    /* Name input screen mobile */
+    .name-container {
+        padding: 1.5rem 1rem;
+        margin: 0.5rem;
+        max-width: calc(100vw - 1rem);
+    }
+    
+    .name-container h2 {
+        font-size: 1.6rem;
+        margin-bottom: 1rem;
+    }
+    
+    .input-group label {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .input-group input {
+        font-size: 16px; /* Prevents zoom on iOS */
+        padding: 0.8rem;
+        border-radius: 6px;
+        width: 100%;
+    }
+    
+    .submit-btn {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.1rem;
+        margin-top: 1.5rem;
+        border-radius: 6px;
+    }
+    
+    /* Waiting screen mobile optimization */
+    #waiting-screen {
+        padding: 1rem 0.5rem;
+        align-items: flex-start;
+        padding-top: 10vh;
+    }
+    
+    .waiting-container {
+        padding: 2rem 1rem;
+        margin: 0.5rem;
+        max-width: calc(100vw - 1rem);
+        min-height: auto;
+        border-radius: 12px;
     }
     
     .waiting-container h2 {
         font-size: 1.6rem;
-        letter-spacing: 1px;
+        margin-bottom: 1.5rem;
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
     }
     
     #waiting-user-name {
         font-size: 1.2rem;
-        padding: 0.6rem;
+        margin-bottom: 1.5rem;
+        padding: 0.8rem;
+        word-break: break-word;
     }
     
     .waiting-message {
         font-size: 1rem;
+        line-height: 1.6;
         padding: 1rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    
+    .waiting-animation {
+        margin: 2rem 0;
+        height: 60px;
+    }
+    
+    .waiting-status {
+        padding: 1.2rem;
+        margin: 2rem 0;
+        border-radius: 8px;
     }
     
     .waiting-status p {
-        font-size: 1rem;
-        margin: 1rem 0;
+        font-size: 0.95rem;
+        margin: 0.8rem 0;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.3rem;
+        text-align: center;
+    }
+    
+    .status-info {
+        padding: 1.2rem;
+        margin-bottom: 1.5rem;
+        border-radius: 8px;
+    }
+    
+    .status-info p {
+        font-size: 0.95rem;
+        margin: 0.8rem 0;
+        flex-direction: column;
+        gap: 0.3rem;
     }
     
     .cancel-btn {
-        padding: 0.7rem 1.2rem;
+        width: 100%;
+        padding: 1rem;
         font-size: 1rem;
-        flex-direction: column;
+        margin-top: 2rem;
         gap: 0.5rem;
+        border-radius: 6px;
+    }
+    
+    /* Survey screen mobile */
+    .toggle-group {
+        gap: 1rem;
+    }
+    
+    .toggle-group label {
+        font-size: 0.95rem;
+        padding: 1rem;
+        line-height: 1.4;
+    }
+    
+    /* Step screen mobile */
+    #step-header h2 {
+        font-size: 1.4rem;
+        margin-bottom: 1rem;
+    }
+    
+    #step-instructions {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        padding: 1rem;
+    }
+    
+    .navigation-buttons {
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .navigation-buttons button {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1rem;
+    }
+}
+
+/* Small mobile devices (phones in portrait) */
+@media (max-width: 480px) and (orientation: portrait) {
+    body {
+        font-size: 14px;
+        padding: 0.25rem;
+    }
+    
+    header h1 {
+        font-size: 1.6rem;
+    }
+    
+    .purpose {
+        font-size: 0.85rem;
+    }
+    
+    .waiting-container {
+        padding: 1.5rem 0.8rem;
+        margin: 0.25rem;
+        border-radius: 10px;
+        max-width: calc(100vw - 0.5rem);
+    }
+    
+    .waiting-container h2 {
+        font-size: 1.4rem;
+        letter-spacing: 1px;
+        margin-bottom: 1rem;
+    }
+    
+    #waiting-user-name {
+        font-size: 1.1rem;
+        padding: 0.6rem;
+        margin-bottom: 1rem;
+    }
+    
+    .waiting-message {
+        font-size: 0.9rem;
+        padding: 0.8rem;
+        margin-bottom: 1rem;
+    }
+    
+    .waiting-status {
+        padding: 1rem;
+        margin: 1.5rem 0;
+    }
+    
+    .waiting-status p {
+        font-size: 0.9rem;
+        margin: 0.6rem 0;
+    }
+    
+    .status-info {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .status-info p {
+        font-size: 0.9rem;
+        margin: 0.6rem 0;
+    }
+    
+    .cancel-btn {
+        padding: 0.8rem;
+        font-size: 0.95rem;
+        margin-top: 1.5rem;
+        gap: 0.3rem;
+    }
+    
+    /* Touch-friendly improvements */
+    button, input, select, textarea {
+        min-height: 44px; /* Apple's recommended touch target size */
+    }
+    
+    /* Prevent horizontal scroll */
+    * {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Optimize form elements */
+    .input-group input {
+        font-size: 16px; /* Prevents zoom */
+        padding: 0.7rem;
+    }
+    
+    .auth-container, .name-container {
+        padding: 1rem 0.8rem;
+        margin: 0.25rem;
+    }
+    
+    .toggle-group label {
+        font-size: 0.9rem;
+        padding: 0.8rem;
+    }
+}
+
+/* ========================================
+   MOBILE TOUCH & ACCESSIBILITY OPTIMIZATIONS
+   ======================================== */
+
+/* Touch-friendly interactions for all mobile devices */
+@media (max-width: 768px) {
+    /* Increase touch targets */
+    button, .btn, input[type="submit"], input[type="button"] {
+        min-height: 48px;
+        min-width: 48px;
+        padding: 0.8rem 1.2rem;
+    }
+    
+    /* Improve form inputs */
+    input[type="text"], input[type="email"], input[type="password"], 
+    input[type="number"], select, textarea {
+        min-height: 48px;
+        font-size: 16px; /* Prevents zoom on iOS */
+        padding: 0.8rem;
+        border-radius: 6px;
+    }
+    
+    /* Improve checkbox and radio targets */
+    input[type="checkbox"], input[type="radio"] {
+        min-height: 20px;
+        min-width: 20px;
+        margin-right: 0.8rem;
+    }
+    
+    /* Better spacing for mobile */
+    .form-group, .input-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Improve readability */
+    p, .waiting-message, .access-instructions {
+        line-height: 1.6;
+        margin-bottom: 1.2rem;
+    }
+    
+    /* Prevent text overflow */
+    h1, h2, h3, h4, h5, h6 {
+        word-wrap: break-word;
+        hyphens: auto;
+    }
+}
+
+/* Portrait mode specific optimizations */
+@media (max-width: 768px) and (orientation: portrait) {
+    /* Optimize waiting screen for tall screens */
+    #waiting-screen {
+        justify-content: flex-start;
+        padding-top: 5vh;
+    }
+    
+    .waiting-container {
+        max-height: 85vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Optimize survey screen for mobile */
+    #survey-screen {
+        padding: 1rem 0.5rem;
+    }
+    
+    #survey-screen h2 {
+        font-size: 1.4rem;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+    
+    /* Step screen mobile optimization */
+    #step-screen {
+        padding: 1rem 0.5rem;
+        overflow-y: auto;
+        max-height: 100vh;
+    }
+    
+    #step-instructions {
+        max-height: 60vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Very small screens (smaller phones) */
+@media (max-width: 360px) and (orientation: portrait) {
+    body {
+        font-size: 14px;
+        padding: 0.25rem;
+    }
+    
+    .waiting-container {
+        padding: 1rem 0.5rem;
+        margin: 0.25rem;
+        border-radius: 8px;
+    }
+    
+    .waiting-container h2 {
+        font-size: 1.2rem;
+        margin-bottom: 0.8rem;
+    }
+    
+    #waiting-user-name {
+        font-size: 1rem;
+        padding: 0.5rem;
+    }
+    
+    .waiting-message {
+        font-size: 0.85rem;
+        padding: 0.6rem;
+    }
+    
+    .cancel-btn {
+        padding: 0.6rem;
+        font-size: 0.9rem;
     }
 }
 
