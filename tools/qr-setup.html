@@ -127,72 +127,75 @@
         </div>
     </div>
 
-    <!-- Use QR.js library for reliable QR code generation -->
-    <script src="https://unpkg.com/qr-code-generator@1.4.4/js/qrcodegen.js"></script>
+    <!-- Use QRious library for reliable QR code generation -->
+    <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
     <script src="../src/js/mfa-service.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            try {
-                const mfaService = new MFAService();
-                generateQRCodes(mfaService);
-            } catch (error) {
-                console.error('Failed to initialize MFA service:', error);
-                document.getElementById('operators-container').innerHTML = 
-                    '<p style="color: #ff4444;">Failed to load MFA service</p>';
-            }
+            // Wait a bit for libraries to load
+            setTimeout(() => {
+                try {
+                    const mfaService = new MFAService();
+                    generateQRCodes(mfaService);
+                } catch (error) {
+                    console.error('Failed to initialize MFA service:', error);
+                    document.getElementById('operators-container').innerHTML = 
+                        '<p style="color: #ff4444;">Failed to load MFA service</p>';
+                }
+            }, 100);
         });
 
         function generateQRCode(text, size = 200) {
             try {
-                // Generate QR code using qrcodegen library
-                const qr = qrcodegen.QrCode.encodeText(text, qrcodegen.QrCode.Ecc.MEDIUM);
-                
-                // Create canvas
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                const border = 4;
-                const scale = Math.floor((size - 2 * border) / qr.size);
-                canvas.width = canvas.height = qr.size * scale + 2 * border;
-                
-                // Fill white background
-                ctx.fillStyle = '#FFFFFF';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // Draw QR code
-                ctx.fillStyle = '#000000';
-                for (let y = 0; y < qr.size; y++) {
-                    for (let x = 0; x < qr.size; x++) {
-                        if (qr.getModule(x, y)) {
-                            ctx.fillRect(
-                                x * scale + border,
-                                y * scale + border,
-                                scale,
-                                scale
-                            );
-                        }
-                    }
+                // Check if QRious is available
+                if (typeof QRious === 'undefined') {
+                    console.error('QRious library not loaded');
+                    return createFallbackQR(text, size);
                 }
+
+                // Create QR code using QRious
+                const qr = new QRious({
+                    value: text,
+                    size: size,
+                    background: 'white',
+                    foreground: 'black',
+                    level: 'M'
+                });
                 
-                return canvas;
+                return qr.canvas;
+                
             } catch (error) {
                 console.error('QR generation error:', error);
-                // Fallback: create a simple placeholder
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = canvas.height = size;
-                
-                ctx.fillStyle = '#f0f0f0';
-                ctx.fillRect(0, 0, size, size);
-                ctx.fillStyle = '#333';
-                ctx.font = '16px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('QR Code', size/2, size/2 - 10);
-                ctx.fillText('Generation', size/2, size/2 + 10);
-                ctx.fillText('Error', size/2, size/2 + 30);
-                
-                return canvas;
+                return createFallbackQR(text, size);
             }
+        }
+
+        function createFallbackQR(text, size) {
+            // Create a fallback QR-like pattern
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.height = size;
+            
+            // Fill white background
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Create border
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, size, 10);
+            ctx.fillRect(0, size-10, size, 10);
+            ctx.fillRect(0, 0, 10, size);
+            ctx.fillRect(size-10, 0, 10, size);
+            
+            // Add text
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('QR Library', size/2, size/2 - 20);
+            ctx.fillText('Not Available', size/2, size/2);
+            ctx.fillText('Use Manual Setup', size/2, size/2 + 20);
+            
+            return canvas;
         }
 
         function generateQRCodes(mfaService) {
@@ -218,14 +221,14 @@
                             <p>Generating QR Code...</p>
                         </div>
                         <div class="url-text">
-                            <strong>Scan QR Code with Google Authenticator</strong><br>
+                            <strong>📱 Scan QR Code with Google Authenticator</strong><br>
                             Or enter manually:<br>
                             <strong>Account:</strong> ${operator.code}@gcc.conference.org<br>
-                            <strong>Secret Key:</strong> <span style="color: #00ffff; font-weight: bold;">${mfaService.operatorSecrets[operator.code].secret}</span><br>
+                            <strong>Secret Key:</strong> <span style="color: #00ffff; font-weight: bold; font-family: monospace;">${mfaService.operatorSecrets[operator.code].secret}</span><br>
                             <strong>Type:</strong> Time-based<br><br>
                             <details>
-                                <summary style="color: #00ff00; cursor: pointer;">Show Full URL</summary>
-                                <span style="font-size: 0.8em; word-break: break-all; color: #888;">${url}</span>
+                                <summary style="color: #00ff00; cursor: pointer;">📋 Show Full URL for Copy/Paste</summary>
+                                <textarea readonly style="width: 100%; height: 60px; background: #001100; color: #00ff00; border: 1px solid #444; margin-top: 10px; font-family: monospace; font-size: 10px;">${url}</textarea>
                             </details>
                         </div>
                         <button onclick="copySecret('${mfaService.operatorSecrets[operator.code].secret}')">📋 Copy Secret Key</button>
@@ -240,15 +243,21 @@
                         try {
                             const qrCanvas = generateQRCode(url, 200);
                             const qrContainer = document.getElementById(`qr-${operator.code}`);
-                            qrContainer.innerHTML = '<p><strong>Scan with Google Authenticator</strong></p>';
+                            
+                            if (typeof QRious !== 'undefined') {
+                                qrContainer.innerHTML = '<p><strong>📱 Scan with Google Authenticator</strong></p>';
+                            } else {
+                                qrContainer.innerHTML = '<p><strong>⚠️ QR Library Not Available - Use Manual Setup</strong></p>';
+                            }
+                            
                             qrContainer.appendChild(qrCanvas);
                             qrContainer.style.textAlign = 'center';
                         } catch (error) {
                             console.error('Failed to generate QR for', operator.code, error);
                             const qrContainer = document.getElementById(`qr-${operator.code}`);
-                            qrContainer.innerHTML = '<p style="color: #ff4444;">QR generation failed - use manual setup</p>';
+                            qrContainer.innerHTML = '<p style="color: #ff4444;">⚠️ QR generation failed - use manual setup below</p>';
                         }
-                    }, 100);
+                    }, 200 * (operators.indexOf(operator) + 1)); // Stagger generation
                     
                 } catch (error) {
                     console.error('Error setting up', operator.code, error);
@@ -265,7 +274,7 @@
 
         function copySecret(secret) {
             navigator.clipboard.writeText(secret).then(function() {
-                alert('Secret key copied! Paste this into Google Authenticator.');
+                alert('✅ Secret key copied!\n\nNow in Google Authenticator:\n1. Tap + \n2. Tap "Enter a setup key"\n3. Paste the secret');
             }, function(err) {
                 console.error('Could not copy text: ', err);
                 // Fallback for older browsers
@@ -275,9 +284,9 @@
                 textArea.select();
                 try {
                     document.execCommand('copy');
-                    alert('Secret key copied! Paste this into Google Authenticator.');
+                    alert('✅ Secret key copied!\n\nNow in Google Authenticator:\n1. Tap + \n2. Tap "Enter a setup key"\n3. Paste the secret');
                 } catch (err) {
-                    alert(`Please copy this secret key manually: ${secret}`);
+                    alert(`❌ Copy failed. Please copy manually:\n\n${secret}`);
                 }
                 document.body.removeChild(textArea);
             });
@@ -285,7 +294,7 @@
 
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(function() {
-                alert('URL copied to clipboard!');
+                alert('✅ URL copied to clipboard!');
             }, function(err) {
                 console.error('Could not copy text: ', err);
                 // Fallback for older browsers
@@ -295,9 +304,9 @@
                 textArea.select();
                 try {
                     document.execCommand('copy');
-                    alert('URL copied to clipboard!');
+                    alert('✅ URL copied to clipboard!');
                 } catch (err) {
-                    alert('Failed to copy URL. Please copy manually from the text above.');
+                    alert('❌ Failed to copy URL. Please copy manually from the text area above.');
                 }
                 document.body.removeChild(textArea);
             });
