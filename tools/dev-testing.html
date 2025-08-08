@@ -428,8 +428,8 @@
         function testTokenValidation() {
             log('🎫 Testing token validation...');
             
-            const validToken = 'index.html?token=gcc_access_2024';
-            const invalidToken = 'index.html?token=invalid_token_123';
+            const validToken = '../index.html?token=gcc_access_2024';
+            const invalidToken = '../index.html?token=invalid_token_123';
             
             window.open(validToken, '_blank');
             setTimeout(() => window.open(invalidToken, '_blank'), 1000);
