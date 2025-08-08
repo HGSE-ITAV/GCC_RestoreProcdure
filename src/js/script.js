@@ -885,6 +885,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function restartApp() {
+        console.log('🔄 restartApp() called from script.js');
+        
         // Reset state
         state.currentUserIssue = null;
         state.stepsToShow = [];
@@ -910,10 +912,13 @@ document.addEventListener('DOMContentLoaded', () => {
         startRecoveryBtn.disabled = true;
         nextBtn.disabled = false; // Reset next button state
         
-        // Check authentication before showing main app
-        if (authManager.hasValidSession()) {
-            showMainApp();
+        // Use UserApp's restart method which handles token validation properly
+        if (window.userApp && typeof window.userApp.restartProcedure === 'function') {
+            console.log('🚀 Calling UserApp.restartProcedure()');
+            window.userApp.restartProcedure();
         } else {
+            console.log('⚠️ UserApp not available, falling back to auth screen');
+            // Fallback if UserApp isn't available
             showAuthScreen();
         }
     }

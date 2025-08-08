@@ -1337,6 +1337,34 @@ class UserApp {
         
         console.log('✅ Survey button state management setup complete');
     }
+
+    restartProcedure() {
+        console.log('🔄 Restarting procedure...');
+        
+        // Stop any active monitoring
+        this.stopStatusMonitoring();
+        
+        // Clear current state
+        this.currentUser = null;
+        this.currentRequestId = null;
+        this.selectedIssue = null;
+        
+        // Clear any timers or intervals
+        if (this.statusCheckInterval) {
+            clearInterval(this.statusCheckInterval);
+            this.statusCheckInterval = null;
+        }
+        
+        // Re-run the authentication flow
+        // This will check URL parameters and handle token validation
+        this.checkURLParameters().then(() => {
+            console.log('✅ Restart completed - authentication flow restarted');
+        }).catch(error => {
+            console.error('❌ Error during restart:', error);
+            // Fallback to showing auth screen
+            this.showAuthScreen();
+        });
+    }
 }
 
 // Initialize the app when DOM is ready
