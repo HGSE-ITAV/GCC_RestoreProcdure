@@ -1344,9 +1344,7 @@ class UserApp {
         // Stop any active monitoring
         this.stopStatusMonitoring();
         
-        // Clear current state
-        this.currentUser = null;
-        this.currentRequestId = null;
+        // Clear only procedure-specific state, but keep authentication state
         this.selectedIssue = null;
         
         // Clear any timers or intervals
@@ -1355,13 +1353,58 @@ class UserApp {
             this.statusCheckInterval = null;
         }
         
-        // Re-run the authentication flow
-        // This will check URL parameters and handle token validation
+        // Check if we have a valid token and existing request
+        if (this.accessToken && this.currentRequestId) {
+            console.log('🔑 Existing token found, checking if request is still valid...');
+            console.log('🔍 Token:', this.accessToken);
+            console.log('🔍 Request ID:', this.currentRequestId);
+            
+            // Check if the existing request is still valid and granted
+            window.dataService.getRequestStatus(this.currentRequestId)
+                .then(result => {
+                    console.log('📊 Existing request status:', result);
+                    
+                    if (result.found && result.status === 'granted') {
+                        console.log('✅ Existing request is still valid and granted - going to survey screen');
+                        this.showSurveyScreen();
+                    } else {
+                        console.log('⚠️ Existing request not found or not granted - starting fresh auth flow');
+                        this.startFreshAuthFlow();
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Error checking existing request:', error);
+                    this.startFreshAuthFlow();
+                });
+        } else if (this.accessToken) {
+            console.log('🔑 Token exists but no request ID - validating token and processing');
+            // We have a token but no request, reprocess the token
+            this.processQRCodeAccess(this.accessToken)
+                .then(() => {
+                    console.log('✅ Token reprocessing completed');
+                })
+                .catch(error => {
+                    console.error('❌ Error reprocessing token:', error);
+                    this.startFreshAuthFlow();
+                });
+        } else {
+            console.log('ℹ️ No token found - starting fresh authentication flow');
+            this.startFreshAuthFlow();
+        }
+    }
+    
+    startFreshAuthFlow() {
+        console.log('🆕 Starting fresh authentication flow');
+        // Clear all state
+        this.currentUser = null;
+        this.currentRequestId = null;
+        this.accessToken = null;
+        
+        // Check URL parameters or show auth screen
         this.checkURLParameters().then(() => {
-            console.log('✅ Restart completed - authentication flow restarted');
+            console.log('✅ Fresh auth flow completed');
         }).catch(error => {
-            console.error('❌ Error during restart:', error);
-            // Fallback to showing auth screen
+            console.error('❌ Error in fresh auth flow:', error);
             this.showAuthScreen();
         });
     }
