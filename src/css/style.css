@@ -954,16 +954,16 @@ header h1 {
     bottom: 0;
     width: 100vw;
     height: 100vh;
-    background: var(--background);
+    background: var(--crt-black);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1001;
+    z-index: 9999;
     padding: 2rem;
 }
 
 .waiting-container {
-    background: rgba(0, 20, 0, 0.95);
+    background: rgba(0, 0, 0, 1);
     border: 3px solid var(--crt-green);
     border-radius: 15px;
     padding: 3rem;
@@ -976,6 +976,7 @@ header h1 {
     animation: terminalGlow 2s ease-in-out infinite alternate;
     position: relative;
     backdrop-filter: blur(5px);
+    margin: auto;
 }
 
 .waiting-container h2 {

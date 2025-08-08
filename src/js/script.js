@@ -420,6 +420,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showTokenProcessing() {
+        // Restore header and footer
+        toggleHeaderFooter(true);
+        
         authScreen.style.setProperty('display', 'flex', 'important');
         authScreen.style.visibility = 'visible';
         tokenProcessing.style.display = 'block';
@@ -433,6 +436,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showAuthScreen() {
         console.log('🔍 showAuthScreen() called');
+        
+        // Restore header and footer
+        toggleHeaderFooter(true);
+        
         authScreen.style.setProperty('display', 'flex', 'important');
         authScreen.style.visibility = 'visible';
         nameInputScreen.style.setProperty('display', 'none', 'important');
@@ -486,15 +493,37 @@ document.addEventListener('DOMContentLoaded', () => {
         
     }
 
+    // Helper function to manage header/footer visibility
+    function toggleHeaderFooter(show = true) {
+        const header = document.querySelector('header');
+        const footer = document.querySelector('footer');
+        
+        if (show) {
+            if (header) header.style.removeProperty('display');
+            if (footer) footer.style.removeProperty('display');
+        } else {
+            if (header) header.style.setProperty('display', 'none', 'important');
+            if (footer) footer.style.setProperty('display', 'none', 'important');
+        }
+    }
+
     function showWaitingScreen(userName) {
         console.log('showWaitingScreen() called for user:', userName);
+        
+        // Hide all screen elements
         authScreen.style.setProperty('display', 'none', 'important');
         nameInputScreen.style.setProperty('display', 'none', 'important');
-        waitingScreen.style.display = 'block';
         accessGrantedScreen.style.display = 'none';
         surveyScreen.style.display = 'none';
         stepScreen.style.display = 'none';
         summaryScreen.style.display = 'none';
+        
+        // Hide header and footer completely
+        toggleHeaderFooter(false);
+        
+        // Show waiting screen with highest priority
+        waitingScreen.style.setProperty('display', 'flex', 'important');
+        waitingScreen.style.setProperty('z-index', '99999', 'important');
         
         // Set user name in waiting screen
         waitingUserName.textContent = `Hello, ${userName}`;
@@ -508,6 +537,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function showMainApp() {
         console.log('showMainApp() called');
         clearAuthError(); // Clear any error messages when transitioning
+        
+        // Restore header and footer
+        toggleHeaderFooter(true);
+        
         console.log('authScreen before:', authScreen.style.display);
         authScreen.style.setProperty('display', 'none', 'important');
         authScreen.style.visibility = 'hidden';
