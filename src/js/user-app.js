@@ -683,12 +683,8 @@ class UserApp {
     handleQRNameSubmission(userName) {
         console.log('📤 Processing QR name submission for:', userName);
         
-        // Store the user's name
-        this.currentUser = {
-            name: userName,
-            timestamp: new Date().toISOString(),
-            accessToken: this.currentAccessToken
-        };
+        // Store the user's name and token
+        this.currentUser = userName;
         
         // Hide the form
         const form = document.getElementById('qr-name-form');
@@ -696,8 +692,88 @@ class UserApp {
             form.remove();
         }
         
-        // Proceed with location collection and submission
-        this.handleNameSubmission({ preventDefault: () => {} });
+        // Show processing state
+        this.showRequestProcessing();
+        
+        // Submit the request directly to Firebase
+        this.submitQRRequest(userName);
+    }
+    
+    async submitQRRequest(userName) {
+        try {
+            console.log('📤 Submitting QR access request for:', userName);
+            console.log('🔑 Using token:', this.accessToken);
+            console.log('🔍 Checking DataService availability:', !!window.dataService);
+            
+            if (!window.dataService) {
+                throw new Error('DataService not available');
+            }
+            
+            const requestData = {
+                userName: userName,
+                token: this.accessToken || 'qr_direct_access',
+                source: 'qr_code',
+                qrToken: this.accessToken,
+                timestamp: new Date().toISOString()
+            };
+
+            console.log('📊 QR Request data:', requestData);
+            const result = await window.dataService.submitRequest(requestData);
+            console.log('✅ QR Submit result:', result);
+            
+            if (result.success) {
+                this.currentRequestId = result.requestId;
+                console.log('🎯 QR Request submitted successfully, ID:', result.requestId);
+                console.log('📋 Full QR request details:', result.request);
+                this.showWaitingScreen();
+                this.startStatusMonitoring();
+            } else {
+                throw new Error(result.error || 'Failed to submit QR request');
+            }
+        } catch (error) {
+            console.error('❌ Error submitting QR request:', error);
+            
+            // Show error in the QR form area instead of regular name input area
+            this.showQRError(`Error submitting request: ${error.message}`);
+        }
+    }
+    
+    showQRError(message) {
+        console.log('🚨 Showing QR error:', message);
+        
+        // Remove any existing form
+        const existingForm = document.getElementById('qr-name-form');
+        if (existingForm) {
+            existingForm.remove();
+        }
+        
+        // Create error display
+        const app = document.getElementById('app');
+        if (app) {
+            const errorHTML = `
+                <div id="qr-error-form" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+                                              background: #0D1117; display: flex; justify-content: center; align-items: center; 
+                                              z-index: 10000; padding: 2rem; box-sizing: border-box;">
+                    <div style="background: rgba(0, 0, 0, 0.9); border: 2px solid #e74c3c; border-radius: 10px; 
+                               padding: 3rem; max-width: 500px; width: 100%; text-align: center; 
+                               box-shadow: 0 0 30px rgba(231, 76, 60, 0.3);">
+                        <h2 style="color: #e74c3c; margin-bottom: 1rem; font-size: 1.8rem; font-family: 'Source Code Pro', monospace;">
+                            <i class="fas fa-exclamation-triangle"></i> Request Error
+                        </h2>
+                        <p style="color: #FF6B6B; margin-bottom: 2rem; font-family: 'Source Code Pro', monospace;">
+                            ${message}
+                        </p>
+                        <button onclick="window.location.reload()" 
+                                style="background: linear-gradient(45deg, #e74c3c, #c0392b); color: white; border: none; 
+                                       padding: 12px 24px; border-radius: 5px; cursor: pointer; font-size: 1rem;
+                                       font-family: 'Source Code Pro', monospace; margin-top: 1rem;">
+                            <i class="fas fa-refresh"></i> Retry
+                        </button>
+                    </div>
+                </div>
+            `;
+            app.insertAdjacentHTML('beforeend', errorHTML);
+        }
     }
 
     createNameInputScreen() {
