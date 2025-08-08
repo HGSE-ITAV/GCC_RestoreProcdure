@@ -611,7 +611,6 @@ class AdminApp {
 
     showDashboard() {
         document.getElementById('operator-auth').style.display = 'none';
-        document.getElementById('operator-mfa').style.display = 'none';
         document.getElementById('operator-dashboard').style.display = 'block';
     }
 
