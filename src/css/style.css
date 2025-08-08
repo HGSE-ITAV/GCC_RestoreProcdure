@@ -4,6 +4,7 @@
     --background: #0D1117; /* GitHub Dark-like black */
     --text-color: #33FF33; /* Bright Green */
     --border-color: #008000; /* Dark Green */
+    --primary-color: #2ecc71; /* Green for primary elements */
     --highlight-bg: #008000;
     --highlight-text: #0D1117;
     --disabled-color: #555;
@@ -552,6 +553,13 @@ header h1 {
     align-items: center;
     z-index: 1001;
     padding: 2rem;
+}
+
+/* Force visibility when displayed */
+#name-input-screen[style*="block"] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .name-container {

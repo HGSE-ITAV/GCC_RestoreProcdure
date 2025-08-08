@@ -327,31 +327,84 @@ class UserApp {
 
     showNameInput() {
         console.log('🔍 DEBUG: showNameInput() called');
+        
+        // Force hide all screens first
         this.hideAllScreens();
-        document.getElementById('name-input-screen').style.display = 'block';
         
-        console.log('🔍 DEBUG: Name input screen should be visible');
-        
-        // Rebuild name form if it's empty
-        const nameForm = document.getElementById('name-form');
-        if (!nameForm.innerHTML.trim()) {
-            console.log('🔍 DEBUG: Rebuilding name form HTML');
-            nameForm.innerHTML = `
-                <div class="input-group">
-                    <label for="user-name">Your Name:</label>
-                    <input type="text" id="user-name" placeholder="Enter your full name" required maxlength="50">
-                </div>
-                <button type="submit" class="submit-btn">
-                    <i class="fas fa-arrow-right"></i> Request Access
-                </button>
-            `;
+        // Get the name input screen element
+        const nameInputScreen = document.getElementById('name-input-screen');
+        if (!nameInputScreen) {
+            console.error('❌ ERROR: name-input-screen element not found!');
+            return;
         }
         
-        // Focus on name input
+        // Force display the screen
+        nameInputScreen.style.display = 'block';
+        nameInputScreen.style.visibility = 'visible';
+        nameInputScreen.style.opacity = '1';
+        
+        console.log('🔍 DEBUG: Name input screen display set to block');
+        
+        // Ensure the name form exists and is properly structured
+        const nameForm = document.getElementById('name-form');
+        if (!nameForm) {
+            console.error('❌ ERROR: name-form element not found!');
+            return;
+        }
+        
+        // Always rebuild the form to ensure it's fresh
+        console.log('🔍 DEBUG: Rebuilding name form HTML');
+        nameForm.innerHTML = `
+            <div class="input-group">
+                <label for="user-name">Your Name:</label>
+                <input type="text" id="user-name" placeholder="Enter your full name" required maxlength="50">
+            </div>
+            <button type="submit" class="submit-btn">
+                <i class="fas fa-arrow-right"></i> Request Access
+            </button>
+        `;
+        
+        // Re-attach event listener to the form
+        nameForm.removeEventListener('submit', this.handleNameSubmission);
+        nameForm.addEventListener('submit', (e) => this.handleNameSubmission(e));
+        
+        console.log('🔍 DEBUG: Form event listener attached');
+        
+        // Clear any existing errors
+        const errorElement = document.getElementById('name-error');
+        if (errorElement) {
+            errorElement.style.display = 'none';
+            errorElement.textContent = '';
+        }
+        
+        // Focus on name input after a short delay
         setTimeout(() => {
             const nameInput = document.getElementById('user-name');
-            if (nameInput) nameInput.focus();
-        }, 100);
+            if (nameInput) {
+                nameInput.focus();
+                console.log('🔍 DEBUG: Focus set on name input field');
+            } else {
+                console.error('❌ ERROR: user-name input field not found after rebuild!');
+            }
+        }, 200);
+        
+        // Final verification
+        setTimeout(() => {
+            const isVisible = nameInputScreen.style.display === 'block';
+            const formExists = document.getElementById('name-form') !== null;
+            const inputExists = document.getElementById('user-name') !== null;
+            
+            console.log('🔍 DEBUG: Final verification:');
+            console.log(`  - Screen visible: ${isVisible}`);
+            console.log(`  - Form exists: ${formExists}`);
+            console.log(`  - Input exists: ${inputExists}`);
+            
+            if (!isVisible || !formExists || !inputExists) {
+                console.error('❌ ERROR: Name input screen not properly displayed!');
+                // Force show with alert as backup
+                alert('Ready to enter your name! Please check the form below.');
+            }
+        }, 500);
     }
 
     showWaitingScreen() {
