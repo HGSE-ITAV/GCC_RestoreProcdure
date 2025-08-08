@@ -773,6 +773,12 @@ header h1 {
 /* Typewriter effect for step titles with word wrapping */
 #step-title {
     position: relative;
+    font-size: 1.8rem;
+    color: var(--crt-bright-green);
+    text-shadow: 0 0 3px rgba(102, 255, 102, 0.8);
+    margin: 0 0 0.5rem 0;
+    line-height: 1.4;
+    word-wrap: break-word;
 }
 
 /* --- Survey Screen --- */
@@ -814,17 +820,93 @@ header h1 {
 }
 
 /* --- Step Screen --- */
+#step-header {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: rgba(77, 212, 77, 0.08);
+    border: 2px solid var(--crt-green);
+    border-radius: 8px;
+    box-shadow: inset 0 0 10px rgba(77, 212, 77, 0.1);
+}
+
 #step-counter {
     font-weight: bold;
-    color: var(--border-color);
+    color: var(--crt-amber);
+    font-size: 1.2rem;
+    text-shadow: 0 0 2px rgba(255, 176, 0, 0.7);
+    margin: 0;
 }
 
 #step-instructions {
-    font-size: 1.1rem;
-    min-height: 150px;
-    border: 1px solid var(--border-color);
-    padding: 1rem;
-    margin-top: 1rem;
+    font-size: 1.3rem;
+    line-height: 1.7;
+    min-height: 200px;
+    border: 2px solid var(--crt-green);
+    border-radius: 8px;
+    padding: 2rem;
+    margin-top: 1.5rem;
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--crt-white);
+    font-family: 'Share Tech Mono', 'Courier New', monospace;
+    text-shadow: 0 0 2px rgba(224, 224, 224, 0.8);
+    box-shadow: 
+        inset 0 0 10px rgba(77, 212, 77, 0.1),
+        0 0 15px rgba(77, 212, 77, 0.2);
+    max-height: 70vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Improve readability of content within step instructions */
+#step-instructions h3, #step-instructions h4 {
+    color: var(--crt-bright-green);
+    font-size: 1.4rem;
+    margin: 1.5rem 0 1rem 0;
+    text-shadow: 0 0 3px rgba(102, 255, 102, 0.6);
+    border-bottom: 1px solid var(--crt-green);
+    padding-bottom: 0.5rem;
+}
+
+#step-instructions p {
+    margin: 1rem 0;
+    line-height: 1.8;
+    color: var(--crt-white);
+    text-shadow: 0 0 1px rgba(224, 224, 224, 0.6);
+}
+
+#step-instructions ul, #step-instructions ol {
+    margin: 1rem 0;
+    padding-left: 2rem;
+    line-height: 1.8;
+}
+
+#step-instructions li {
+    margin: 0.8rem 0;
+    color: var(--crt-white);
+    text-shadow: 0 0 1px rgba(224, 224, 224, 0.6);
+}
+
+#step-instructions strong, #step-instructions b {
+    color: var(--crt-amber);
+    text-shadow: 0 0 2px rgba(255, 176, 0, 0.7);
+    font-weight: bold;
+}
+
+#step-instructions em, #step-instructions i {
+    color: var(--crt-cyan);
+    text-shadow: 0 0 2px rgba(77, 204, 204, 0.6);
+    font-style: italic;
+}
+
+/* Improve code blocks and technical references */
+#step-instructions code, #step-instructions .code {
+    background: rgba(77, 212, 77, 0.1);
+    color: var(--crt-bright-green);
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    font-family: 'VT323', 'Courier New', monospace;
+    text-shadow: 0 0 2px rgba(102, 255, 102, 0.8);
+    border: 1px solid var(--crt-green);
 }
 
 #timer-container {
@@ -1638,10 +1720,31 @@ footer {
         margin-bottom: 1rem;
     }
     
+    #step-title {
+        font-size: 1.5rem;
+        line-height: 1.3;
+    }
+    
+    #step-counter {
+        font-size: 1rem;
+    }
+    
     #step-instructions {
-        font-size: 0.95rem;
+        font-size: 1.1rem;
         line-height: 1.6;
-        padding: 1rem;
+        padding: 1.5rem;
+        margin-top: 1rem;
+        max-height: 60vh;
+    }
+    
+    #step-instructions h3, #step-instructions h4 {
+        font-size: 1.2rem;
+        margin: 1rem 0 0.8rem 0;
+    }
+    
+    #step-instructions p, #step-instructions li {
+        line-height: 1.7;
+        margin: 0.8rem 0;
     }
     
     .navigation-buttons {
@@ -1831,10 +1934,33 @@ footer {
         max-height: 100vh;
     }
     
+    #step-header {
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    #step-title {
+        font-size: 1.4rem;
+    }
+    
+    #step-counter {
+        font-size: 0.95rem;
+    }
+    
     #step-instructions {
         max-height: 60vh;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+        font-size: 1rem;
+        padding: 1.2rem;
+    }
+    
+    #step-instructions h3, #step-instructions h4 {
+        font-size: 1.1rem;
+    }
+    
+    #step-instructions p, #step-instructions li {
+        line-height: 1.6;
     }
 }
 
