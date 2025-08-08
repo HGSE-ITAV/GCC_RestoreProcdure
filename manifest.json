@@ -1,21 +1,23 @@
 {
-  "name": "GCC_RestoreProcdure",
+  "name": "GCC Restore Procedure",
   "short_name": "GCC_Restore",
-  "start_url": "index.html",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#A51C30",
-  "theme_color": "#A51C30",
+  "background_color": "#0D1117",
+  "theme_color": "#2ecc71",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "assets/icons/icon-192.png",
+      "src": "./assets/icons/icon-192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
-      "src": "assets/icons/icon-512.png",
+      "src": "./assets/icons/icon-512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ]
 }

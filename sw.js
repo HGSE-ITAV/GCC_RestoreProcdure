@@ -3,6 +3,7 @@ const urlsToCache = [
   '/GCC_RestoreProcdure/',
   '/GCC_RestoreProcdure/index.html',
   '/GCC_RestoreProcdure/operator.html',
+  '/GCC_RestoreProcdure/favicon.png',
   '/GCC_RestoreProcdure/assets/icons/icon-192.png',
   '/GCC_RestoreProcdure/assets/icons/icon-512.png',
   '/GCC_RestoreProcdure/assets/images/qr.png',
@@ -29,7 +30,15 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Opened cache');
-        return cache.addAll(urlsToCache);
+        // Try to cache all URLs, but don't fail if some are missing
+        return Promise.allSettled(
+          urlsToCache.map(url => 
+            cache.add(url).catch(err => {
+              console.log(`Failed to cache ${url}:`, err.message);
+              return null;
+            })
+          )
+        );
       })
   );
 });

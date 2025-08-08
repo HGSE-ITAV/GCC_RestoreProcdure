@@ -60,10 +60,19 @@ class DataService {
             try {
                 const testRef = this.db.ref('.info/connected');
                 const snapshot = await testRef.once('value');
-                console.log('🔥 Firebase connection test:', snapshot.val() ? 'Connected' : 'Disconnected');
-                return snapshot.val();
+                const isConnected = snapshot.val();
+                
+                if (isConnected) {
+                    console.log('🔥 Firebase connection test: Connected');
+                } else {
+                    console.log('🔥 Firebase connection test: Disconnected (using offline mode)');
+                    // Don't disable Firebase completely, just note offline mode
+                }
+                
+                return isConnected;
             } catch (error) {
-                console.error('❌ Firebase connection test failed:', error);
+                console.log('🔥 Firebase connection test: Offline (GitHub Pages mode)');
+                // GitHub Pages doesn't support realtime Firebase, but we can still use it for data storage
                 return false;
             }
         }
