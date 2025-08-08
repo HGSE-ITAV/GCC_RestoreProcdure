@@ -81,8 +81,10 @@ class AdminApp {
     async handleLogin(e) {
         e.preventDefault();
         
-        const operatorCode = document.getElementById('operator-code').value;
+        const operatorCode = document.getElementById('operator-code').value.trim();
         const errorElement = document.getElementById('operator-auth-error');
+        
+        console.log('🔍 Login attempt with code:', `"${operatorCode}"`, 'Length:', operatorCode.length);
         
         try {
             const isValid = await this.validateOperatorCode(operatorCode);
@@ -115,6 +117,9 @@ class AdminApp {
             'gcc2024', 'operator123', 'admin2024', 'restore_admin',
             'conference_admin', 'itav_operator'
         ];
+        
+        console.log('🔍 Validating code:', `"${code}"`, 'Valid codes:', validCodes);
+        console.log('🔍 Code includes check:', validCodes.includes(code));
         
         // Simulate API call delay
         await new Promise(resolve => setTimeout(resolve, 500));
