@@ -127,7 +127,6 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="../src/js/mfa-service.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -158,41 +157,33 @@
                     const section = document.createElement('div');
                     section.className = 'operator-section';
                     
+                    // Use Google Charts API for QR code generation
+                    const qrImageUrl = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(url)}`;
+                    
                     section.innerHTML = `
                         <h3>🔑 ${operator.name} (${operator.code})</h3>
-                        <div class="qr-container" id="qr-${operator.code}">
-                            <p>Generating QR Code...</p>
+                        <div class="qr-container">
+                            <img src="${qrImageUrl}" alt="QR Code for ${operator.name}" style="max-width: 200px; height: auto;">
+                            <p><strong>Scan with Google Authenticator</strong></p>
                         </div>
                         <div class="url-text">
                             <strong>Setup URL:</strong><br>
                             ${url}
                         </div>
-                        <button onclick="copyToClipboard('${url}')">📋 Copy URL</button>
+                        <button onclick="copyToClipboard('${url.replace(/'/g, "\\'")}')">📋 Copy URL</button>
+                        <button onclick="openInAuthenticator('${url.replace(/'/g, "\\'")}')">📱 Open in Authenticator</button>
                     `;
                     
                     container.appendChild(section);
-                    
-                    // Generate QR code
-                    QRCode.toCanvas(document.createElement('canvas'), url, {
-                        width: 200,
-                        margin: 2,
-                        color: {
-                            dark: '#000000',
-                            light: '#FFFFFF'
-                        }
-                    }, function(error, canvas) {
-                        if (error) {
-                            console.error('QR Code error:', error);
-                            document.getElementById(`qr-${operator.code}`).innerHTML = 
-                                '<p style="color: red;">QR Code generation failed</p>';
-                        } else {
-                            const qrContainer = document.getElementById(`qr-${operator.code}`);
-                            qrContainer.innerHTML = '';
-                            qrContainer.appendChild(canvas);
-                        }
-                    });
                 } catch (error) {
                     console.error('Error generating QR for', operator.code, error);
+                    const errorSection = document.createElement('div');
+                    errorSection.className = 'operator-section';
+                    errorSection.innerHTML = `
+                        <h3>🔑 ${operator.name} (${operator.code})</h3>
+                        <p style="color: #ff4444;">Error generating QR code for this operator</p>
+                    `;
+                    container.appendChild(errorSection);
                 }
             });
         }
@@ -202,8 +193,24 @@
                 alert('URL copied to clipboard!');
             }, function(err) {
                 console.error('Could not copy text: ', err);
-                alert('Failed to copy URL');
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    alert('URL copied to clipboard!');
+                } catch (err) {
+                    alert('Failed to copy URL. Please copy manually from the text above.');
+                }
+                document.body.removeChild(textArea);
             });
+        }
+
+        function openInAuthenticator(url) {
+            // Try to open the URL directly (works on mobile)
+            window.location.href = url;
         }
     </script>
 </body>
